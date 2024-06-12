@@ -1,0 +1,7 @@
+{
+  "name": "guardfinal",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}

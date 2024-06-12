@@ -1,0 +1,20 @@
+{    
+        "dashboard": "Dashboard",
+        "employeeNameAndID": "Employee Name and ID",
+        "shiftTimingDetails": "Shift Timing Details",
+        "punchIn": "Duty Start",
+        "punchOut": "Duty End",
+        "ticket": "Ticket",
+        "leave": "Leave",
+        "sos": "SOS",
+        "copyright": "Copyright | Guard App",
+        "routes": "Routes",
+        "selectRoute": "Select Route",
+        "startTrip": "Start Trip",
+        "LogIn" : "Log in",
+        "WelcomeGaurd" : "Welcome to Guard Commander",
+        "Employee ID" : "Employee ID",
+        "Employee Password" : "Employee Password",
+        "Login" : "Login",
+        "Helpline" : "Helpline"
+}
