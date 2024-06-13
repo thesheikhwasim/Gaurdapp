@@ -15,7 +15,7 @@ const Login: React.FC = () => {
 
   const [empid, setUsername] = useState<string>('');
   const [mpin, setPassword] = useState<string>('');
-  const [MobileNumber, setMobileNumber] = useState<string>('');
+  const [mobileNumber, setMobileNumber] = useState<any>('');
   const [isLoggedIn, setIsLoggedIn] = useState<any>(null);
 
   const { photos, takePhoto } = usePhotoGallery();
@@ -53,11 +53,10 @@ const Login: React.FC = () => {
       const formData = new FormData();
       formData.append('empid', empid);
       formData.append('mpin', mpin);
-      formData.append('mobile', MobileNumber);
+      formData.append('mobile', mobileNumber);
       formData.append('action', "login");
 
       const response = await loginApi(formData);
-
       if (response) {
 
         if (response.success) {
@@ -112,7 +111,7 @@ const Login: React.FC = () => {
                   type="text"
                   value={empid}
                   placeholder={t('Employee ID')}
-                  onIonChange={(e) => setUsername(e.detail.value!)}
+                  onIonInput={(e) => setUsername(e.detail.value!)}
                 />
               </IonItem>
               <IonItem className='ion-margin-bottom'>
@@ -120,19 +119,23 @@ const Login: React.FC = () => {
                   type="password"
                   value={mpin}
                   placeholder={t('Employee Password')}
-                  onIonChange={(e) => setPassword(e.detail.value!)}
+                  onIonInput={(e) => {
+                    setPassword(e.detail.value!);
+                  }}
                 />
               </IonItem>
               <IonItem className='ion-margin-bottom'>
                 <IonInput
                   type="number"
-                  value={MobileNumber}
+                  value={mobileNumber}
                   placeholder={t('Mobile Number')}
-                  onIonChange={(e) => setMobileNumber(e.detail.value!)}
+                  onIonInput={(e) => {
+                    setMobileNumber(e.detail.value!);
+                  }}
                 />
               </IonItem>
               <IonItem className='ion-margin-bottom'>
-                <IonButton expand="block" color="secondary" size="default" onClick={handleLogin}>{t('Login')}</IonButton>
+                <IonButton expand="block" color="secondary" size="default" onClick={()=> handleLogin()}>{t('Login')}</IonButton>
               </IonItem>
             </IonList>
           </IonCardContent>
