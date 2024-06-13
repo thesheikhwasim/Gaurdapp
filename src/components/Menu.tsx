@@ -33,6 +33,7 @@ const Menu: React.FC = () => {
 
   // State to check if user is logged in
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loggedUserData, setLoggedUserData] = useState();
 
   // Check login status every 500 milliseconds
   useEffect(() => {
@@ -41,6 +42,12 @@ const Menu: React.FC = () => {
       console.log('Login status:', loggedInStatus); // Debugging line
       setIsLoggedIn(loggedInStatus);
     };
+    const loggedUserData = localStorage.getItem('loggedInUser');
+    const loggedUserStatus = localStorage.getItem('isLoggedIn') === 'true';
+
+    if(loggedUserStatus){
+      setLoggedUserData(JSON.parse(loggedUserData));
+    }
 
     checkLoginStatus(); // Initial check
 
@@ -124,7 +131,16 @@ const Menu: React.FC = () => {
       <IonContent>
         <IonList id="inbox-list">
           <IonListHeader>{t('Guard App')}</IonListHeader>
-          {/* <IonNote>{t('Hi User')}</IonNote> */}
+          {isLoggedIn && <div className='userNameImageContainer'>
+            <div className='userImageDiv'>
+             <IonIcon icon={personCircleOutline} size="large"></IonIcon>
+            </div>
+            <div className='userNameDIv'>
+              {loggedUserData?.full_name}
+            </div>
+          </div>
+          }
+          {/* <IonNote>{loggedUserData?.full_name}</IonNote> */}
           {isLoggedIn ? (
             menuItems.map((appPage, index) => (
               <IonMenuToggle key={index} autoHide={false}>
