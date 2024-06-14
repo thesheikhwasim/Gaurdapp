@@ -17,6 +17,7 @@ const Login: React.FC = () => {
   const [mpin, setPassword] = useState<string>('');
   const [mobileNumber, setMobileNumber] = useState<any>('');
   const [isLoggedIn, setIsLoggedIn] = useState<any>(null);
+  const [btnEnabled, setBtnEnabled] = useState<boolean>(false);
 
   const { photos, takePhoto } = usePhotoGallery();
 
@@ -28,6 +29,10 @@ const Login: React.FC = () => {
       history.push('/pages/Dashboard');
     }
   }, [history]);
+
+  useEffect(() => {
+    formValidation();
+  }, [empid, mpin, mobileNumber]);
 
   const saveToStorage = () => {
     // Save data to local storage
@@ -45,6 +50,15 @@ const Login: React.FC = () => {
       console.error('Error:', error);
       return null;
     }
+  }
+
+  const formValidation = () => {
+    if(empid != '' && mpin != '' && mobileNumber != ''){
+      setBtnEnabled(true);
+    }else if(btnEnabled){
+      setBtnEnabled(false);
+    }
+    console.log(btnEnabled);
   }
 
   const handleLogin = async () => {
@@ -108,10 +122,12 @@ const Login: React.FC = () => {
             <IonList>
               <IonItem className='ion-margin-bottom ion-margin-top'>
                 <IonInput
-                  type="text"
+                  type="tel"
                   value={empid}
                   placeholder={t('Employee ID')}
-                  onIonInput={(e) => setUsername(e.detail.value!)}
+                  onIonInput={(e) => {
+                    setUsername(e.detail.value!);
+                  }}
                 />
               </IonItem>
               <IonItem className='ion-margin-bottom'>
@@ -135,7 +151,9 @@ const Login: React.FC = () => {
                 />
               </IonItem>
               <IonItem className='ion-margin-bottom'>
-                <IonButton expand="block" color="secondary" size="default" onClick={()=> handleLogin()}>{t('Login')}</IonButton>
+                <IonButton
+                disabled={!btnEnabled}
+                expand="block" color="secondary" size="default" onClick={()=> handleLogin()}>{t('Login')}</IonButton>
               </IonItem>
             </IonList>
           </IonCardContent>

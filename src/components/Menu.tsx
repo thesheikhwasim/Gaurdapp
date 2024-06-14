@@ -42,12 +42,14 @@ const Menu: React.FC = () => {
       console.log('Login status:', loggedInStatus); // Debugging line
       setIsLoggedIn(loggedInStatus);
     };
-    const loggedUserData = localStorage.getItem('loggedInUser');
-    const loggedUserStatus = localStorage.getItem('isLoggedIn') === 'true';
+    // const loggedUserData = localStorage.getItem('loggedInUser');
+    // const loggedUserStatus = localStorage.getItem('isLoggedIn');
+    // console.log("SH verify logged Status", loggedUserStatus);
+    // console.log("SH verify logged data 1st time", loggedUserData);
 
-    if(loggedUserStatus){
-      setLoggedUserData(JSON.parse(loggedUserData));
-    }
+    // if(loggedUserStatus){
+    //   setLoggedUserData(JSON.parse(loggedUserData));
+    // }
 
     checkLoginStatus(); // Initial check
 
@@ -55,6 +57,16 @@ const Menu: React.FC = () => {
 
     return () => clearInterval(interval); // Clear interval on component unmount
   }, []);
+
+  useEffect(() => {
+    console.log("Sessionizes useEffect Called", isLoggedIn);
+    if(isLoggedIn){
+      console.log("Inide if ---- ", isLoggedIn);
+        const loggedUserData = localStorage.getItem('loggedInUser');
+        setLoggedUserData(JSON.parse(loggedUserData));
+        console.log("SH verify logged data inner case", loggedUserData);
+    }
+  }, [isLoggedIn]);
 
   const menuItems = [
     {
