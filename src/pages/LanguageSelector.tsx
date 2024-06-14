@@ -62,7 +62,7 @@ const LanguageSelector: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '100px', width: '100%', margin: '7px' }} />
+          <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '40px', width: '100%', margin: '0px' }} />
           <IonTitle>{name}</IonTitle>
         </IonToolbar>
       </IonHeader>

@@ -57,7 +57,7 @@ const Notice: React.FC = () => {
         <IonHeader collapse="condense">
           <IonTitle>{name}</IonTitle>
         </IonHeader>
-        <IonCard className='ion-text-center ion-margin'>
+        <IonCard className='ion-text-center'>
           <IonCardHeader>
             <IonCardTitle color={'dark'}>Notice</IonCardTitle>
             <IonCardSubtitle color={'dark'}>Important Points for Guards and Duty</IonCardSubtitle>

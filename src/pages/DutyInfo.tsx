@@ -146,13 +146,13 @@ const DutyInfo: React.FC = () => {
 
                 {dutyData.length > 0 ? (
                   dutyData.map((duty: any, index: number) => (
-                    <IonCard key={index} style={{ marginBottom: '20px',width: '100%' }}>
+                    <IonCard className="card" key={index} style={{ width: '100%' }}>
                        <div className="shift-details-column">
                 <p><strong>Duty Started On:</strong> {getDisplayValue(duty.duty_start_date)}</p>
                 <p><strong>Duty Ended On:</strong> {getDisplayValue(duty.duty_end_date)}</p>
                 <p><strong>Duty Start Verified?:</strong> {getDisplayValue(duty.start_verification_status)}</p>
                 <p><strong>Duty End Verified?:</strong> {getDisplayValue(duty.end_verification_status)}</p>
-                <p><IonButton expand="block" color="secondary" onClick={() => { setDutyid(duty.duty_id); setReqType('ticket'); setShowRequestModal(true); }}>Raise Concern</IonButton></p>
+                <IonButton style={{ width: '100%' }} expand="block" color="primary" onClick={() => { setDutyid(duty.duty_id); setReqType('ticket'); setShowRequestModal(true); }}>Raise Concern</IonButton>
               </div>
                     </IonCard>
                   ))

@@ -114,7 +114,7 @@ const AddNewGuard: React.FC = () => {
       </IonHeader>
 
       <IonContent fullscreen>
-        <IonCard>
+        <IonCard className='shift-details-card'>
           <IonCardHeader>
             <IonCardTitle>Add New Guard</IonCardTitle>
           </IonCardHeader>

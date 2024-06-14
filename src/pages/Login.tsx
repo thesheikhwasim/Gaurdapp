@@ -89,7 +89,7 @@ const Login: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '100px', width: '100%', margin: '7px' }} />
+          <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '40px', width: '100%' }} />
           <IonTitle>{name}</IonTitle>
         </IonToolbar>
       </IonHeader>
@@ -98,10 +98,10 @@ const Login: React.FC = () => {
         <IonHeader collapse="condense">
           <IonTitle>{name}</IonTitle>
         </IonHeader>
-        <IonCard className='ion-text-center ion-margin'>
-          <IonCardHeader>
-            <IonCardTitle color={'dark'}>{t('LogIn')}</IonCardTitle>
-            <IonCardSubtitle color={'dark'}>{t('WelcomeGaurd')}</IonCardSubtitle>
+        <IonCard className='ion-text-center'>
+          <IonCardHeader >
+            <IonCardTitle className='logintitle' color={'dark'}>{t('LogIn')}</IonCardTitle>
+            <IonCardSubtitle className='subtitle' color={'dark'}>{t('WelcomeGaurd')}</IonCardSubtitle>
           </IonCardHeader>
 
           <IonCardContent>
@@ -135,7 +135,7 @@ const Login: React.FC = () => {
                 />
               </IonItem>
               <IonItem className='ion-margin-bottom'>
-                <IonButton expand="block" color="secondary" size="default" onClick={()=> handleLogin()}>{t('Login')}</IonButton>
+                <IonButton style={{ width: '100%' }} expand="block" color="primary" size="default" onClick={()=> handleLogin()}>{t('Login')}</IonButton>
               </IonItem>
             </IonList>
           </IonCardContent>
