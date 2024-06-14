@@ -92,7 +92,7 @@ ion-progress-bar::part(track) {
 .shift-details-card {
   margin: 10px;
   padding: 0px;
-  /* border: 1px solid #0e0d0d; */
+  border: 1px solid rgb(0 0 0 / 8%);
   box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
     -webkit-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
     -moz-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
@@ -151,6 +151,84 @@ ion-progress-bar::part(track) {
 
 .shift-details-column p:first-child{padding-top: 0px;}
 
-/* .shift-details-column p:last-child {
-  margin: 0px;
-} */
+#pagination {
+  margin: 0 auto;
+  padding: 0;
+  text-align: center;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#pagination li {
+  display: inline
+}
+#pagination li a {
+  display: inline-block;
+  text-decoration: none;
+  padding: 5px 10px;
+  color: #000
+}
+
+/* Active and Hoverable Pagination */
+
+.pagination{
+  width: 100%;
+text-align: center;
+padding: 16px 0px;
+}
+
+#pagination li a {
+  border-radius: 5px;
+  -webkit-transition: background-color 0.3s;
+  transition: background-color 0.3s
+    
+}
+#pagination li a.active {
+  background-color: #4caf50;
+  color: #fff
+}
+#pagination li a:hover:not(.active) {
+  background-color: #ddd;
+} 
+
+/* border-pagination */
+.b-pagination-outer {
+  width: 100%;
+  margin: 0 auto;
+}
+#border-pagination {
+  margin: 0 auto;
+  padding: 0;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+#border-pagination li {
+  display: inline;
+
+}
+#border-pagination li a {
+  display: block;
+  text-decoration: none;
+  color: #000;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  float: left;
+  height: 32px;
+  width: 32px;
+  border-radius: 50%;
+}
+#border-pagination li a {
+  -webkit-transition: background-color 0.4s;
+  transition: background-color 0.4s
+}
+#border-pagination li a.active {
+  background-color: #041d8e !important;
+  color: #fff;
+}
+#border-pagination li a:hover:not(.active) {
+  background: #ddd;
+}
