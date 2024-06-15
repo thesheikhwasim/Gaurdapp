@@ -58,6 +58,12 @@ ion-progress-bar::part(track) {
   font-size: 15px;
 }
 
+.title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+
 .footer {
   background-color: #041d8e !important;
   color: #f5f6f9;
@@ -99,6 +105,15 @@ ion-progress-bar::part(track) {
     -ms-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
   border-radius: 10px;
   text-align: left;
+}
+
+.shadowCard {
+  border: 1px solid rgb(0 0 0 / 8%);
+  box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+    -webkit-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+    -moz-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+    -ms-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+  border-radius: 10px;
 }
 
 .shift-details-card  ion-card-header {
@@ -232,3 +247,8 @@ padding: 16px 0px;
 #border-pagination li a:hover:not(.active) {
   background: #ddd;
 }
+
+
+.text-right{text-align: right;}
+
+.border-none .item-inner {border: none!important;}

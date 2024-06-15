@@ -342,7 +342,7 @@ const Dashboard: React.FC = () => {
             <IonCardContent className="shift-details-card-content">
               <div className="shift-details-column">
                 <p><strong>Client Name:</strong> {loggedInUser?.client_name}</p>
-                <p><strong>Site Name & Address:</strong> {loggedInUser?.site_name}, {loggedInUser?.site_city}, {loggedInUser?.site_state}</p>
+                <p><strong>Site Name & Address:</strong> <span className='text-right'>{loggedInUser?.site_name}, {loggedInUser?.site_city}, {loggedInUser?.site_state}</span></p>
                 <p><strong>Site Status:</strong> {loggedInUser?.site_status}</p>
               </div>
               <div className="shift-details-column">

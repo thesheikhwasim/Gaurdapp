@@ -57,10 +57,10 @@ const Notice: React.FC = () => {
         <IonHeader collapse="condense">
           <IonTitle>{name}</IonTitle>
         </IonHeader>
-        <IonCard className='ion-text-center'>
+        <IonCard className='ion-text-center shadowCard'>
           <IonCardHeader>
-            <IonCardTitle color={'dark'}>Notice</IonCardTitle>
-            <IonCardSubtitle color={'dark'}>Important Points for Guards and Duty</IonCardSubtitle>
+            <IonCardTitle className='logintitle' color={'dark'}>Notice</IonCardTitle>
+            <IonCardSubtitle className='subtitle' color={'dark'}>Important Points for Guards and Duty</IonCardSubtitle>
           </IonCardHeader>
 
           <IonCardContent>
