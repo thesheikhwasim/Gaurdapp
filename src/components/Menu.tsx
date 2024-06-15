@@ -139,8 +139,8 @@ const Menu: React.FC = () => {
   };
 
   return (
-    <IonMenu contentId="main" type="overlay">
-      <IonContent>
+    <IonMenu className='sidebar' contentId="main" type="overlay">
+      <IonContent className='sidebarbg'>
         <IonList id="inbox-list">
           <IonListHeader>{t('Guard App')}</IonListHeader>
           {isLoggedIn && <div className='userNameImageContainer'>
@@ -155,7 +155,7 @@ const Menu: React.FC = () => {
           {/* <IonNote>{loggedUserData?.full_name}</IonNote> */}
           {isLoggedIn ? (
             menuItems.map((appPage, index) => (
-              <IonMenuToggle key={index} autoHide={false}>
+              <IonMenuToggle className='reree' key={index} autoHide={false}>
                 <IonItem className={location.pathname === appPage.url ? 'selected' : ''} routerLink={appPage.url} routerDirection="none" lines="none" detail={false}>
                   <IonIcon aria-hidden="true" slot="start" ios={appPage.iosIcon} md={appPage.mdIcon} />
                   <IonLabel>{appPage.title}</IonLabel>

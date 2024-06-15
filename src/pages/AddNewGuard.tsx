@@ -114,7 +114,7 @@ const AddNewGuard: React.FC = () => {
       </IonHeader>
 
       <IonContent fullscreen>
-        <IonCard>
+        <IonCard className='shift-details-card'>
           <IonCardHeader>
             <IonCardTitle>Add New Guard</IonCardTitle>
           </IonCardHeader>
@@ -190,7 +190,7 @@ const AddNewGuard: React.FC = () => {
             <IonLabel position="floating">Remarks</IonLabel>
             <IonInput name="remarks" value={formData.remarks} onIonChange={handleInputChange}></IonInput>
           </IonItem>
-          <IonButton expand="full" onClick={handleAddGuard}>Add Guard</IonButton>
+          <IonButton expand="block" color="primary" size="default"  onClick={handleAddGuard}>Add Guard</IonButton>
         </IonCard>
       </IonContent>
       <div className="footer">

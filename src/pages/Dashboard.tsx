@@ -342,7 +342,7 @@ const Dashboard: React.FC = () => {
             <IonCardContent className="shift-details-card-content">
               <div className="shift-details-column">
                 <p><strong>Client Name:</strong> {loggedInUser?.client_name}</p>
-                <p><strong>Site Name & Address:</strong> {loggedInUser?.site_name}, {loggedInUser?.site_city}, {loggedInUser?.site_state}</p>
+                <p><strong>Site Name & Address:</strong> <span className='text-right'>{loggedInUser?.site_name}, {loggedInUser?.site_city}, {loggedInUser?.site_state}</span></p>
                 <p><strong>Site Status:</strong> {loggedInUser?.site_status}</p>
               </div>
               <div className="shift-details-column">
@@ -355,15 +355,15 @@ const Dashboard: React.FC = () => {
 
               </div>
             </IonCardContent>
-            <IonGrid className="ion-margin-top ion-text-center">
+            <IonGrid className="ion-text-center">
               <IonRow>
-                <IonCol size="6">
+                <IonCol size="12">
                   {isRunning ? (
                     <IonButton expand="block" onClick={handleDutyEnd} color="danger">
                       {t('punchOut')}
                     </IonButton>
                   ) : (
-                    <IonButton expand="block" onClick={handleDutyStart} color="secondary">
+                    <IonButton expand="block" onClick={handleDutyStart} color="primary">
                       {t('punchIn')}
                     </IonButton>
                   )}
@@ -374,13 +374,13 @@ const Dashboard: React.FC = () => {
 
           <IonGrid className="ion-margin ion-text-center">
             <IonRow>
-              <IonCol size="3" size-md="3" size-lg="3">
+              <IonCol size="4" size-md="4" size-lg="4">
                 <IonButton expand="block" color="secondary" onClick={() => { setReqType('ticket'); setShowRequestModal(true); }}>{t('ticket')}</IonButton>
               </IonCol>
-              <IonCol size="3" size-md="3" size-lg="3">
+              <IonCol size="4" size-md="4" size-lg="4">
                 <IonButton expand="block" color="warning" onClick={() => { setReqType('leaveapplication'); setShowRequestModal(true); }}>{t('leave')}</IonButton>
               </IonCol>
-              <IonCol size="3" size-md="3" size-lg="3">
+              <IonCol size="4" size-md="4" size-lg="4">
                 <IonButton expand="block" color="danger" onClick={() => { setReqType('sos'); setShowRequestModal(true); }}>{t('sos')}</IonButton>
               </IonCol>
             </IonRow>

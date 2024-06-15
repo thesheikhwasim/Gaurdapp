@@ -64,7 +64,7 @@ const GetRequests: React.FC = () => {
                   <IonGrid>
             
                     {requestData.map((ticket, index) => (
-                        <IonCard key={index} style={{ marginBottom: '20px',width: '95%' }}>
+                        <IonCard className='card' key={index}>
                     
                     <div className="shift-details-column">
                 <p><strong>Request Type: </strong>{ticket.ReqType || 'N/A'}</p>
@@ -82,7 +82,23 @@ const GetRequests: React.FC = () => {
                   <IonLabel>No requests found</IonLabel>
                 )}
 
-            </IonCard>
+           
+
+            <div className='pagination'>
+            <ul id="border-pagination">
+            <li><a className="" href="#">«</a></li>
+            <li><a href="#">1</a></li>
+            <li><a href="#" className="active">2</a></li>
+            <li><a href="#">3</a></li>
+            <li><a href="#">4</a></li>
+            <li><a href="#">5</a></li>
+            <li><a href="#">6</a></li>
+            <li><a href="#">»</a></li>
+             </ul> 
+             </div>
+
+             </IonCard>
+
             <div className='footer'>
               <IonTitle className='footer ion-text-center'>Helpline | +91 90999 XXXXX</IonTitle>
             </div>

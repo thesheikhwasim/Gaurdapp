@@ -39,9 +39,9 @@ ion-progress-bar::part(track) {
 
 
 .header_title {
-  background-color: #ca0606 !important;
+  background-color:#3F51B5 !important;
   color: #f5f6f9;
-  padding: 3px;
+  padding: 6px;
   text-align: center;
   font-size: medium;
   width: 100%;
@@ -49,10 +49,25 @@ ion-progress-bar::part(track) {
   left: 0;
 }
 
+.logintitle {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.subtitle {
+  font-size: 15px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+
 .footer {
   background-color: #041d8e !important;
   color: #f5f6f9;
-  font-size: medium;
+  font-size: small;
   line-height: 30px;
   text-align: center;
   width: 100%;
@@ -82,10 +97,42 @@ ion-progress-bar::part(track) {
 }
 .shift-details-card {
   margin: 10px;
-  padding: 20px;
-  border: 1px solid #0e0d0d;
-  border-radius: 5px;
+  padding: 0px;
+  border: 1px solid rgb(0 0 0 / 8%);
+  box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+    -webkit-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+    -moz-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+    -ms-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+  border-radius: 10px;
   text-align: left;
+}
+
+.shadowCard {
+  border: 1px solid rgb(0 0 0 / 8%);
+  box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+    -webkit-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+    -moz-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+    -ms-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+  border-radius: 10px;
+}
+
+.shift-details-card  ion-card-header {
+  background-color: #3F51B5;
+  padding: 12px 16px;
+  
+}
+
+.shift-details-card  ion-card-title {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.card {
+  box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+    padding: 16px;
+    border: 1px solid rgb(0 0 0 / 8%);
+    margin: 0px 0px 10px 0px;
 }
 
 .shift-details-card-content {
@@ -93,15 +140,115 @@ ion-progress-bar::part(track) {
   flex-wrap: wrap;
   margin: 0px;;
   border: none;
+  padding:16px 16px 0px!important
+
 }
 
 .shift-details-column {
   flex: 1;
    min-width: 100%;
-    margin-right: 20px;
-    padding-left: 5px;
 }
 
 .shift-details-column p {
-  margin: 5px 0;
+  margin: 0px 0 10px 0px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
+
+.profilepage  p {
+  margin: 0px 0 0px 0px;
+  justify-content: space-between;
+  display: flex;
+  border-bottom: 1px solid rgb(0 0 0 / 8%);
+  padding: 10px 0px;
+}
+
+.shift-details-column p:first-child{padding-top: 0px;}
+
+#pagination {
+  margin: 0 auto;
+  padding: 0;
+  text-align: center;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#pagination li {
+  display: inline
+}
+#pagination li a {
+  display: inline-block;
+  text-decoration: none;
+  padding: 5px 10px;
+  color: #000
+}
+
+/* Active and Hoverable Pagination */
+
+.pagination{
+  width: 100%;
+text-align: center;
+padding: 16px 0px;
+}
+
+#pagination li a {
+  border-radius: 5px;
+  -webkit-transition: background-color 0.3s;
+  transition: background-color 0.3s
+    
+}
+#pagination li a.active {
+  background-color: #4caf50;
+  color: #fff
+}
+#pagination li a:hover:not(.active) {
+  background-color: #ddd;
+} 
+
+/* border-pagination */
+.b-pagination-outer {
+  width: 100%;
+  margin: 0 auto;
+}
+#border-pagination {
+  margin: 0 auto;
+  padding: 0;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+#border-pagination li {
+  display: inline;
+
+}
+#border-pagination li a {
+  display: block;
+  text-decoration: none;
+  color: #000;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  float: left;
+  height: 32px;
+  width: 32px;
+  border-radius: 50%;
+}
+#border-pagination li a {
+  -webkit-transition: background-color 0.4s;
+  transition: background-color 0.4s
+}
+#border-pagination li a.active {
+  background-color: #041d8e !important;
+  color: #fff;
+}
+#border-pagination li a:hover:not(.active) {
+  background: #ddd;
+}
+
+
+.text-right{text-align: right;}
+
+.border-none .item-inner {border: none!important;}

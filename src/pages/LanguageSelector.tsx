@@ -62,7 +62,7 @@ const LanguageSelector: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '100px', width: '100%', margin: '7px' }} />
+          <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '40px', width: '100%', margin: '0px' }} />
           <IonTitle>{name}</IonTitle>
         </IonToolbar>
       </IonHeader>
@@ -71,10 +71,10 @@ const LanguageSelector: React.FC = () => {
         <IonHeader collapse="condense">
           <IonTitle>{name}</IonTitle>
         </IonHeader>
-        <IonCard className='ion-text-center ion-margin'>
+        <IonCard className='ion-text-center shadowCard'>
           <IonCardHeader>
-            <IonCardTitle color={'dark'}>Select Language / भाषा चुने</IonCardTitle>
-            <IonCardSubtitle color={'dark'}>Welcome to Gurad Commander</IonCardSubtitle>
+            <IonCardTitle className='title' color={'dark'}>Select Language / भाषा चुने</IonCardTitle>
+            <IonCardSubtitle className='subtitle' color={'dark'}>Welcome to Gurad Commander</IonCardSubtitle>
           </IonCardHeader>
 
           <IonCardContent>
@@ -90,7 +90,7 @@ const LanguageSelector: React.FC = () => {
                 </IonSelect>
               </IonItem>
               <IonItem className='ion-margin-bottom'>
-                <IonButton expand="block" color="secondary" size="default" onClick={handleLanguageUpdate}>Confirm / पुष्टि करना</IonButton>
+                <IonButton style={{ width: '100%' }} expand="block" color="primary" size="default" onClick={handleLanguageUpdate}>Confirm / पुष्टि करना</IonButton>
               </IonItem>
             </IonList>
           </IonCardContent>

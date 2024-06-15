@@ -64,8 +64,7 @@ const GetRequests: React.FC = () => {
                   <IonGrid>
             
                     {requestData.map((ticket, index) => (
-                        <IonCard key={index} style={{ marginBottom: '20px',width: '95%' }}>
-                    
+                        <IonCard className='card' key={index}>
                     <div className="shift-details-column">
                 <p><strong>Request Type: </strong>{ticket.ReqType || 'N/A'}</p>
                 <p><strong>Request Date : </strong>{ticket.ReqDatetime || 'N/A'}</p>

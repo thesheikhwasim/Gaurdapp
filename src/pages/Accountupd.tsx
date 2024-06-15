@@ -147,26 +147,26 @@ const Dashboard: React.FC = () => {
           <div className="header_title">
         <IonTitle className="header_title ion-text-center">Welcome {loggedInUser?.full_name}</IonTitle>
       </div>
-          <IonCard className="shift-details-card">
+          <IonCard className="shift-details-card profilepage">
 
             <IonCardHeader>
               <IonCardTitle>{t('Your Profile Detail')}</IonCardTitle>
             </IonCardHeader>
             <IonCardContent className="shift-details-card-content">
               <div className="shift-details-column">
-                <p><strong>Full Name:</strong> {ProfileData?.full_name}</p>
-                <p><strong>Roll Number:</strong> {ProfileData?.roll_no}</p>
-                <p><strong>Emp ID:</strong> {ProfileData?.emp_id}</p>
-                <p><strong>Designation:</strong> {ProfileData?.designation}</p>
-                <p><strong>State:</strong> {ProfileData?.recruit_state}</p>
-                <p><strong>Mobile Number:</strong> {ProfileData?.reg_mobile_no}</p>
-                <p><strong>Current Status:</strong> {ProfileData?.emp_status}</p>
-                <p><strong>DOB:</strong> {ProfileData?.dob}</p>
-                <p><strong>DOJ:</strong> {ProfileData?.doj}</p>
-                <p><strong>Id Card Valid UPTO:</strong> {ProfileData?.id_card_valid_upto}</p>
-                <p><strong>Mobile Verified:</strong> {ProfileData?.mobile_verified}</p>
-                <p><strong>Registeration Date:</strong> {ProfileData?.reg_date}</p>
-                <p><strong>Last Updated On:</strong> {ProfileData?.last_updated_on}</p>
+                <p><strong>Full Name:</strong> <span>{ProfileData?.full_name}</span></p>
+                <p><strong>Roll Number:</strong><span> {ProfileData?.roll_no}</span></p>
+                <p><strong>Emp ID:</strong> <span>{ProfileData?.emp_id}</span></p>
+                <p><strong>Designation:</strong><span> {ProfileData?.designation}</span></p>
+                <p><strong>State:</strong><span> {ProfileData?.recruit_state}</span></p>
+                <p><strong>Mobile Number:</strong> <span>{ProfileData?.reg_mobile_no}</span></p>
+                <p><strong>Current Status:</strong><span> {ProfileData?.emp_status}</span></p>
+                <p><strong>DOB:</strong><span> {ProfileData?.dob}</span></p>
+                <p><strong>DOJ:</strong><span> {ProfileData?.doj}</span></p>
+                <p><strong>Id Card Valid UPTO:</strong><span>{ProfileData?.id_card_valid_upto}</span></p>
+                <p><strong>Mobile Verified:</strong><span> {ProfileData?.mobile_verified} </span></p>
+                <p><strong>Registeration Date:</strong><span> {ProfileData?.reg_date} </span></p>
+                <p><strong>Last Updated On:</strong> <span>{ProfileData?.last_updated_on}</span></p>
                 <p><strong>Aadhar No:</strong> {ProfileData?.aadhar_no}</p>
                
               </div>
