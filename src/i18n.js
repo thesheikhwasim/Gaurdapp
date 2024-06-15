@@ -12,9 +12,15 @@ const resources = {
   hi: { translation: hiTranslation },
 };
 
+const language = localStorage.getItem('language');
+let initLanguage = 'en';
+if(language && language != null){
+  initLanguage = language;
+}
+
 i18n.use(initReactI18next).init({
   resources,
-  lng: 'en',
+  lng: initLanguage,
   fallbackLng: 'en',
 
   interpolation: {
