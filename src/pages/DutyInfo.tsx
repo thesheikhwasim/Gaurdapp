@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   IonButtons,
   IonLoading,
@@ -24,6 +24,8 @@ import {
   useIonToast,
   IonAlert,
   IonList,
+  IonDatetimeButton,
+  IonDatetime,
 } from '@ionic/react';
 import { useParams, useHistory } from 'react-router';
 import './Page.css';
@@ -43,23 +45,59 @@ const DutyInfo: React.FC = () => {
   const [present, dismiss] = useIonToast();
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const [pageNumber, setPageNumber] = useState(1);
+  const [perPageRecord, setPerPageRecord] = useState(10);
+  const [rangeTo, setRangeTo] = useState('');
+  const [rangeFrom, setRangeFrom] = useState('');
+  const [dateModalOpen, setDateModalOpen] = useState(false);
+  const [totalRecordCount, setTotalRecordCount] = useState(0);
+
+  const modalFrom = useRef<HTMLIonModalElement>(null);
+  const modalTo = useRef<HTMLIonModalElement>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
     const storedData = localStorage.getItem('loggedInUser');
-       
     if (storedData) {
       setLoggedInUser(JSON.parse(storedData));
     }
+    GetDutyListFromAPI();
+  }, [history]);
 
-    const url = "https://guard.ghamasaana.com/guard_new_api/dutyinfo.php";
+  useEffect(() => {
+    if (totalRecordCount > 0) {
+      if (rangeFrom != '' && rangeTo != '') {
+        GetDutyListFromAPI();
+      }
+      if (pageNumber > 0) {
+        GetDutyListFromAPI();
+      }
+    }
+  }, [pageNumber, rangeFrom, rangeTo])
+
+  const GetDutyListFromAPI = () => {
+    const tokenVal = localStorage.getItem('token');
+    let URL = "https://guard.ghamasaana.com/guard_new_api/dutyinfo.php";
     const formData = new FormData();
     formData.append('action', "duty_info");
-    formData.append('token', token);
-
-    axios.post(url, formData)
+    formData.append('token', tokenVal);
+    if (pageNumber != '') {
+      formData.append('pagenumber', pageNumber);
+    }
+    if (perPageRecord != '') {
+      formData.append('perpagerecords', perPageRecord);
+    }
+    if (rangeFrom != '') {
+      formData.append('rangeFrom', rangeFrom);
+    }
+    if (rangeTo != '') {
+      formData.append('rangeTo', rangeTo);
+    }
+    axios.post(URL, formData)
       .then(response => {
         if (response.data && response.data.success) {
+          if (response?.data?.employee_data?.duty_info?.length > 0) { //condition to update count of record
+            setTotalRecordCount(response.data.employee_data.duty_info.length);
+          }
           setDutyData(response.data.employee_data.duty_info);
         } else {
           console.error('Failed to fetch duty info:', response.data);
@@ -70,7 +108,8 @@ const DutyInfo: React.FC = () => {
         console.error('Error fetching duty info:', error);
         setLoading(false);
       });
-  }, [history]);
+
+  }
 
   const { name } = useParams<{ name: string; }>();
 
@@ -117,6 +156,14 @@ const DutyInfo: React.FC = () => {
       });
   };
 
+  function getPaginationHTML() {
+    const rows = [];
+    for (let i = 0; i <= parseInt(totalRecordCount / perPageRecord); i++) {
+      rows.push(<li><a className={pageNumber == (i + 1) ? "active" : "generic"} onClick={() => setPageNumber(i + 1)}>{i + 1}</a></li>);
+    }
+    return rows;
+  }
+
   return (
     <IonPage>
       <IonHeader>
@@ -134,33 +181,81 @@ const DutyInfo: React.FC = () => {
           <IonLoading isOpen={loading} message={'Loading...'} />
         ) : (
           <>
-          
-          <div className="header_title">
-        <IonTitle className="header_title ion-text-center">Your Duty Info</IonTitle>
-      </div>
-            
-          
-          
-            <IonCard className='shift-details-card-content'>
-           
-
-                {dutyData.length > 0 ? (
-                  dutyData.map((duty: any, index: number) => (
-                    <IonCard className="card" key={index} style={{ width: '100%' }}>
-                       <div className="shift-details-column">
-                <p><strong>Duty Started On:</strong> {getDisplayValue(duty.duty_start_date)}</p>
-                <p><strong>Duty Ended On:</strong> {getDisplayValue(duty.duty_end_date)}</p>
-                <p><strong>Duty Start Verified?:</strong> {getDisplayValue(duty.start_verification_status)}</p>
-                <p><strong>Duty End Verified?:</strong> {getDisplayValue(duty.end_verification_status)}</p>
-                <IonButton style={{ width: '100%' }} expand="block" color="primary" onClick={() => { setDutyid(duty.duty_id); setReqType('ticket'); setShowRequestModal(true); }}>Raise Concern</IonButton>
+            <div className="header_title">
+              <IonTitle className="header_title ion-text-center">Your Duty Info</IonTitle>
+            </div>
+            <div className='dateTimeFilterParent'>
+              <div className='dateFromParent'>
+                <span className='dateTileSpan'>Date From:</span>
+                <>
+                  <IonDatetimeButton datetime="datetimeFrom"className='btnDateTimeClass'></IonDatetimeButton>
+                  <IonModal keepContentsMounted={true} ref={modalFrom}>
+                    <IonDatetime
+                      id="datetimeFrom"
+                      presentation='date'
+                      onIonChange={(dataFrom) => {
+                        let dateFormat = dataFrom?.detail?.value.split('T')[0];
+                        setRangeFrom(dateFormat);
+                        modalFrom.current?.dismiss()
+                      }}></IonDatetime>
+                  </IonModal>
+                </>
               </div>
-                    </IonCard>
-                  ))
-                ) : (
-                  <IonLabel>No current duty running</IonLabel>
-                )}
-              
+              <div className='dateToParent'>
+                <span className='dateTileSpan'>Date To:</span>
+                <>
+                  <IonDatetimeButton datetime="datetimeTo"></IonDatetimeButton>
+                  <IonModal keepContentsMounted={true} ref={modalTo}>
+                    <IonDatetime
+                      id="datetimeTo"
+                      presentation='date'
+                      onIonChange={(dataTo) => {
+                        let dateFormat = dataTo?.detail?.value.split('T')[0];
+                        setRangeTo(dateFormat);
+                        modalTo.current?.dismiss()
+                      }}></IonDatetime>
+                  </IonModal>
+                </>
+              </div>
+            </div>
+
+            <IonCard className='shift-details-card-content'>
+
+
+              {dutyData.length > 0 ? (
+                dutyData.map((duty: any, index: number) => (
+                  <IonCard className="card" key={index} style={{ width: '100%' }}>
+                    <div className="shift-details-column">
+                      <p><strong>Duty Started On:</strong> {getDisplayValue(duty.duty_start_date)}</p>
+                      <p><strong>Duty Ended On:</strong> {getDisplayValue(duty.duty_end_date)}</p>
+                      <p><strong>Duty Start Verified?:</strong> {getDisplayValue(duty.start_verification_status)}</p>
+                      <p><strong>Duty End Verified?:</strong> {getDisplayValue(duty.end_verification_status)}</p>
+                      <IonButton style={{ width: '100%' }} expand="block" color="primary" onClick={() => { setDutyid(duty.duty_id); setReqType('ticket'); setShowRequestModal(true); }}>Raise Concern</IonButton>
+                    </div>
+                  </IonCard>
+                ))
+              ) : (
+                <IonLabel>No current duty running</IonLabel>
+              )}
+
             </IonCard>
+
+            {totalRecordCount && <div className='pagination'>
+              <ul id="border-pagination">
+                <li><a onClick={() => {
+                  if (pageNumber > 1) {
+                    setPageNumber(pageNumber - 1);
+                  }
+                }}>«</a></li>
+                {getPaginationHTML()}
+                <li><a onClick={() => {
+                  if (pageNumber < (parseInt(totalRecordCount / perPageRecord) + 1)) {
+                    setPageNumber(pageNumber + 1);
+                  }
+                }}>»</a></li>
+              </ul>
+            </div>
+            }
 
             <IonModal isOpen={showRequestModal} onDidDismiss={() => setShowRequestModal(false)}>
               <IonHeader>
@@ -190,9 +285,9 @@ const DutyInfo: React.FC = () => {
                     <IonItem>
                       <IonLabel position="floating">Duty ID:  </IonLabel>
                       <IonInput value={Dutyid} readonly onIonChange={e => setReqOtherDetail(e.detail.value!)}></IonInput>
-                   
+
                     </IonItem>
-                    
+
                   ) : null}
                 </IonList>
                 <IonButton expand="full" onClick={handleCreateRequest}>Create {reqType === 'ticket' ? 'Ticket' : reqType === 'leaveapplication' ? 'Leave Request' : 'SOS Request'}</IonButton>
@@ -207,13 +302,13 @@ const DutyInfo: React.FC = () => {
           message={alertMessage}
           buttons={['OK']}
         />
-        
+
       </IonContent>
       <div className="footer">
         <IonTitle className="footer ion-text-center">Helpline | +91 90999 XXXXX</IonTitle>
       </div>
     </IonPage>
-    
+
   );
 };
 
