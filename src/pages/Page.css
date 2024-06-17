@@ -252,3 +252,21 @@ padding: 16px 0px;
 .text-right{text-align: right;}
 
 .border-none .item-inner {border: none!important;}
+
+.not-range-parent{
+  text-align: center;
+  color: red;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.dateTimeFilterParent{
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 20px;
+}
+
+span.dateTileSpan {
+  font-size: 12px;
+  margin-left: 5px;
+}
