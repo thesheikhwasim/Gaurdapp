@@ -8,6 +8,7 @@ import {
   IonListHeader,
   IonMenu,
   IonMenuToggle,
+  IonImg,
   IonNote,
 } from '@ionic/react';
 
@@ -145,12 +146,12 @@ const Menu: React.FC = () => {
           <IonListHeader>{t('Guard App')}</IonListHeader>
           {isLoggedIn && <div className='userNameImageContainer'>
             <div className='userImageDiv'>
-             <IonIcon icon={personCircleOutline} size="large"></IonIcon>
+            <IonImg src="./assets/imgs/user.svg" alt="header" style={{ height: '26px', width: '26px' }} />
             </div>
             <div className='userNameDIv'>
               {loggedUserData?.full_name}
             </div>
-          </div>
+          </div> 
           }
           {/* <IonNote>{loggedUserData?.full_name}</IonNote> */}
           {isLoggedIn ? (
