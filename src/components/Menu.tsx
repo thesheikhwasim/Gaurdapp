@@ -151,7 +151,7 @@ const Menu: React.FC = () => {
             <div className='userNameDIv'>
               {loggedUserData?.full_name}
             </div>
-          </div>
+          </div> 
           }
           {/* <IonNote>{loggedUserData?.full_name}</IonNote> */}
           {isLoggedIn ? (
