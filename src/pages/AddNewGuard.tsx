@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar, IonInput, IonItem, IonLabel, IonButton, IonCard, IonCardHeader, IonCardTitle, useIonToast } from '@ionic/react';
 import axios from 'axios';
 import './Page.css';
@@ -29,11 +29,30 @@ const AddNewGuard: React.FC = () => {
   });
 
   const [present] = useIonToast();
+  const [buttonDisabled, setButtonDisabled] = useState(true);
+
+  useEffect(()=>{
+    let checkMandatoryFlag = mandatoryPass();
+    console.log("Form Data trigger", checkMandatoryFlag);
+    if(checkMandatoryFlag){
+      setButtonDisabled(false);
+    }
+  },[formData])
 
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+
+  function mandatoryPass(){
+    const mandatoryFields = ['fullname', 'mobileno', 'father_name', 'mother_name', 'full_address', 'state'];
+    for (const field of mandatoryFields) {
+      if (!formData[field]) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   const handleAddGuard = async () => {
     
@@ -56,6 +75,7 @@ const AddNewGuard: React.FC = () => {
     data.append('action', 'add_new_gaurd');
     data.append('token', token);
     Object.keys(formData).forEach((key) => data.append(key, formData[key]));
+    console.log("formData ----> ", formData);
 
     try {
       const response = await axios.post('https://guard.ghamasaana.com/guard_new_api/add_new_gaurd.php', data);
@@ -116,7 +136,7 @@ const AddNewGuard: React.FC = () => {
       <IonContent fullscreen>
         <IonCard className='shift-details-card'>
           <IonCardHeader>
-            <IonCardTitle>Add New Guard</IonCardTitle>
+            <IonCardTitle>Add New Guard 666</IonCardTitle>
           </IonCardHeader>
           <IonItem>
             <IonLabel position="floating">Full Name *</IonLabel>
@@ -190,7 +210,9 @@ const AddNewGuard: React.FC = () => {
             <IonLabel position="floating">Remarks</IonLabel>
             <IonInput name="remarks" value={formData.remarks} onIonChange={handleInputChange}></IonInput>
           </IonItem>
-          <IonButton expand="block" color="primary" size="default"  onClick={handleAddGuard}>Add Guard</IonButton>
+          <IonButton expand="block" color="primary" size="default" 
+          disabled={buttonDisabled} 
+          onClick={handleAddGuard}>Add Guard</IonButton>
         </IonCard>
       </IonContent>
       <div className="footer">

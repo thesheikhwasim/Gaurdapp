@@ -26,7 +26,7 @@ const Login: React.FC = () => {
     const storedData = localStorage.getItem('isLoggedIn');
     if (storedData === "true") {
       setIsLoggedIn(storedData);
-      history.push('/pages/Dashboard');
+      history.push('pages/tabs/Dashboard');
     }
   }, [history]);
 
@@ -84,7 +84,7 @@ const Login: React.FC = () => {
             
             localStorage.setItem('loggedInUser', JSON.stringify(response.employee_data));
             localStorage.setItem('token', response.token);
-            history.push('/pages/Dashboard');
+            history.push('/pages/tabs/Dashboard');
           // } else {
           //   alert('Please click a photo before logging in');
           // }

@@ -48,7 +48,7 @@ const LanguageSelector: React.FC = () => {
         changeLanguage(lang);
         const token = localStorage.getItem('token'); // Assuming token is stored in localStorage
         if (token) {
-          history.push('/pages/Dashboard');
+          history.push('/pages/tabs/Dashboard');
         } else {
           history.push('/pages/Login');
         }
@@ -62,6 +62,9 @@ const LanguageSelector: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
+          <IonButtons slot="start">
+            <IonMenuButton />
+          </IonButtons>
           <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '40px', width: '100%', margin: '0px' }} />
           <IonTitle>{name}</IonTitle>
         </IonToolbar>

@@ -71,13 +71,13 @@ const Menu: React.FC = () => {
   const menuItems = [
     {
       title: t('Home'),
-      url: '/pages/Dashboard',
+      url: '/pages/tabs/Dashboard',
       iosIcon: calendarClearOutline,
       mdIcon: calendarClearOutline,
     },
     {
       title: t('Duty Info'),
-      url: '/pages/DutyInfo',
+      url: '/pages/tabs/Dashboard/DutyInfo',
       iosIcon: informationCircleOutline,
       mdIcon: informationCircleOutline,
     },
@@ -89,19 +89,19 @@ const Menu: React.FC = () => {
     },
     {
       title: t('Requests'),
-      url: '/pages/getRequest',
+      url: '/pages/tabs/getRequest',
       iosIcon: paperPlaneOutline,
       mdIcon: paperPlaneOutline,
     },
     {
       title: t('Tickets'),
-      url: '/pages/getTicket',
+      url: '/pages/tabs/getTicket',
       iosIcon: paperPlaneOutline,
       mdIcon: paperPlaneOutline,
     },
     {
       title: t('Notification'),
-      url: '/pages/Notice',
+      url: '/pages/tabs/Notice',
       iosIcon: notificationsOutline,
       mdIcon: notificationsOutline,
     },

@@ -28,9 +28,9 @@ export function usePhotoGallery() {
 
   const takePhoto = async () => {
     const photo = await Camera.getPhoto({
-      resultType: CameraResultType.Uri,
-      source: CameraSource.Camera,
-      quality: 100,
+      resultType: CameraResultType.Base64,
+      source: CameraSource.Camera, // Camera, Photos or Prompt!
+      quality: 90,
     });
 
     const fileName = "myPhotoGuard" + '.jpeg';
@@ -50,6 +50,7 @@ export function usePhotoGallery() {
     // };
     setPhotos(newPhotos);
     saveToStorage(newPhotos);
+    return photo;
   };
 
   const savePicture = async (photo: Photo, fileName: string): Promise<UserPhoto> => {

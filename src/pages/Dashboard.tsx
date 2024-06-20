@@ -24,6 +24,7 @@ import {
   IonSelectOption,
   useIonToast,
   IonAlert,
+  IonIcon,
 } from '@ionic/react';
 
 import { isPlatform } from '@ionic/react';
@@ -41,6 +42,7 @@ import { Geolocation } from '@capacitor/geolocation';
 import axios from 'axios';
 import './Page.css';
 import useAuth from '../hooks/useAuth';
+import { closeOutline, personCircleOutline } from 'ionicons/icons';
 
 const Dashboard: React.FC = () => {
   const [duty, setDuty] = useState(false);
@@ -165,9 +167,9 @@ const Dashboard: React.FC = () => {
         ? await axios.post('https://guard.ghamasaana.com/guard_new_api/dutystop.php', formData)
         : await axios.post('https://guard.ghamasaana.com/guard_new_api/dutystart.php', formData, {
           headers: {
-            'Content-Type': 'multipart/form-data'
+              'Content-Type': 'multipart/form-data'
           }
-        });
+      });
       return response.data;
     } catch (error) {
       console.error('Error:', error);
@@ -202,6 +204,7 @@ const Dashboard: React.FC = () => {
     captureLocation().then((res) => {
       if (Latitude !== '') {
         takePhoto().then(async(photoData) => {
+          console.log("Photo Data Returned From Camera Base64 format---", photoData);
           const formData = new FormData();
           const token = localStorage.getItem('token');
           formData.append('action', 'punch_in');
@@ -225,8 +228,7 @@ const Dashboard: React.FC = () => {
 //           }
 //         );
 // console.log("ConversionData is:::: ", ConversionData);
-//           formData.append('duty_start_pic', ConversionData);
-// // return false;
+          formData.append('duty_start_pic', JSON.stringify(photoData));
           dutyApi(formData, false)
             .then((response) => {
               if (response && response.success) {
@@ -307,6 +309,9 @@ const Dashboard: React.FC = () => {
     formData.append('reqsubject', reqSubject);
     formData.append('ReqDesc', reqDesc);
     formData.append('reqotherdetail', reqOtherDetail);
+    console.log(token);
+    console.log("formDATA create----> ", JSON.stringify(formData)); 
+    // return false;
 
     axios
       .post('https://guard.ghamasaana.com/guard_new_api/add_new_request.php', formData)
@@ -441,7 +446,9 @@ const Dashboard: React.FC = () => {
               <IonToolbar>
                 <IonTitle>{reqType === 'sos' ? 'Create SOS Request' : reqType === 'leaveapplication' ? 'Create Leave Request' : 'Create Ticket'}</IonTitle>
                 <IonButtons slot="end">
-                  <IonButton onClick={() => setShowRequestModal(false)}>Close</IonButton>
+                  <IonButton onClick={() => setShowRequestModal(false)}>
+                    <IonIcon icon={closeOutline} size="large"></IonIcon>
+                  </IonButton>
                 </IonButtons>
               </IonToolbar>
             </IonHeader>
@@ -449,7 +456,7 @@ const Dashboard: React.FC = () => {
               <IonList>
                 <IonItem>
                   <IonLabel position="floating">Subject</IonLabel>
-                  <IonInput value="{reqSubject}" onIonChange={e => setReqSubject(e.detail.value!)}></IonInput>
+                  <IonInput value={reqSubject} onIonChange={e => setReqSubject(e.detail.value!)}></IonInput>
                 </IonItem>
                 <IonItem>
                   <IonLabel position="floating">Description</IonLabel>
