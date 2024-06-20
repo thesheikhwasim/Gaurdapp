@@ -78,7 +78,9 @@ const GetRequests: React.FC = () => {
                     ))}
                   </IonGrid>
                 ) : (
-                  <IonLabel>No requests found</IonLabel>
+                  <IonLabel><div className='notFound'>
+                    <IonImg src="./assets/imgs/nodata.svg" alt="header" />
+                    No requests found</div></IonLabel>
                 )}
 
             </IonCard>

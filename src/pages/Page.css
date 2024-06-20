@@ -140,7 +140,8 @@ ion-progress-bar::part(track) {
   flex-wrap: wrap;
   margin: 0px;;
   border: none;
-  padding:16px 16px 0px!important
+  padding:16px 16px 0px!important;
+  flex-direction: column
 
 }
 
@@ -253,6 +254,16 @@ padding: 16px 0px;
 
 .border-none .item-inner {border: none!important;}
 
+.notFound {
+  height: calc(100vh - 148px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex-direction: column;
+}
+
+.userImageDiv img{width: 24px;}
 .not-range-parent{
   text-align: center;
   color: red;
