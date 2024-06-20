@@ -48,6 +48,7 @@ import Routesend from './pages/Routesend';
 import Routesreport from './pages/Routesreport';
 import DocumentUpload from './pages/DocumentUpload';
 import Logout from './pages/Logout';
+import MainTabs from './components/MainTabs.js';
 
 // import Logout from './pages/Logout';
 setupIonicReact();
@@ -63,20 +64,21 @@ const App: React.FC = () => {
             <IonRouterOutlet id="main">
               {/* <Route exact path="/" component={Loader}/> */}
               <Route exact path="/" component={LanguageSelector}/>
+              <Route path="/pages/tabs" render={() => <MainTabs />} />
               <Route exact path="/pages/Login" component={Login}/>
               {/* <Route exact path="/pages/Register" component={Register}/> */}
               {/* <Route exact path="/pages/Recruitment" component={Recruitment}/> */}
-              <Route exact path="/pages/Dashboard" component={Dashboard}/>
+              {/* <Route exact path="/pages/tabs/Dashboard" component={Dashboard}/> */}
               <Route exact path="/pages/Accountupd" component={Accountupd}/>
-              <Route exact path="/pages/getRequest" component={getRequest}/>
-              <Route exact path="/pages/getTicket" component={getTicket}/>
-              <Route exact path="/pages/DutyInfo" component={DutyInfo}/>
+              {/* <Route exact path="/pages/getRequest" component={getRequest}/> */}
+              {/* <Route exact path="/pages/getTicket" component={getTicket}/> */}
+              <Route exact path="/pages/tabs/Dashboard/DutyInfo" component={DutyInfo}/>
               <Route exact path="/pages/AddNewGuard" component={AddNewGuard}/>
               <Route exact path="/pages/idCard" component={idCard}/>
               <Route exact path="/pages/LanguageSelector" component={LanguageSelector}/>
 
               {/* <Route exact path="/pages/ListGuard" component={ListGuards}/> */}
-              <Route exact path="/pages/Notice" component={Notice}/>
+              {/* <Route exact path="/pages/Notice" component={Notice}/> */}
               {/* <Route exact path="/pages/Logout" component={Logout}/> */}
               {/* <Route exact path="/pages/Account" component={Account}/> */}
               <Route exact path="/pages/Face" component={Face}/>

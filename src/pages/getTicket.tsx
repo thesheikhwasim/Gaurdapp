@@ -86,7 +86,7 @@ const GetRequests: React.FC = () => {
 
            
 
-            <div className='pagination'>
+            {/* <div className='pagination'>
             <ul id="border-pagination">
             <li><a className="" href="#">«</a></li>
             <li><a href="#">1</a></li>
@@ -97,7 +97,7 @@ const GetRequests: React.FC = () => {
             <li><a href="#">6</a></li>
             <li><a href="#">»</a></li>
              </ul> 
-             </div>
+             </div> */}
 
              </IonCard>
 
