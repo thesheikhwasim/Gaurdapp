@@ -281,3 +281,10 @@ span.dateTileSpan {
   font-size: 12px;
   margin-left: 5px;
 }
+
+.duty-time-div{
+  text-align: center;
+    color: #3f51b5;
+    font-size: 15px;
+    font-weight: bold;
+}

@@ -43,6 +43,7 @@ import axios from 'axios';
 import './Page.css';
 import useAuth from '../hooks/useAuth';
 import { closeOutline, personCircleOutline } from 'ionicons/icons';
+import MyStopwatch from './DashboardMyTimer';
 
 const Dashboard: React.FC = () => {
   const [duty, setDuty] = useState(false);
@@ -70,6 +71,7 @@ const Dashboard: React.FC = () => {
   const [dutystartinfo, setdutystartinfo] = useState<any>(null);
   const [dutyDetailsFromOngoingDuty, setDutyDetailsFromOngoingDuty] = useState<any>({});
   const [inRange, SetInRange] = useState<boolean>(true);
+  const [elapsedState, setElapsedState] = useState<number>(0);
 
   useEffect(() => {
     const storedData = localStorage.getItem('loggedInUser');
@@ -103,6 +105,15 @@ const Dashboard: React.FC = () => {
       const data = response.data;
       if(data?.success && data?.employee_data){
         setDutyDetailsFromOngoingDuty(data.employee_data);
+        let past = new Date(data?.employee_data?.deploydatetime); 
+          
+        // assigning present time to new variable 
+        let now = new Date(); 
+          console.log("NOW DATE",now)
+          console.log("PAST DATE:",past)
+
+        let elapsed = (now - past);
+        setElapsedState(elapsed/1000);
       }
       if (data.success && data.employee_data.duty_ongoing_info && data.employee_data.duty_ongoing_info.duty_end_date === null) {
         setDuty(true);
@@ -402,6 +413,9 @@ const Dashboard: React.FC = () => {
                 {!inRange && 'You are not in range of duty!'}
               </span>
             </div>
+            {isRunning && elapsedState && elapsedState > 0 &&<div>
+                <MyStopwatch test={elapsedState}/>
+            </div>}
             <IonGrid className="ion-text-center">
               <IonRow>
                 <IonCol size="12">

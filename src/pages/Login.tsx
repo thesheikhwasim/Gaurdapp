@@ -43,7 +43,7 @@ const Login: React.FC = () => {
 
   async function loginApi(formData) {
     try {
-      alert(formData);
+      // alert(formData);
       const response = await axios.post('https://guard.ghamasaana.com/guard_new_api/login.php', formData);
       return response.data;
     } catch (error) {
