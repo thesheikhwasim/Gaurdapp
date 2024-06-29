@@ -7,6 +7,8 @@ import { usePhotoGallery } from '../../src/hooks/usePhotoGallery';
 import axios from 'axios';
 
 import './Page.css';
+import { PushNotifications } from '@capacitor/push-notifications';
+import { registerNotifications } from '../utility/pushNotifications';
 
 const Login: React.FC = () => {
   const { t } = useTranslation();
@@ -18,8 +20,14 @@ const Login: React.FC = () => {
   const [mobileNumber, setMobileNumber] = useState<any>('');
   const [isLoggedIn, setIsLoggedIn] = useState<any>(null);
   const [btnEnabled, setBtnEnabled] = useState<boolean>(false);
-
+  const [deviceId, setDeviceId] = useState<string>('');
   const { photos, takePhoto } = usePhotoGallery();
+
+  useEffect(() => {
+    let tempDeviceId = localStorage.getItem('deviceId');
+    setDeviceId(tempDeviceId);
+    registerNotifications();
+  }, [])
 
   useEffect(() => {
     // Load data from local storage when the component mounts
@@ -69,6 +77,7 @@ const Login: React.FC = () => {
       formData.append('mpin', mpin);
       formData.append('mobile', mobileNumber);
       formData.append('action', "login");
+      formData.append('deviceId', deviceId);
 
       const response = await loginApi(formData);
       if (response) {
