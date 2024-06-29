@@ -263,6 +263,14 @@ padding: 16px 0px;
   flex-direction: column;
 }
 
+.notFoundIdCard {
+  height: calc(100vh - 148px);
+  display: flex;
+  justify-content: start;
+  width: 100%;
+  flex-direction: column;
+}
+
 .userImageDiv img{width: 24px;}
 .not-range-parent{
   text-align: center;
@@ -284,7 +292,49 @@ span.dateTileSpan {
 
 .duty-time-div{
   text-align: center;
-    color: #3f51b5;
-    font-size: 15px;
-    font-weight: bold;
+  color: #3f51b5;
+  font-size: 15px;
+  font-weight: bold;
 }
+
+.newTicketBtn {
+  background-color: #3dc2ff;
+  color: #fff;
+  padding: 12px;
+  line-height: 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.newLeaveRequestBtn {
+  background-color: #ffc409 !important;
+  color: #000;
+}
+
+.imageionclass{
+  width: 150px;
+  margin: 0 auto;
+  margin-top: 10px;
+}
+
+.imageionclassIdCard{
+  margin: 0 auto;
+}
+
+.userImageDiv ion-img::part(image) {
+  border-radius: 50%;
+  height: 26px;
+  width: 26px;
+  object-fit: cover;
+}
+
+/* .blink_me {
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+} */

@@ -9,32 +9,45 @@ const GetRequests: React.FC = () => {
   // useAuth(); // Enforce login requirement
 
   const [requestData, setRequestData] = useState<any>(null);
+  const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [ProfileData, setProfileData] = useState<any>({});
+
   const token = localStorage.getItem('token');
   useEffect(() => {
-    const url = "https://guard.ghamasaana.com/guard_new_api/request.php";
-    const formData = new FormData();
-    formData.append('action', "request_data");
-    formData.append('token', token);
-    formData.append('subject', "");
-    formData.append('message', "");
-    formData.append('priority', "");
+    // Call API to fetch user profile data
+    const storedData = localStorage.getItem('loggedInUser');
+    const storedToken = localStorage.getItem('token');
 
-    axios.post(url, formData)
-      .then(response => {
-        if (response.data && response.data.success) {
-          setRequestData(response.data.employee_data.request_data);
-          console.log(response.data.employee_data.request_data, token, )
-        } else {
-          console.error('Failed to fetch requests:', response.data);
-        }
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching requests:', error);
-        setLoading(false);
-      });
+    if (storedData) {
+      setLoggedInUser(JSON.parse(storedData));
+    }
+    if (storedToken) {
+      fetchProfileData(storedToken);
+    }
   }, []);
+
+  const fetchProfileData = async (token: string) => {
+    const url = 'https://guard.ghamasaana.com/guard_new_api/profile.php';
+    const formData = new FormData();
+    formData.append('action', 'profile_data');
+    formData.append('token', token);
+
+    try {
+      const response = await axios.post(url, formData);
+      if (response.data && response.data.employee_data) {
+        setProfileData(response.data.employee_data);
+      }
+      // else {
+      //   history.push('/pages/login');
+      // }
+    } catch (error) {
+      console.error('Error fetching profile data:', error);
+      // history.push('/pages/login');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const { name } = useParams<{ name: string; }>();
 
@@ -55,36 +68,23 @@ const GetRequests: React.FC = () => {
           <IonLoading isOpen={loading} message={'Loading...'} />
         ) : (
           <>
-     <div className="header_title">
-        <IonTitle className="header_title ion-text-center">Your Id Card</IonTitle>
-      </div>
-      <IonCard className='shift-details-card-content'>
-    
-                {requestData ? (
-                  <IonGrid>
-            
-                    {requestData.map((ticket, index) => (
-                        <IonCard key={index} className='card' style={{ }}>
-                    
-                    <div className="shift-details-column">
-                <p><strong>Request Type: </strong>{ticket.ReqType || 'N/A'}</p>
-                <p><strong>Request Date : </strong>{ticket.ReqDatetime || 'N/A'}</p>
-                <p><strong>Request Description : </strong>{ticket.ReqDesc || 'N/A'}</p> 
-                <p><strong>Request ID : </strong>{ticket.ReqID || 'N/A'}</p> 
-                <p><strong>Request Status : </strong>{ticket.ReqStatus || 'N/A'}</p> 
-                <p><strong>Request Action : </strong>{ticket.ReqAction || 'N/A'}</p> 
-                </div>      
-                  
-                        </IonCard>
-                    ))}
-                  </IonGrid>
-                ) : (
-                  <IonLabel><div className='notFound'>
-                     <IonImg src="./assets/imgs/nodata.svg" alt="header" />
-                    No requests found
-                    </div></IonLabel>
-                )}
+            <div className="header_title">
+              <IonTitle className="header_title ion-text-center">Your Id Card</IonTitle>
+            </div>
+            <IonCard className='shift-details-card-content'>
 
+              <IonLabel><div className='notFoundIdCard'>
+                <div className='mainIdCardContainer'>
+                  {ProfileData?.photo && <div className='profileImageParentShIdCard'>
+                    <div>
+                      <IonImg
+                        className='imageionclassIdCard'
+                        src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${ProfileData.photo}`}
+                      ></IonImg>
+                    </div>
+                  </div>}
+                </div>
+              </div></IonLabel>
             </IonCard>
             <div className='footer'>
               <IonTitle className='footer ion-text-center'>Helpline | +91 90999 XXXXX</IonTitle>

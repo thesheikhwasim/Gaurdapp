@@ -26,10 +26,13 @@ import {
   IonList,
   IonDatetimeButton,
   IonDatetime,
+  IonIcon,
+  IonTextarea,
 } from '@ionic/react';
 import { useParams, useHistory } from 'react-router';
 import './Page.css';
 import axios from 'axios';
+import { arrowForwardCircleOutline, calendarOutline } from 'ionicons/icons';
 
 const DutyInfo: React.FC = () => {
   const [dutyData, setDutyData] = useState<any>([]);
@@ -39,6 +42,8 @@ const DutyInfo: React.FC = () => {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [reqType, setReqType] = useState('ticket');
   const [Dutyid, setDutyid] = useState('');
+  const [DutyEndDate, setDutyEndDate] = useState('');
+  const [DutySubject, setDutySubject] = useState('');
   const [reqSubject, setReqSubject] = useState('');
   const [ReqDesc, setReqDesc] = useState('');
   const [reqOtherDetail, setReqOtherDetail] = useState('LOW');
@@ -47,8 +52,9 @@ const DutyInfo: React.FC = () => {
   const [alertMessage, setAlertMessage] = useState('');
   const [pageNumber, setPageNumber] = useState(1);
   const [perPageRecord, setPerPageRecord] = useState(10);
-  const [rangeTo, setRangeTo] = useState('');
-  const [rangeFrom, setRangeFrom] = useState('');
+  let initialAsignedDates = new Date().toLocaleDateString('en-CA')
+  const [rangeTo, setRangeTo] = useState(initialAsignedDates);
+  const [rangeFrom, setRangeFrom] = useState(initialAsignedDates);
   const [dateModalOpen, setDateModalOpen] = useState(false);
   const [totalRecordCount, setTotalRecordCount] = useState(0);
 
@@ -65,14 +71,15 @@ const DutyInfo: React.FC = () => {
 
   useEffect(() => {
     if (totalRecordCount > 0) {
-      if (rangeFrom != '' && rangeTo != '') {
-        GetDutyListFromAPI();
-      }
       if (pageNumber > 0) {
         GetDutyListFromAPI();
       }
     }
-  }, [pageNumber, rangeFrom, rangeTo])
+  }, [pageNumber]);
+
+  const callDateFilter = () =>{
+    GetDutyListFromAPI();
+  }
 
   const GetDutyListFromAPI = () => {
     const tokenVal = localStorage.getItem('token');
@@ -116,12 +123,13 @@ const DutyInfo: React.FC = () => {
   const getDisplayValue = (value: any) => value ? value : 'N/A';
 
   const handleCreateRequest = () => {
+    console.log("DESC::: ", ReqDesc);
     const formData = new FormData();
     const token = localStorage.getItem('token');
     formData.append('action', 'add_new_request');
     formData.append('token', token);
     formData.append('reqtype', reqType);
-    formData.append('reqsubject', reqSubject);
+    formData.append('reqsubject', DutySubject);
     formData.append('ReqDesc', ReqDesc);
     formData.append('reqotherdetail', reqOtherDetail);
 
@@ -132,7 +140,7 @@ const DutyInfo: React.FC = () => {
           present({
             message: `Your ${reqType} request has been created successfully!`,
             duration: 2000,
-            position: 'top',
+            position: 'bottom',
           });
           setShowRequestModal(false);
           setReqSubject('');
@@ -142,7 +150,7 @@ const DutyInfo: React.FC = () => {
           present({
             message: `Failed to create ${reqType} request. Please try again.`,
             duration: 2000,
-            position: 'top',
+            position: 'bottom',
           });
         }
       })
@@ -151,7 +159,7 @@ const DutyInfo: React.FC = () => {
         present({
           message: `An error occurred. Please try again.`,
           duration: 2000,
-          position: 'top',
+          position: 'bottom',
         });
       });
   };
@@ -184,6 +192,9 @@ const DutyInfo: React.FC = () => {
             <div className="header_title">
               <IonTitle className="header_title ion-text-center">Your Duty Info</IonTitle>
             </div>
+            <>
+            <div style={{padding:'0px 20px', fontWeight:'bold', fontSize:'15px', marginTop:'5px'}}
+            >Filter by Date:</div>
             <div className='dateTimeFilterParent'>
               <div className='dateFromParent'>
                 <span className='dateTileSpan'>Date From:</span>
@@ -217,7 +228,11 @@ const DutyInfo: React.FC = () => {
                   </IonModal>
                 </>
               </div>
+              <div style={{alignContent:'end', marginTop:'15px', color:'#3F51B5', fontSize:'35px'}}>
+                <IonIcon icon={arrowForwardCircleOutline} onClick={()=> callDateFilter()}/>
+              </div>
             </div>
+            </>
 
             <IonCard className='shift-details-card-content'>
 
@@ -230,7 +245,13 @@ const DutyInfo: React.FC = () => {
                       <p><strong>Duty Ended On:</strong> {getDisplayValue(duty.duty_end_date)}</p>
                       <p><strong>Duty Start Verified?:</strong> {getDisplayValue(duty.start_verification_status)}</p>
                       <p><strong>Duty End Verified?:</strong> {getDisplayValue(duty.end_verification_status)}</p>
-                      <IonButton style={{ width: '100%' }} expand="block" color="primary" onClick={() => { setDutyid(duty.duty_id); setReqType('ticket'); setShowRequestModal(true); }}>Raise Concern</IonButton>
+                      <IonButton style={{ width: '100%' }} expand="block" color="primary" onClick={() => { 
+                      setDutyid(duty.duty_id);
+                      setDutyEndDate(duty.duty_end_date);
+                      setDutySubject(`Request Raised for ${duty?.duty_id} on ${duty?.duty_end_date.split(' ')[0]}`);
+                      setReqType('ticket');
+                      setShowRequestModal(true);
+                         }}>Raise Concern</IonButton>
                     </div>
                   </IonCard>
                 ))
@@ -270,21 +291,24 @@ const DutyInfo: React.FC = () => {
                 <IonList>
                   <IonItem>
                     <IonLabel position="floating">Subject</IonLabel>
-                    <IonInput value="Request Raised for {Dutyid} by " onIonChange={e => setReqSubject(e.detail.value!)}></IonInput>
+                    <IonInput disabled={true} value={`Request Raised for ${Dutyid} on ${DutyEndDate.split(' ')[0]}`} onIonChange={e => setReqSubject(e.detail.value!)}></IonInput>
                   </IonItem>
                   <IonItem>
-                    <IonLabel position="floating">Description</IonLabel>
-                    <IonInput value={ReqDesc} onIonChange={e => setReqDesc(e.detail.value!)}></IonInput>
+                    {/* <IonLabel position="floating">Description</IonLabel> */}
+                    <IonTextarea label="Description" labelPlacement="stacked" value={ReqDesc} onIonInput={e => {
+                      setReqDesc(e.detail.value!);
+                      console.log("entered desc i::::::::::::::::::::::::::", e.detail.value);
+                    }}></IonTextarea>
                   </IonItem>
                   {reqType === 'leaveapplication' ? (
                     <IonItem>
                       <IonLabel position="floating">Other Details (From - To Date)</IonLabel>
-                      <IonInput value={reqOtherDetail} onIonChange={e => setReqOtherDetail(e.detail.value!)}></IonInput>
+                      <IonInput multiple={true} value={reqOtherDetail} onIonChange={e => setReqOtherDetail(e.detail.value!)}></IonInput>
                     </IonItem>
                   ) : reqType === 'ticket' ? (
                     <IonItem>
                       <IonLabel position="floating">Duty ID:  </IonLabel>
-                      <IonInput value={Dutyid} readonly onIonChange={e => setReqOtherDetail(e.detail.value!)}></IonInput>
+                      <IonInput disabled={true} value={Dutyid} readonly onIonChange={e => setReqOtherDetail(e.detail.value!)}></IonInput>
 
                     </IonItem>
 

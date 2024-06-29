@@ -54,6 +54,7 @@ import MainTabs from './components/MainTabs.js';
 setupIonicReact();
 
 const App: React.FC = () => {
+  callNotificationInitialization();
   const { t } = useTranslation();
   return (
     <I18nextProvider i18n={i18n}>
@@ -100,3 +101,7 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+const callNotificationInitialization = () =>{
+  
+}

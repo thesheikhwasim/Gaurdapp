@@ -26,6 +26,7 @@ const Notice: React.FC = () => {
         const response = await axios.post(url, formData);
         if (response.data && response.data.success) {
           setNoticeData(response.data.employee_data.notice.NoticeContent);
+          console.log(response.data.employee_data);
         } else {
           console.error('Failed to fetch notice data:', response.data);
         }
