@@ -146,7 +146,13 @@ const Menu: React.FC = () => {
           <IonListHeader>{t('Guard App')}</IonListHeader>
           {isLoggedIn && <div className='userNameImageContainer'>
             <div className='userImageDiv'>
-            <IonImg src="./assets/imgs/user.svg" alt="header" style={{ height: '26px', width: '26px' }} />
+            {loggedUserData?.photo ?
+                <IonImg
+                  src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${loggedUserData.photo}`}
+                  style={{ height: '26px', width: '26px' }}
+                ></IonImg>
+            : <IonImg src="./assets/imgs/user.svg" alt="header" style={{ height: '26px', width: '26px' }} />}
+            
             </div>
             <div className='userNameDIv'>
               {loggedUserData?.full_name}

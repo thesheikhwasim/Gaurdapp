@@ -8,7 +8,10 @@ const config: CapacitorConfig = {
     androidScheme: 'https'
   },
   plugins: {
-    Geolocation: {}
+    Geolocation: {},
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"],
+    },
   }
 };
 

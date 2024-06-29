@@ -106,22 +106,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
   return (
     <IonPage>
       <IonHeader>
@@ -147,6 +131,14 @@ const Dashboard: React.FC = () => {
           <div className="header_title">
         <IonTitle className="header_title ion-text-center">Welcome {loggedInUser?.full_name}</IonTitle>
       </div>
+      {ProfileData?.photo && <div className='profileImageParentSh'>
+        <div>
+        <IonImg
+          className='imageionclass'
+          src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${ProfileData.photo}`}
+        ></IonImg>
+        </div>
+      </div>}
           <IonCard className="shift-details-card profilepage">
 
             <IonCardHeader>

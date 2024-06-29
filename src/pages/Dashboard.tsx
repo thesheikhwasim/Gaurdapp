@@ -71,6 +71,8 @@ const Dashboard: React.FC = () => {
   const [dutystartinfo, setdutystartinfo] = useState<any>(null);
   const [dutyDetailsFromOngoingDuty, setDutyDetailsFromOngoingDuty] = useState<any>({});
   const [inRange, SetInRange] = useState<boolean>(true);
+  const [inAlert, SetInAlert] = useState<boolean>(false);
+  const [movementAlertMessage, SetMovementAlertMessage] = useState<string>('');
   const [elapsedState, setElapsedState] = useState<number>(0);
 
   useEffect(() => {
@@ -201,6 +203,8 @@ const Dashboard: React.FC = () => {
         const response = await axios.post('https://guard.ghamasaana.com/guard_new_api/dutystartmovement.php', formData);
         if(response && response?.data && 'range_status' in response.data[0]){
           SetInRange(response.data[0]?.range_status);
+          SetInAlert(response.data[0]?.display_alert);
+          SetMovementAlertMessage(response.data[0]?.message);
         }
         return response.data;
       }
@@ -413,6 +417,11 @@ const Dashboard: React.FC = () => {
                 {!inRange && 'You are not in range of duty!'}
               </span>
             </div>
+            <div className='alertClassForMessage not-range-parent' style={{marginTop:"5px", marginBottom:'5px'}}>
+              <span className='blink_me'>
+                {inAlert && `ALERT: ${JSON.stringify(movementAlertMessage)}`}
+              </span>
+            </div>
             {isRunning && elapsedState && elapsedState > 0 &&<div>
                 <MyStopwatch test={elapsedState}/>
             </div>}
@@ -435,13 +444,13 @@ const Dashboard: React.FC = () => {
 
           <IonGrid className="ion-margin ion-text-center">
             <IonRow>
-              <IonCol size="4" size-md="4" size-lg="4">
+              {/* <IonCol size="4" size-md="4" size-lg="4">
                 <IonButton expand="block" color="secondary" onClick={() => { setReqType('ticket'); setShowRequestModal(true); }}>{t('ticket')}</IonButton>
               </IonCol>
               <IonCol size="4" size-md="4" size-lg="4">
                 <IonButton expand="block" color="warning" onClick={() => { setReqType('leaveapplication'); setShowRequestModal(true); }}>{t('leave')}</IonButton>
-              </IonCol>
-              <IonCol size="4" size-md="4" size-lg="4">
+              </IonCol> */}
+              <IonCol size="12" size-md="12" size-lg="12">
                 <IonButton expand="block" color="danger" onClick={() => { setReqType('sos'); setShowRequestModal(true); }}>{t('sos')}</IonButton>
               </IonCol>
             </IonRow>
