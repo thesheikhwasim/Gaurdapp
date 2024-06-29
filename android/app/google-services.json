@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "358070694230",
+    "project_id": "guardfinal-1b1b1b",
+    "storage_bucket": "guardfinal-1b1b1b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:358070694230:android:fa950518e1f93a757ea6f7",
+        "android_client_info": {
+          "package_name": "io.ionic.starter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBczTz4WEv8iD76Xm2wzPFsq8eNkJJAfpw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
