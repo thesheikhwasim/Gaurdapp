@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar, IonImg, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonItem, IonList, IonLabel, IonLoading } from '@ionic/react';
+import React, { useState, useEffect, useRef } from 'react';
+import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar, IonImg, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonItem, IonList, IonLabel, IonLoading, IonIcon, IonModal, IonButton } from '@ionic/react';
 import { useParams, useHistory } from 'react-router';
 import './Page.css';
 import axios from 'axios';
+import { addCircle, mailUnread, mailUnreadOutline, personCircle } from 'ionicons/icons';
 
 const Notice: React.FC = () => {
   const [noticeData, setNoticeData] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const history = useHistory();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [noticeTitle, setNoticeTitle] = useState('');
+  const [noticeBody, setNoticeBody] = useState('');
+  const [noticeDetails, setNoticeDetails] = useState({});
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -16,31 +21,70 @@ const Notice: React.FC = () => {
       return;
     }
 
-    const fetchNoticeData = async () => {
-      const url = 'https://guard.ghamasaana.com/guard_new_api/notice.php';
-      const formData = new FormData();
-      formData.append('action', 'notice_data');
-      formData.append('token', token);
-
-      try {
-        const response = await axios.post(url, formData);
-        if (response.data && response.data.success) {
-          setNoticeData(response.data.employee_data.notice.NoticeContent);
-          console.log(response.data.employee_data);
-        } else {
-          console.error('Failed to fetch notice data:', response.data);
-        }
-      } catch (error) {
-        console.error('Error fetching notice data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchNoticeData();
   }, [history]);
 
+  const fetchNoticeData = async () => {
+    const token = localStorage.getItem('token');
+    const url = 'https://guard.ghamasaana.com/guard_new_api/notice.php';
+    const formData = new FormData();
+    formData.append('action', 'notice_data');
+    formData.append('token', token);
+
+    try {
+      const response = await axios.post(url, formData);
+      if (response.data && response.data.success) {
+        setNoticeData(response.data.employee_data.notice);
+        console.log(response.data.employee_data);
+      } else {
+        console.error('Failed to fetch notice data:', response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching notice data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const { name } = useParams<{ name: string }>();
+
+  const modal = useRef<HTMLIonModalElement>(null);
+
+  function dismiss() {
+    modal.current?.dismiss();
+  }
+
+  function triggerDetails(item) {
+    setNoticeDetails(item);
+    if (item?.ShowStatus != 1) {
+      callReadApi(item);
+    }
+    setModalOpen(true);
+  }
+
+  function callReadApi(item) {
+    const tokenVal = localStorage.getItem('token');
+    let URL = "http://guard.ghamasaana.com/guard_new_api/notice_status.php";
+    const formData = new FormData();
+    formData.append('action', "notice_status");
+    formData.append('token', tokenVal);
+    formData.append('notification_status', "1");
+    formData.append('notice_id', item?.NoticeID);
+
+    axios.post(URL, formData)
+      .then(response => {
+        if (response.data && response.data.success) {
+          console.log("Updated notice status");
+        } else {
+          console.error('Failed to update status:', response.data);
+        }
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error('Error updating status info:', error);
+        setLoading(false);
+      });
+  }
 
   return (
     <IonPage>
@@ -69,15 +113,45 @@ const Notice: React.FC = () => {
               <IonLoading isOpen={loading} message={'Loading...'} />
             ) : noticeData ? (
               <IonList>
-                {noticeData.split('\n').map((item, index) => (
-                  <IonItem key={index}>
-                    <IonLabel>{item}</IonLabel>
+                {noticeData.map((item, index) => (
+                  <IonItem key={index} className='notificationSpecialItem' onClick={() => triggerDetails(item)}>
+                    <div className='notificationContainer'>
+                      <div className='notificationTitle'>
+                        <span>{item?.NoticeCategory}</span>
+                      </div>
+                      <div className='notificationBody'>
+                        <span>{item?.NoticeContent} ajdhjkadhadhjahdhajdhjadhasjdjashjdjasjdjasdasdjk</span>
+                      </div>
+                    </div>
+                    <div className='notificationIconReadUnread'>
+                      {item?.ShowStatus != 1 && <IonIcon icon={mailUnreadOutline} />}
+                    </div>
                   </IonItem>
                 ))}
               </IonList>
             ) : (
               <IonLabel>No notice data available<br></br><br></br><br></br><br></br><br></br><br></br><br></br><br></br><br></br><br></br></IonLabel>
             )}
+            <IonModal id="example-modal" isOpen={modalOpen} onDidDismiss={() => {
+              // Call API so that list updates only when status is updated
+              if(noticeDetails?.ShowStatus !=1){
+                fetchNoticeData();
+              }
+              // close modal
+              setModalOpen(false);
+              }}>
+              <div className="wrapper">
+                <h4>Notice {noticeDetails?.ShowStatus}</h4>
+                <div className='notificationContainerModal'>
+                  <div>
+                    <span>{noticeDetails?.NoticeCategory}</span>
+                  </div>
+                  <div>
+                    <span>{noticeDetails?.NoticeContent}</span>
+                  </div>
+                </div>
+              </div>
+            </IonModal>
           </IonCardContent>
         </IonCard>
         <div className='footer'>

@@ -23,6 +23,7 @@ import {
   languageOutline,
   logOutOutline,
   logInOutline,
+  peopleCircleOutline,
 } from 'ionicons/icons';
 import { useTranslation } from 'react-i18next';
 
@@ -75,60 +76,76 @@ const Menu: React.FC = () => {
       url: '/pages/tabs/Dashboard',
       iosIcon: calendarClearOutline,
       mdIcon: calendarClearOutline,
+      isManager: false
     },
     {
       title: t('Duty Info'),
       url: '/pages/tabs/Dashboard/DutyInfo',
       iosIcon: informationCircleOutline,
       mdIcon: informationCircleOutline,
+      isManager: false
     },
     {
       title: t('Profile'),
       url: '/pages/Accountupd',
       iosIcon: personCircleOutline,
       mdIcon: personCircleOutline,
+      isManager: false
     },
     {
       title: t('Requests'),
       url: '/pages/tabs/getRequest',
       iosIcon: paperPlaneOutline,
       mdIcon: paperPlaneOutline,
+      isManager: false
     },
     {
       title: t('Tickets'),
       url: '/pages/tabs/getTicket',
       iosIcon: paperPlaneOutline,
       mdIcon: paperPlaneOutline,
+      isManager: false
     },
     {
       title: t('Notification'),
       url: '/pages/tabs/Notice',
       iosIcon: notificationsOutline,
       mdIcon: notificationsOutline,
+      isManager: false
     },
     {
       title: t('Add New Guard'),
       url: '/pages/AddNewGuard',
       iosIcon: personAddOutline,
       mdIcon: personAddOutline,
+      isManager: false
     },
     {
       title: t('Your ID Card'),
       url: '/pages/idCard',
       iosIcon: personAddOutline,
       mdIcon: personAddOutline,
+      isManager: false
+    },{
+      title: t('Manager'),
+      url: '/pages/MapView',
+      iosIcon: personAddOutline,
+      mdIcon: personAddOutline,
+      isManager: true
     },
     {
       title: t('Change Language'),
       url: '/pages/LanguageSelector',
       iosIcon: languageOutline,
       mdIcon: languageOutline,
+      isManager: false
     },
     {
       title: t('Logout'),
       url: '/pages/Logout',
       iosIcon: logOutOutline,
       mdIcon: logOutOutline,
+      isManager: false
     },
   ];
 
@@ -161,7 +178,7 @@ const Menu: React.FC = () => {
           }
           {/* <IonNote>{loggedUserData?.full_name}</IonNote> */}
           {isLoggedIn ? (
-            menuItems.map((appPage, index) => (
+            menuItems.map((appPage, index) => ( !appPage.isManager &&
               <IonMenuToggle className='reree' key={index} autoHide={false}>
                 <IonItem className={location.pathname === appPage.url ? 'selected' : ''} routerLink={appPage.url} routerDirection="none" lines="none" detail={false}>
                   <IonIcon aria-hidden="true" slot="start" ios={appPage.iosIcon} md={appPage.mdIcon} />
