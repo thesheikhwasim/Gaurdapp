@@ -36,6 +36,7 @@ import getRequest from './pages/getRequest';
 import getTicket from './pages/getTicket';
 import AddNewGuard from './pages/AddNewGuard';
 import idCard from './pages/idCard';
+import MapView from './pages/mapView'
 
 // import ListGuards from './pages/listGuard.js';
 
@@ -76,6 +77,7 @@ const App: React.FC = () => {
               <Route exact path="/pages/tabs/Dashboard/DutyInfo" component={DutyInfo}/>
               <Route exact path="/pages/AddNewGuard" component={AddNewGuard}/>
               <Route exact path="/pages/idCard" component={idCard}/>
+              <Route exact path="/pages/MapView" component={MapView}/>
               <Route exact path="/pages/LanguageSelector" component={LanguageSelector}/>
 
               {/* <Route exact path="/pages/ListGuard" component={ListGuards}/> */}
