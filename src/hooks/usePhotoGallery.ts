@@ -34,7 +34,7 @@ export function usePhotoGallery() {
     });
 
     const fileName = "myPhotoGuard" + '.jpeg';
-    const savedFileImage = await savePicture(photo, fileName);
+    // const savedFileImage = await savePicture(photo, fileName);
     // const newPhotos = [
     //   {
     //     filepath: fileName,
@@ -43,11 +43,10 @@ export function usePhotoGallery() {
     //   ...photos,
     // ];
 
-    const newPhotos = savedFileImage;
-    // const newPhotos = {
-    //   filepath: fileName,
-    //   webviewPath: photo.webPath,
-    // };
+    const newPhotos = {
+      filepath: fileName,
+      webviewPath: photo,
+    };
     setPhotos(newPhotos);
     saveToStorage(newPhotos);
     return photo;

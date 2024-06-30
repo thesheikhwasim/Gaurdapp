@@ -329,6 +329,58 @@ span.dateTileSpan {
   object-fit: cover;
 }
 
+.notificationIconReadUnread {
+  position: absolute;
+  right: 0;
+  top: 2px;
+}
+
+.notificationBody {
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.notificationTitle {
+  font-weight: bold;
+  font-size: 15px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.notificationContainer {
+  width: 100%;
+  padding: 0px;
+  position: relative;
+}
+
+ion-item.notificationSpecialItem::part(native)  {
+  padding: 0px;
+}
+
+ion-item.notificationSpecialItem::part(native)::nth-child(2){
+  padding: 0px;
+}
+
+ion-modal#example-modal {
+  --width: fit-content;
+  --min-width: 90%;
+  --height: aliceblue;
+  --border-radius: 5px;
+  --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+  --max-width: 90%;
+}
+
+ion-modal#example-modal .wrapper {
+  padding: 10px;
+}
+
+.notificationContainerModal div{
+  margin-bottom: 10px;
+}
+
 /* .blink_me {
   animation: blinker 1s linear infinite;
 }

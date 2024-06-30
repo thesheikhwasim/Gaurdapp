@@ -25,6 +25,7 @@ import {
   useIonToast,
   IonAlert,
   IonIcon,
+  IonTextarea,
 } from '@ionic/react';
 
 import { isPlatform } from '@ionic/react';
@@ -42,7 +43,7 @@ import { Geolocation } from '@capacitor/geolocation';
 import axios from 'axios';
 import './Page.css';
 import useAuth from '../hooks/useAuth';
-import { closeOutline, personCircleOutline } from 'ionicons/icons';
+import { close, closeOutline, personCircleOutline } from 'ionicons/icons';
 import MyStopwatch from './DashboardMyTimer';
 
 const Dashboard: React.FC = () => {
@@ -74,6 +75,8 @@ const Dashboard: React.FC = () => {
   const [inAlert, SetInAlert] = useState<boolean>(false);
   const [movementAlertMessage, SetMovementAlertMessage] = useState<string>('');
   const [elapsedState, setElapsedState] = useState<number>(0);
+  const [alertModal, setAlertModal] = useState(false);
+  const [alertReplyInput, setAlertReplyInput] = useState('');
 
   useEffect(() => {
     const storedData = localStorage.getItem('loggedInUser');
@@ -87,7 +90,7 @@ const Dashboard: React.FC = () => {
     }
   }, []);
 
-  useEffect(()=>{
+  useEffect(() => {
     captureLocation().then((res) => {
       dutyMovementHandler();
     });
@@ -105,43 +108,43 @@ const Dashboard: React.FC = () => {
 
       const response = await axios.post('https://guard.ghamasaana.com/guard_new_api/ongoing_duty.php', formData);
       const data = response.data;
-      if(data?.success && data?.employee_data){
+      if (data?.success && data?.employee_data) {
         setDutyDetailsFromOngoingDuty(data.employee_data);
-        let past = new Date(data?.employee_data?.deploydatetime); 
-          
+        let past = new Date(data?.employee_data?.deploydatetime);
+
         // assigning present time to new variable 
-        let now = new Date(); 
-          console.log("NOW DATE",now)
-          console.log("PAST DATE:",past)
+        let now = new Date();
+        console.log("NOW DATE", now)
+        console.log("PAST DATE:", past)
 
         let elapsed = (now - past);
-        setElapsedState(elapsed/1000);
+        setElapsedState(elapsed / 1000);
       }
-      if (data.success && data.employee_data.duty_ongoing_info && data.employee_data.duty_ongoing_info.duty_end_date === null) {
-        setDuty(true);
-        setIsRunning(true);
-        setElapsedTime(convertRemainingTime(data.employee_data.remaining_time));
-        // actuastart?.innerHTML('')=data.employee_data.duty_ongoing_info.duty_start_date;
-        setdutystartinfo(data.employee_data.duty_ongoing_info);
-        const today = new Date();
+      // if (data.success && data.employee_data.duty_ongoing_info && data.employee_data.duty_ongoing_info.duty_end_date === null) {
+      //   setDuty(true);
+      //   setIsRunning(true);
+      //   setElapsedTime(convertRemainingTime(data.employee_data.remaining_time));
+      //   // actuastart?.innerHTML('')=data.employee_data.duty_ongoing_info.duty_start_date;
+      //   setdutystartinfo(data.employee_data.duty_ongoing_info);
+      //   const today = new Date();
 
-        var delta = Math.abs(today - data.employee_data.duty_ongoing_info.duty_start_date) / 1000;
+      //   var delta = Math.abs(today - data.employee_data.duty_ongoing_info.duty_start_date) / 1000;
 
-        var days = Math.floor(delta / 86400);
-        delta -= days * 86400;
-        var hours = Math.floor(delta / 3600) % 24;
-        delta -= hours * 3600;
-        var minutes = Math.floor(delta / 60) % 60;
-        delta -= minutes * 60;
-        var seconds = delta % 60;
+      //   var days = Math.floor(delta / 86400);
+      //   delta -= days * 86400;
+      //   var hours = Math.floor(delta / 3600) % 24;
+      //   delta -= hours * 3600;
+      //   var minutes = Math.floor(delta / 60) % 60;
+      //   delta -= minutes * 60;
+      //   var seconds = delta % 60;
 
-        intervalRef.current = setInterval(() => {
-          setElapsedTime((prevTime) => prevTime - 1);
-        }, 5000);
+      //   intervalRef.current = setInterval(() => {
+      //     setElapsedTime((prevTime) => prevTime - 1);
+      //   }, 5000);
 
-      } else {
-        console.log("DUTY DATA else case added by SH: ");
-      }
+      // } else {
+      //   console.log("DUTY DATA else case added by SH: ");
+      // }
     } catch (error) {
       console.error('Error fetching ongoing duty:', error);
     }
@@ -180,9 +183,9 @@ const Dashboard: React.FC = () => {
         ? await axios.post('https://guard.ghamasaana.com/guard_new_api/dutystop.php', formData)
         : await axios.post('https://guard.ghamasaana.com/guard_new_api/dutystart.php', formData, {
           headers: {
-              'Content-Type': 'multipart/form-data'
+            'Content-Type': 'multipart/form-data'
           }
-      });
+        });
       return response.data;
     } catch (error) {
       console.error('Error:', error);
@@ -201,10 +204,16 @@ const Dashboard: React.FC = () => {
         formData.append('longitude', Longitude);
 
         const response = await axios.post('https://guard.ghamasaana.com/guard_new_api/dutystartmovement.php', formData);
-        if(response && response?.data && 'range_status' in response.data[0]){
-          SetInRange(response.data[0]?.range_status);
-          SetInAlert(response.data[0]?.display_alert);
-          SetMovementAlertMessage(response.data[0]?.message);
+        if (response && response?.data && 'range_status' in response.data[0]) {
+          if(inRange != response.data[0]?.range_status){
+            SetInRange(response.data[0]?.range_status);
+          }
+          if(inAlert != response.data[0]?.display_alert){
+            SetInAlert(response.data[0]?.display_alert);
+          }
+          if(movementAlertMessage != response.data[0]?.display_message){
+            SetMovementAlertMessage(response.data[0]?.display_message);
+          }
         }
         return response.data;
       }
@@ -218,7 +227,7 @@ const Dashboard: React.FC = () => {
   const handleDutyStart = async () => {
     captureLocation().then((res) => {
       if (Latitude !== '') {
-        takePhoto().then(async(photoData) => {
+        takePhoto().then(async (photoData) => {
           console.log("Photo Data Returned From Camera Base64 format---", photoData);
           const formData = new FormData();
           const token = localStorage.getItem('token');
@@ -227,22 +236,6 @@ const Dashboard: React.FC = () => {
           formData.append('latitude', Latitude);
           formData.append('longitude', Longitude);
           formData.append('duty_start_verification', 'Face_Recognition');
-//           console.log("BLOB path:: ",  photoData?.dataUrl);
-//           // const blobData = new Blob(photoData?.dataUrl)
-//           // const file = new File([blobData], "filename22.jpeg");
-//           let file = "";
-//           let ConversionData =  await fetch(photoData?.dataUrl)
-//           .then(res => res.blob())
-//           .then(blob => {
-//             console.log("BLOB of bae64 is::: ", blob);
-//             file = new File([blob], "filename24.jpeg");
-//             console.log("file inside is:::: ", file);
-
-//             return file;
-
-//           }
-//         );
-// console.log("ConversionData is:::: ", ConversionData);
           formData.append('duty_start_pic', JSON.stringify(photoData));
           dutyApi(formData, false)
             .then((response) => {
@@ -269,7 +262,7 @@ const Dashboard: React.FC = () => {
     });
   };
 
-  const dutyMovementHandler = () =>{
+  const dutyMovementHandler = () => {
     // Call duty movement API
     dutyMovementApi().then((movementResponse) => {
       if (movementResponse && !movementResponse.success) {
@@ -277,8 +270,8 @@ const Dashboard: React.FC = () => {
         setShowAlert(true);
       } else {
         // Update previous location only if API call was successful
-        setPrevLatitude(Latitude);
-        setPrevLongitude(Longitude);
+          setPrevLatitude(Latitude);
+          setPrevLongitude(Longitude);
       }
     });
   }
@@ -296,7 +289,7 @@ const Dashboard: React.FC = () => {
         formData.append('longitude', Longitude);
         formData.append('duty_end_verification', 'Face_Recognition');
         formData.append('end_verification_status', 'Approved');
-        
+
         dutyApi(formData, true)
           .then((response) => {
             if (response && response.success) {
@@ -325,7 +318,7 @@ const Dashboard: React.FC = () => {
     formData.append('ReqDesc', reqDesc);
     formData.append('reqotherdetail', reqOtherDetail);
     console.log(token);
-    console.log("formDATA create----> ", JSON.stringify(formData)); 
+    console.log("formDATA create----> ", JSON.stringify(formData));
     // return false;
 
     axios
@@ -366,6 +359,43 @@ const Dashboard: React.FC = () => {
 
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   };
+
+  function handleAlertReply() {
+    const formData = new FormData();
+    const token = localStorage.getItem('token');
+    formData.append('action', 'alert_msg_status');
+    formData.append('token', token);
+    formData.append('latitude', Latitude);
+    formData.append('longitude', Longitude);
+    formData.append('alertreply', alertReplyInput);
+    formData.append('alertmsg', movementAlertMessage);
+
+    axios.post('https://guard.ghamasaana.com/guard_new_api/alert_message_status.php', formData).then((response) => {
+      if (response.data && response.data.success) {
+        present({
+          message: `Your alert reply has been submitted successfully!`,
+          duration: 2000,
+          position: 'bottom',
+        });
+        setAlertModal(false);
+        setAlertReplyInput('');
+      } else {
+        present({
+          message: `Failed to submit alery reply. Please try again.`,
+          duration: 2000,
+          position: 'bottom',
+        });
+      }
+    }).catch((error) => {
+      console.error(`Error replying request:`, error);
+      present({
+        message: `An error occurred. Please try again.`,
+        duration: 2000,
+        position: 'bottom',
+      });
+    });
+  }
+    console.log("re-render check")
 
   return (
     <IonPage>
@@ -417,13 +447,27 @@ const Dashboard: React.FC = () => {
                 {!inRange && 'You are not in range of duty!'}
               </span>
             </div>
-            <div className='alertClassForMessage not-range-parent' style={{marginTop:"5px", marginBottom:'5px'}}>
-              <span className='blink_me'>
-                {inAlert && `ALERT: ${JSON.stringify(movementAlertMessage)}`}
-              </span>
-            </div>
-            {isRunning && elapsedState && elapsedState > 0 &&<div>
-                <MyStopwatch test={elapsedState}/>
+            {!inAlert && <div className='alertClassForMessage not-range-parent' style={{
+              marginTop: "5px", marginBottom: '5px',
+              padding: '15px', border: '2px solid red', position: 'relative'
+            }}>
+              <div>
+                ALERT!
+              </div>
+              <div style={{fontSize:'12px'}}>
+                Please answer below alert question!
+              </div>
+              <div className='blink_me' style={{color:'#000', marginTop:'5px'}}>
+                {`Alert Question: ${JSON.stringify(movementAlertMessage)}`}
+              </div>
+              <div>
+                <IonButton expand="block" onClick={()=> setAlertModal(true)} color="danger">
+                  {'REPLY ALERT'}
+                </IonButton>
+              </div>
+            </div>}
+            {isRunning && elapsedState && elapsedState > 0 && <div>
+              <MyStopwatch test={elapsedState} />
             </div>}
             <IonGrid className="ion-text-center">
               <IonRow>
@@ -502,6 +546,32 @@ const Dashboard: React.FC = () => {
                 ) : null}
               </IonList>
               <IonButton expand="full" onClick={handleCreateRequest}>Create {reqType === 'ticket' ? 'Ticket' : reqType === 'leaveapplication' ? 'Leave Request' : 'SOS Request'}</IonButton>
+            </IonContent>
+          </IonModal>
+          {/* ALERT MODAL GOES BELOW */}
+          <IonModal isOpen={alertModal} onDidDismiss={() => setAlertModal(false)}>
+            <IonHeader>
+              <IonToolbar>
+                <IonTitle>{'Alert Reply'}</IonTitle>
+                <IonButtons slot="end">
+                  <IonButton onClick={() => setAlertModal(false)}>
+                    <IonIcon icon={closeOutline} size="large"></IonIcon>
+                  </IonButton>
+                </IonButtons>
+              </IonToolbar>
+            </IonHeader>
+            <IonContent>
+              <IonList>
+                <IonItem>
+                  <IonLabel position="floating">Enter Alert Reply</IonLabel>
+                  <IonTextarea value={alertReplyInput} onIonChange={e => setAlertReplyInput(e.detail.value!)}></IonTextarea>
+                </IonItem>
+                <IonItem>
+                    <IonLabel position="floating">Other Details (From - To Date)</IonLabel>
+                    <IonInput value={reqOtherDetail} onIonChange={e => setReqOtherDetail(e.detail.value!)}></IonInput>
+                  </IonItem>
+              </IonList>
+              <IonButton expand="full" onClick={() => handleAlertReply()}>Submit Alert Reply</IonButton>
             </IonContent>
           </IonModal>
         </div>
