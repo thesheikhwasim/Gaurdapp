@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "358070694230",
-    "project_id": "guardfinal-1b1b1b",
-    "storage_bucket": "guardfinal-1b1b1b.appspot.com"
+    "project_number": "482927828459",
+    "project_id": "gi-sentinel",
+    "storage_bucket": "gi-sentinel.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:358070694230:android:fa950518e1f93a757ea6f7",
+        "mobilesdk_app_id": "1:482927828459:android:ac42db8f042e72f1620dae",
         "android_client_info": {
           "package_name": "io.ionic.starter"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBczTz4WEv8iD76Xm2wzPFsq8eNkJJAfpw"
+          "current_key": "AIzaSyBH-lq64yt4l7DAAu6ucSgm0r2AUlU7UeM"
         }
       ],
       "services": {
