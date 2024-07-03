@@ -36,7 +36,7 @@ import { Preferences } from '@capacitor/preferences';
 import { Capacitor } from '@capacitor/core';
 
 import { useParams } from 'react-router';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePhotoGallery } from '../../src/hooks/usePhotoGallery';
 import { Geolocation } from '@capacitor/geolocation';
@@ -46,7 +46,7 @@ import useAuth from '../hooks/useAuth';
 import { close, closeOutline, personCircleOutline } from 'ionicons/icons';
 import MyStopwatch from './DashboardMyTimer';
 
-const Dashboard: React.FC = () => {
+const DashboardComp: React.FC = ({onLocalStorageChange}) => {
   const [duty, setDuty] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const token = localStorage.getItem('token');
@@ -110,15 +110,17 @@ const Dashboard: React.FC = () => {
       const data = response.data;
       if (data?.success && data?.employee_data) {
         setDutyDetailsFromOngoingDuty(data.employee_data);
-        let past = new Date(data?.employee_data?.deploydatetime);
+        if(data?.employee_data && data?.employee_data?.duty_ongoing_info && data?.employee_data?.duty_ongoing_info?.duty_start_date){
+          let past = new Date(data?.employee_data?.duty_ongoing_info?.duty_start_date);
 
-        // assigning present time to new variable 
-        let now = new Date();
-        console.log("NOW DATE", now)
-        console.log("PAST DATE:", past)
-
-        let elapsed = (now - past);
-        setElapsedState(elapsed / 1000);
+          // assigning present time to new variable 
+          let now = new Date();
+          console.log("NOW DATE", now)
+          console.log("PAST DATE:", past)
+  
+          let elapsed = (now - past);
+          setElapsedState(elapsed / 1000);
+        }
       }
       // if (data.success && data.employee_data.duty_ongoing_info && data.employee_data.duty_ongoing_info.duty_end_date === null) {
       //   setDuty(true);
@@ -208,9 +210,28 @@ const Dashboard: React.FC = () => {
           if(inRange != response.data[0]?.range_status){
             SetInRange(response.data[0]?.range_status);
           }
-          if(inAlert != response.data[0]?.display_alert){
+          // if(inAlert == response.data[0]?.display_alert){
+          //   let localVal = localStorage.getItem('guardalertkey');
+            let timeSTT = new Date().getTime();
+            let obj:object = {
+              lat: Latitude,
+              long: Longitude,
+              movementAlertMessage: response.data[0]?.display_message,
+              alertKey: response.data[0]?.display_alert,
+              token: token,
+              timeStamp: timeSTT
+            }
+            localStorage.setItem('guardalertkey', JSON.stringify(obj));
+            onLocalStorageChange(obj);
+
+            // if(localVal == true){
+            //   console.error("no need to et again!------ already set", localVal)
+            // }else{
+            //   console.error("setting in localstorage----->");
+            //   localStorage.setItem('guardalertkey', response.data[0]?.display_alert); 
+            // }
             SetInAlert(response.data[0]?.display_alert);
-          }
+          // }
           if(movementAlertMessage != response.data[0]?.display_message){
             SetMovementAlertMessage(response.data[0]?.display_message);
           }
@@ -240,6 +261,7 @@ const Dashboard: React.FC = () => {
           dutyApi(formData, false)
             .then((response) => {
               if (response && response.success) {
+                fetchOngoingDuty();
                 intervalRef.current = setInterval(() => {
                   setElapsedTime((prevTime) => prevTime + 1);
                   console.log("Inside intervalRef.current start DUTY");
@@ -298,6 +320,7 @@ const Dashboard: React.FC = () => {
               setAlertMessage(response.message);
               setShowAlert(true);
             }
+            localStorage.setItem('guardalertkey', JSON.stringify({}));
           })
           .catch((error) => {
             console.error('Error:', error);
@@ -368,7 +391,7 @@ const Dashboard: React.FC = () => {
     formData.append('latitude', Latitude);
     formData.append('longitude', Longitude);
     formData.append('alertreply', alertReplyInput);
-    formData.append('alertmsg', movementAlertMessage);
+    formData.append('alertmsg', movementAlertMessage );
 
     axios.post('https://guard.ghamasaana.com/guard_new_api/alert_message_status.php', formData).then((response) => {
       if (response.data && response.data.success) {
@@ -398,8 +421,8 @@ const Dashboard: React.FC = () => {
     console.log("re-render check")
 
   return (
-    <IonPage>
-      <IonHeader>
+    <div>
+      {/* <IonHeader>
         <IonToolbar>
           <IonButtons slot="start">
             <IonMenuButton />
@@ -412,16 +435,16 @@ const Dashboard: React.FC = () => {
           />
           <IonTitle>{name}</IonTitle>
         </IonToolbar>
-      </IonHeader>
+      </IonHeader> */}
 
-      <IonContent className="page-content">
-        <IonHeader collapse="condense">
+      {/* <IonContent className="page-content"> */}
+        {/* <IonHeader collapse="condense">
           <IonTitle>{name}</IonTitle>
-        </IonHeader>
+        </IonHeader> */}
         <div className="content">
-          <div className="header_title">
+          {/* <div className="header_title">
             <IonTitle className="header_title ion-text-center">{t('Welcome')} {loggedInUser?.full_name}</IonTitle>
-          </div>
+          </div> */}
           <IonCard className="shift-details-card">
 
             <IonCardHeader>
@@ -438,7 +461,7 @@ const Dashboard: React.FC = () => {
                 <p><strong>Shift Start Time:</strong> {loggedInUser?.shift_start_time}</p>
                 <p><strong>Shift End Time:</strong> {loggedInUser?.shift_end_time}</p>
                 {isRunning ? (
-                  <p><strong>Duty Started On :</strong>{dutystartinfo?.duty_start_date} </p>
+                  <p><strong>Duty Started On :</strong>{dutystartinfo?.duty_start_date}</p>
                 ) : ('')}
               </div>
             </IonCardContent>
@@ -447,25 +470,10 @@ const Dashboard: React.FC = () => {
                 {!inRange && 'You are not in range of duty!'}
               </span>
             </div>
-            {!inAlert && <div className='alertClassForMessage not-range-parent' style={{
-              marginTop: "5px", marginBottom: '5px',
-              padding: '15px', border: '2px solid red', position: 'relative'
-            }}>
-              <div>
-                ALERT!
-              </div>
-              <div style={{fontSize:'12px'}}>
-                Please answer below alert question!
-              </div>
-              <div className='blink_me' style={{color:'#000', marginTop:'5px'}}>
-                {`Alert Question: ${JSON.stringify(movementAlertMessage)}`}
-              </div>
-              <div>
-                <IonButton expand="block" onClick={()=> setAlertModal(true)} color="danger">
-                  {'REPLY ALERT'}
-                </IonButton>
-              </div>
-            </div>}
+            {/* {!inAlert && <AlertComponent movementAlertMessage={movementAlertMessage} inAlert={inAlert}
+          setAlertModal={()=>{
+            setAlertModal(true);
+          }}  />} */}
             {isRunning && elapsedState && elapsedState > 0 && <div>
               <MyStopwatch test={elapsedState} />
             </div>}
@@ -488,12 +496,6 @@ const Dashboard: React.FC = () => {
 
           <IonGrid className="ion-margin ion-text-center">
             <IonRow>
-              {/* <IonCol size="4" size-md="4" size-lg="4">
-                <IonButton expand="block" color="secondary" onClick={() => { setReqType('ticket'); setShowRequestModal(true); }}>{t('ticket')}</IonButton>
-              </IonCol>
-              <IonCol size="4" size-md="4" size-lg="4">
-                <IonButton expand="block" color="warning" onClick={() => { setReqType('leaveapplication'); setShowRequestModal(true); }}>{t('leave')}</IonButton>
-              </IonCol> */}
               <IonCol size="12" size-md="12" size-lg="12">
                 <IonButton expand="block" color="danger" onClick={() => { setReqType('sos'); setShowRequestModal(true); }}>{t('sos')}</IonButton>
               </IonCol>
@@ -548,39 +550,204 @@ const Dashboard: React.FC = () => {
               <IonButton expand="full" onClick={handleCreateRequest}>Create {reqType === 'ticket' ? 'Ticket' : reqType === 'leaveapplication' ? 'Leave Request' : 'SOS Request'}</IonButton>
             </IonContent>
           </IonModal>
-          {/* ALERT MODAL GOES BELOW */}
-          <IonModal isOpen={alertModal} onDidDismiss={() => setAlertModal(false)}>
-            <IonHeader>
-              <IonToolbar>
-                <IonTitle>{'Alert Reply'}</IonTitle>
-                <IonButtons slot="end">
-                  <IonButton onClick={() => setAlertModal(false)}>
-                    <IonIcon icon={closeOutline} size="large"></IonIcon>
-                  </IonButton>
-                </IonButtons>
-              </IonToolbar>
-            </IonHeader>
-            <IonContent>
-              <IonList>
-                <IonItem>
-                  <IonLabel position="floating">Enter Alert Reply</IonLabel>
-                  <IonTextarea value={alertReplyInput} onIonChange={e => setAlertReplyInput(e.detail.value!)}></IonTextarea>
-                </IonItem>
-                <IonItem>
-                    <IonLabel position="floating">Other Details (From - To Date)</IonLabel>
-                    <IonInput value={reqOtherDetail} onIonChange={e => setReqOtherDetail(e.detail.value!)}></IonInput>
-                  </IonItem>
-              </IonList>
-              <IonButton expand="full" onClick={() => handleAlertReply()}>Submit Alert Reply</IonButton>
-            </IonContent>
-          </IonModal>
         </div>
-      </IonContent>
+      {/* </IonContent> */}
       <div className="footer">
         <IonTitle className="footer ion-text-center">Helpline | +91 90999 XXXXX</IonTitle>
       </div>
-    </IonPage>
+    </div>
   );
 };
 
+const Dashboard = () =>{
+  const { name } = useParams<{ name: string }>();
+  const { t } = useTranslation();
+  const [loggedInUser, setLoggedInUser] = useState<any>(null);
+  const [inAlert, SetInAlert] = useState(false);
+  const [alertModal, setAlertModal] = useState(false);
+  const [movementAlertMessage, SetMovementAlertMessage] = useState('sheikh test');
+  const [itemFromLocalStorage, setItemFromLocalStorage] = useState(
+    localStorage.getItem('guardalertkey') || ''
+  );
+  // const [reqSubjectModal, setreqSubjectModal] = useState('');
+
+
+  useEffect(() => {
+    const storedData = localStorage.getItem('loggedInUser');
+    if (storedData) {
+      setLoggedInUser(JSON.parse(storedData));
+    }
+  }, []);
+
+  const handleLocalStorageChange = useCallback((newValue) => {
+    if(newValue?.alertKey != itemFromLocalStorage?.alertKey){
+      setItemFromLocalStorage(newValue);
+      console.log(`LocalStorage 'guardalertkey' changed:`, newValue);
+    }else{
+      console.error("no effect due to new val ", newValue);
+    }
+  }, []);
+  // Empty dependency array ensures effect runs only once
+
+  return(
+    <>
+      <IonPage>
+        <IonHeader>
+          <IonToolbar>
+            <IonButtons slot="start">
+              <IonMenuButton />
+            </IonButtons>
+            <IonImg
+              className="header-image"
+              src="./assets/imgs/logo.jpg"
+              alt="header"
+              style={{ display: 'flex', height: '60px', width: '100%' }}
+            />
+            <IonTitle>{name}</IonTitle>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent className="page-content">
+        <IonHeader collapse="condense">
+          <IonTitle>{name}</IonTitle>
+        </IonHeader>
+        <div className="content">
+          <div className="header_title">
+            <IonTitle className="header_title ion-text-center">{t('Welcome')} {loggedInUser?.full_name}</IonTitle>
+          </div>
+          {itemFromLocalStorage && itemFromLocalStorage?.alertKey && <div
+          style={{paddingRight:'10px', paddingLeft:'10px'}}
+          ><AlertComponent movementAlertMessage={movementAlertMessage} inAlert={inAlert}
+          setAlertModal={()=>{
+            setAlertModal(true);
+          }}  /></div>}
+{/* <IonItem>
+<IonInput value={reqSubjectModal}
+onIonInput={e => 
+{
+console.log(e);
+setreqSubjectModal(e.detail.value!)                                }
+}></IonInput>
+</IonItem> */}
+          <DashboardComp onLocalStorageChange={handleLocalStorageChange} />
+        </div>
+        {/* ALERT MODAL GOES BELOW */}
+
+        {<ModalComponent alertModal={alertModal} movementAlertMessage={movementAlertMessage} inAlert={inAlert}
+          setAlertModal={()=>{
+            console.log("setAlertModal(false) called", alertModal);
+            setAlertModal(false);
+          }}
+          itemFromLocalStorage={itemFromLocalStorage}
+          />
+        }
+        </IonContent>
+        </IonPage>
+    </>
+  )
+}
+
 export default Dashboard;
+
+
+function AlertComponent(props){
+
+  return(
+    <div className='alertClassForMessage not-range-parent' style={{
+      marginTop: "5px", marginBottom: '5px',
+      padding: '15px', border: '2px solid red', position: 'relative'
+    }}>
+      <div>
+        ALERT!
+      </div>
+      <div style={{fontSize:'12px'}}>
+        Please answer below alert question!
+      </div>
+      <div className='blink_me' style={{color:'#000', marginTop:'5px'}}>
+        {`Alert Question: ${JSON.stringify(props.movementAlertMessage)}`}
+      </div>
+      <div>
+        <IonButton expand="block" onClick={()=> props.setAlertModal()} color="danger">
+          {'REPLY ALERT'}
+        </IonButton>
+      </div>
+    </div>
+  )
+}
+
+function ModalComponent(props){
+  const [present, dismiss] = useIonToast();
+  console.log("itemFromLocalStorage---------------------------------------", props.itemFromLocalStorage);
+  const [alertModal, setAlertModal] = useState(false);
+  const [alertReplyInput, setAlertReplyInput] = useState('');
+  // const [reqSubjectModal, setreqSubjectModal] = useState('');
+
+
+  function handleAlertReply() {
+    const formData = new FormData();
+    const token = localStorage.getItem('token');
+    formData.append('action', 'alert_msg_status');
+    formData.append('token', props.itemFromLocalStorage.token);
+    formData.append('latitude', props.itemFromLocalStorage.lat);
+    formData.append('longitude', props.itemFromLocalStorage.long);
+    formData.append('alertreply', alertReplyInput);
+    formData.append('alertmsg', props.itemFromLocalStorage.movementAlertMessage );
+
+    axios.post('https://guard.ghamasaana.com/guard_new_api/alert_message_status.php', formData).then((response) => {
+      if (response.data && response.data.success) {
+        present({
+          message: `Your alert reply has been submitted successfully!`,
+          duration: 2000,
+          position: 'bottom',
+        });
+        props.setAlertModal();
+        setAlertReplyInput('');
+      } else {
+        present({
+          message: `Failed to submit alery reply. Please try again.`,
+          duration: 2000,
+          position: 'bottom',
+        });
+      }
+    }).catch((error) => {
+      console.error(`Error replying request:`, error);
+      present({
+        message: `An error occurred. Please try again.`,
+        duration: 2000,
+        position: 'bottom',
+      });
+    });
+  }
+
+  return(
+    <IonModal isOpen={props.alertModal} onDidDismiss={() => props.setAlertModal()}>
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>{'Alert Reply'}</IonTitle>
+          <IonButtons slot="end">
+            <IonButton onClick={() => props.setAlertModal()}>
+              <IonIcon icon={closeOutline} size="large"></IonIcon>
+            </IonButton>
+          </IonButtons>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent>
+        <IonList>
+          <IonItem>
+            <IonLabel position="floating">{!props.inAlert && `Alert Question: ${props.itemFromLocalStorage.movementAlertMessage}`}</IonLabel>
+            <IonTextarea value={alertReplyInput} onIonInput={(e) => {
+              setAlertReplyInput(e.detail.value!)
+            }}></IonTextarea>
+          </IonItem>
+{/* <IonItem>
+<IonInput value={reqSubjectModal} onIonInput={e => 
+{
+console.log(e.detail.value!);
+setreqSubjectModal(e.detail.value!)                                }
+}></IonInput>
+</IonItem> */}
+        </IonList>
+        <IonButton expand="full" onClick={() => handleAlertReply()}>Submit Alert Reply</IonButton>
+      </IonContent>
+    </IonModal>
+  )
+}
