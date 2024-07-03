@@ -64,7 +64,7 @@ const Notice: React.FC = () => {
 
   function callReadApi(item) {
     const tokenVal = localStorage.getItem('token');
-    let URL = "http://guard.ghamasaana.com/guard_new_api/notice_status.php";
+    let URL = "https://guard.ghamasaana.com/guard_new_api/notice_status.php";
     const formData = new FormData();
     formData.append('action', "notice_status");
     formData.append('token', tokenVal);
