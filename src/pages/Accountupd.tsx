@@ -70,7 +70,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const storedData = localStorage.getItem('loggedInUser');
     const storedToken = localStorage.getItem('token');
-    
+
     if (storedData) {
       setLoggedInUser(JSON.parse(storedData));
     }
@@ -94,7 +94,7 @@ const Dashboard: React.FC = () => {
       const response = await axios.post(url, formData);
       if (response.data && response.data.employee_data) {
         setProfileData(response.data.employee_data);
-      } 
+      }
       // else {
       //   history.push('/pages/login');
       // }
@@ -129,16 +129,8 @@ const Dashboard: React.FC = () => {
         </IonHeader>
         <div className="content">
           <div className="header_title">
-        <IonTitle className="header_title ion-text-center">Welcome {loggedInUser?.full_name}</IonTitle>
-      </div>
-      {ProfileData?.photo && <div className='profileImageParentSh'>
-        <div>
-        <IonImg
-          className='imageionclass'
-          src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${ProfileData.photo}`}
-        ></IonImg>
-        </div>
-      </div>}
+            <IonTitle className="header_title ion-text-center">Welcome {loggedInUser?.full_name}</IonTitle>
+          </div>
           <IonCard className="shift-details-card profilepage">
 
             <IonCardHeader>
@@ -146,6 +138,16 @@ const Dashboard: React.FC = () => {
             </IonCardHeader>
             <IonCardContent className="shift-details-card-content">
               <div className="shift-details-column">
+                <div>
+                {ProfileData?.photo && <div className='profileImageParentSh'>
+        <div>
+        <IonImg
+          className='imageionclass'
+          src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${ProfileData.photo}`}
+        ></IonImg>
+        </div>
+      </div>}
+                </div>
                 <p><strong>Full Name:</strong> <span>{ProfileData?.full_name}</span></p>
                 <p><strong>Roll Number:</strong><span> {ProfileData?.roll_no}</span></p>
                 <p><strong>Emp ID:</strong> <span>{ProfileData?.emp_id}</span></p>
@@ -160,17 +162,9 @@ const Dashboard: React.FC = () => {
                 <p><strong>Registeration Date:</strong><span> {ProfileData?.reg_date} </span></p>
                 <p><strong>Last Updated On:</strong> <span>{ProfileData?.last_updated_on}</span></p>
                 <p><strong>Aadhar No:</strong> {ProfileData?.aadhar_no}</p>
-               
               </div>
-           
             </IonCardContent>
-             </IonCard>
-
-  
-
-    
-
-       
+          </IonCard>
         </div>
       </IonContent>
       <div className="footer">
