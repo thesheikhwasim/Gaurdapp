@@ -160,8 +160,13 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
   };
 
   const captureLocation = () => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async(resolve, reject) => {
       try {
+        const permissions = await Geolocation.checkPermissions();
+        console.log("PERMISSION", permissions);
+        if(permissions?.location == "denied"){
+          alert("Location permission is denied, kindly enable from settings.")
+        }
         Geolocation.getCurrentPosition()
           .then((position) => {
             if (position && position.coords.latitude) {
@@ -171,9 +176,11 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
             resolve(position);
           })
           .catch((error) => {
+
             reject(error);
           });
       } catch (error) {
+
         reject(error);
       }
     });
@@ -474,7 +481,7 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
           setAlertModal={()=>{
             setAlertModal(true);
           }}  />} */}
-            {isRunning && elapsedState && elapsedState > 0 && <div>
+            {isRunning && elapsedState && <div>
               <MyStopwatch test={elapsedState} />
             </div>}
             <IonGrid className="ion-text-center">
@@ -497,7 +504,7 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
           <IonGrid className="ion-margin ion-text-center">
             <IonRow>
               <IonCol size="12" size-md="12" size-lg="12">
-                <IonButton expand="block" color="danger" onClick={() => { setReqType('sos'); setShowRequestModal(true); }}>{t('sos')}</IonButton>
+                {/* <IonButton expand="block" color="danger" onClick={() => { setReqType('sos'); setShowRequestModal(true); }}>{t('sos')}</IonButton> */}
               </IonCol>
             </IonRow>
           </IonGrid>
