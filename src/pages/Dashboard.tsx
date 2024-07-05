@@ -108,45 +108,35 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
 
       const response = await axios.post('https://guard.ghamasaana.com/guard_new_api/ongoing_duty.php', formData);
       const data = response.data;
+
+      // Case to validate API was success and employee data is available
       if (data?.success && data?.employee_data) {
         setDutyDetailsFromOngoingDuty(data.employee_data);
+
+        // Case to validate start date is available which is responsible to show Duty timer
         if(data?.employee_data && data?.employee_data?.duty_ongoing_info && data?.employee_data?.duty_ongoing_info?.duty_start_date){
           let past = new Date(data?.employee_data?.duty_ongoing_info?.duty_start_date);
-
           // assigning present time to new variable 
           let now = new Date();
-          console.log("NOW DATE", now)
-          console.log("PAST DATE:", past)
-  
           let elapsed = (now - past);
           setElapsedState(elapsed / 1000);
         }
       }
-      // if (data.success && data.employee_data.duty_ongoing_info && data.employee_data.duty_ongoing_info.duty_end_date === null) {
-      //   setDuty(true);
-      //   setIsRunning(true);
-      //   setElapsedTime(convertRemainingTime(data.employee_data.remaining_time));
-      //   // actuastart?.innerHTML('')=data.employee_data.duty_ongoing_info.duty_start_date;
-      //   setdutystartinfo(data.employee_data.duty_ongoing_info);
-      //   const today = new Date();
 
-      //   var delta = Math.abs(today - data.employee_data.duty_ongoing_info.duty_start_date) / 1000;
-
-      //   var days = Math.floor(delta / 86400);
-      //   delta -= days * 86400;
-      //   var hours = Math.floor(delta / 3600) % 24;
-      //   delta -= hours * 3600;
-      //   var minutes = Math.floor(delta / 60) % 60;
-      //   delta -= minutes * 60;
-      //   var seconds = delta % 60;
-
-      //   intervalRef.current = setInterval(() => {
-      //     setElapsedTime((prevTime) => prevTime - 1);
-      //   }, 5000);
-
-      // } else {
-      //   console.log("DUTY DATA else case added by SH: ");
-      // }
+      //Case to validate if page was refreshed/reloaded and ongoing duty is mapped
+      if (data.success && data.employee_data.duty_ongoing_info && data.employee_data.duty_ongoing_info.duty_end_date === null) {
+        setDuty(true);
+        setIsRunning(true);
+        setElapsedTime(convertRemainingTime(data.employee_data.remaining_time));
+        setdutystartinfo(data.employee_data.duty_ongoing_info);
+        if(intervalRef.current == null){
+          intervalRef.current = setInterval(() => {
+            setElapsedTime((prevTime) => prevTime - 1);
+          }, 5000);
+        }
+      } else {
+        console.log("Ongoing re-fetched else case, check when there is difference after refresh ");
+      }
     } catch (error) {
       console.error('Error fetching ongoing duty:', error);
     }
@@ -164,8 +154,13 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
       try {
         const permissions = await Geolocation.checkPermissions();
         console.log("PERMISSION", permissions);
+        // Case to validate permission is denied, if denied error message alert will be shown
         if(permissions?.location == "denied"){
-          alert("Location permission is denied, kindly enable from settings.")
+          present({
+            message: `"Location permission is denied, kindly enable from settings.`,
+            duration: 2000,
+            position: 'bottom',
+          });
         }
         Geolocation.getCurrentPosition()
           .then((position) => {
@@ -228,6 +223,8 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
               token: token,
               timeStamp: timeSTT
             }
+
+            //Setting in local storage, base on which localstorage listner is triggered to validate 
             localStorage.setItem('guardalertkey', JSON.stringify(obj));
             onLocalStorageChange(obj);
 
@@ -271,7 +268,7 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
                 fetchOngoingDuty();
                 intervalRef.current = setInterval(() => {
                   setElapsedTime((prevTime) => prevTime + 1);
-                  console.log("Inside intervalRef.current start DUTY");
+                  console.log("Timer is set for every 5 seconds", intervalRef);
                 }, 5000);
                 setIsRunning(true);
                 dutyMovementHandler();
