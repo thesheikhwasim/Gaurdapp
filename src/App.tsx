@@ -55,6 +55,7 @@ import MainTabs from './components/MainTabs.js';
 setupIonicReact();
 
 const App: React.FC = () => {
+  const token = localStorage.getItem('token');
   callNotificationInitialization();
   const { t } = useTranslation();
   return (
@@ -65,14 +66,21 @@ const App: React.FC = () => {
             <Menu />
             <IonRouterOutlet id="main">
               {/* <Route exact path="/" component={Loader}/> */}
-              <Route exact path="/" component={LanguageSelector}/>
+              {/* <Route exact path="/" component={LanguageSelector}/> */}
+              <Route
+                exact
+                path="/"
+                render={(props) => {
+                  return token ? <MainTabs /> : <LanguageSelector />;
+                }}
+              />
               <Route path="/pages/tabs" render={() => <MainTabs />} />
               <Route exact path="/pages/Login" component={Login}/>
               {/* <Route exact path="/pages/Register" component={Register}/> */}
               {/* <Route exact path="/pages/Recruitment" component={Recruitment}/> */}
               {/* <Route exact path="/pages/tabs/Dashboard" component={Dashboard}/> */}
               <Route exact path="/pages/Accountupd" component={Accountupd}/>
-              {/* <Route exact path="/pages/getRequest" component={getRequest}/> */}
+              {/* <Route exact path="/pages/getRequest" component={getRequest}/> */} 
               {/* <Route exact path="/pages/getTicket" component={getTicket}/> */}
               <Route exact path="/pages/tabs/Dashboard/DutyInfo" component={DutyInfo}/>
               <Route exact path="/pages/AddNewGuard" component={AddNewGuard}/>
