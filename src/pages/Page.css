@@ -136,7 +136,7 @@ ion-progress-bar::part(track) {
 }
 
 .shift-details-card-content {
-  display: flex;
+  /* display: flex; */
   flex-wrap: wrap;
   margin: 0px;;
   border: none;

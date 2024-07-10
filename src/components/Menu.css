@@ -130,6 +130,13 @@ ion-item.selected {
   object-fit: cover;
 }
 
+.duty-start-pic-guard ion-img::part(image){
+  border-radius: 50%;
+  height: 80px;
+  width: 80px;
+  object-fit: cover;
+}
+
 .userNameImageContainer .userImageDiv {
   transform: scale(1.3);
   margin-left: 10px;
