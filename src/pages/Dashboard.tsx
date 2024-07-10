@@ -485,7 +485,7 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
               <IonRow>
                 <IonCol size="12">
                   {isRunning ? ( //Duty ENd Button
-                    <IonButton expand="block" onClick={handleDutyEnd} color="danger">
+                    <IonButton disabled={!dutyDetailsFromOngoingDuty?.dutyendbuttonstatus} expand="block" onClick={handleDutyEnd} color="danger">
                       {t('punchOut')}
                     </IonButton>
                   ) : ( //Duty Start BUtton
