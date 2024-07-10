@@ -46,7 +46,7 @@ import useAuth from '../hooks/useAuth';
 import { close, closeOutline, personCircleOutline } from 'ionicons/icons';
 import MyStopwatch from './DashboardMyTimer';
 
-const DashboardComp: React.FC = ({onLocalStorageChange}) => {
+const DashboardComp: React.FC = ({ onLocalStorageChange }) => {
   const [duty, setDuty] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const token = localStorage.getItem('token');
@@ -114,7 +114,7 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
         setDutyDetailsFromOngoingDuty(data.employee_data);
 
         // Case to validate start date is available which is responsible to show Duty timer
-        if(data?.employee_data && data?.employee_data?.duty_ongoing_info && data?.employee_data?.duty_ongoing_info?.duty_start_date){
+        if (data?.employee_data && data?.employee_data?.duty_ongoing_info && data?.employee_data?.duty_ongoing_info?.duty_start_date) {
           let past = new Date(data?.employee_data?.duty_ongoing_info?.duty_start_date);
           // assigning present time to new variable 
           let now = new Date();
@@ -129,7 +129,7 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
         setIsRunning(true);
         setElapsedTime(convertRemainingTime(data.employee_data.remaining_time));
         setdutystartinfo(data.employee_data.duty_ongoing_info);
-        if(intervalRef.current == null){
+        if (intervalRef.current == null) {
           intervalRef.current = setInterval(() => {
             setElapsedTime((prevTime) => prevTime - 1);
           }, 5000);
@@ -150,12 +150,12 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
   };
 
   const captureLocation = () => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
         const permissions = await Geolocation.checkPermissions();
         console.log("PERMISSION", permissions);
         // Case to validate permission is denied, if denied error message alert will be shown
-        if(permissions?.location == "denied"){
+        if (permissions?.location == "denied") {
           present({
             message: `"Location permission is denied, kindly enable from settings.`,
             duration: 2000,
@@ -209,34 +209,25 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
 
         const response = await axios.post('https://guard.ghamasaana.com/guard_new_api/dutystartmovement.php', formData);
         if (response && response?.data && 'range_status' in response.data[0]) {
-          if(inRange != response.data[0]?.range_status){
+          if (inRange != response.data[0]?.range_status) {
             SetInRange(response.data[0]?.range_status);
           }
-          // if(inAlert == response.data[0]?.display_alert){
-          //   let localVal = localStorage.getItem('guardalertkey');
-            let timeSTT = new Date().getTime();
-            let obj:object = {
-              lat: Latitude,
-              long: Longitude,
-              movementAlertMessage: response.data[0]?.display_message,
-              alertKey: response.data[0]?.display_alert,
-              token: token,
-              timeStamp: timeSTT
-            }
+          let timeSTT = new Date().getTime();
+          let obj: object = {
+            lat: Latitude,
+            long: Longitude,
+            movementAlertMessage: response.data[0]?.display_message,
+            alertKey: response.data[0]?.display_alert,
+            token: token,
+            timeStamp: timeSTT
+          }
 
-            //Setting in local storage, base on which localstorage listner is triggered to validate 
-            localStorage.setItem('guardalertkey', JSON.stringify(obj));
-            onLocalStorageChange(obj);
-
-            // if(localVal == true){
-            //   console.error("no need to et again!------ already set", localVal)
-            // }else{
-            //   console.error("setting in localstorage----->");
-            //   localStorage.setItem('guardalertkey', response.data[0]?.display_alert); 
-            // }
-            SetInAlert(response.data[0]?.display_alert);
+          //Setting in local storage, base on which localstorage listner is triggered to validate 
+          localStorage.setItem('guardalertkey', JSON.stringify(obj));
+          onLocalStorageChange(obj);
+          SetInAlert(response.data[0]?.display_alert);
           // }
-          if(movementAlertMessage != response.data[0]?.display_message){
+          if (movementAlertMessage != response.data[0]?.display_message) {
             SetMovementAlertMessage(response.data[0]?.display_message);
           }
         }
@@ -296,8 +287,8 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
         setShowAlert(true);
       } else {
         // Update previous location only if API call was successful
-          setPrevLatitude(Latitude);
-          setPrevLongitude(Longitude);
+        setPrevLatitude(Latitude);
+        setPrevLongitude(Longitude);
       }
     });
   }
@@ -395,7 +386,7 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
     formData.append('latitude', Latitude);
     formData.append('longitude', Longitude);
     formData.append('alertreply', alertReplyInput);
-    formData.append('alertmsg', movementAlertMessage );
+    formData.append('alertmsg', movementAlertMessage);
 
     axios.post('https://guard.ghamasaana.com/guard_new_api/alert_message_status.php', formData).then((response) => {
       if (response.data && response.data.success) {
@@ -422,139 +413,117 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
       });
     });
   }
-    console.log("re-render check")
+  console.log("re-render check")
 
   return (
     <div>
-      {/* <IonHeader>
-        <IonToolbar>
-          <IonButtons slot="start">
-            <IonMenuButton />
-          </IonButtons>
-          <IonImg
-            className="header-image"
-            src="./assets/imgs/logo.jpg"
-            alt="header"
-            style={{ display: 'flex', height: '60px', width: '100%' }}
-          />
-          <IonTitle>{name}</IonTitle>
-        </IonToolbar>
-      </IonHeader> */}
+      <div className="content">
+        <IonCard className="shift-details-card">
 
-      {/* <IonContent className="page-content"> */}
-        {/* <IonHeader collapse="condense">
-          <IonTitle>{name}</IonTitle>
-        </IonHeader> */}
-        <div className="content">
-          {/* <div className="header_title">
-            <IonTitle className="header_title ion-text-center">{t('Welcome')} {loggedInUser?.full_name}</IonTitle>
-          </div> */}
-          <IonCard className="shift-details-card">
-
-            <IonCardHeader>
-              <IonCardTitle>{t('Your Current Duty Detail')}</IonCardTitle>
-            </IonCardHeader>
-            <IonCardContent className="shift-details-card-content">
-              <div className="shift-details-column">
-                <p><strong>Client Name:</strong> {loggedInUser?.client_name}</p>
-                <p><strong>Site Name & Address:</strong> <span className='text-right'>{loggedInUser?.site_name}, {loggedInUser?.site_city}, {loggedInUser?.site_state}</span></p>
-                <p><strong>Site Status:</strong> {loggedInUser?.site_status}</p>
-              </div>
-              <div className="shift-details-column">
-                <p><strong>Authorized Shift:</strong> {loggedInUser?.auth_shift}</p>
-                <p><strong>Shift Start Time:</strong> {loggedInUser?.shift_start_time}</p>
-                <p><strong>Shift End Time:</strong> {loggedInUser?.shift_end_time}</p>
-                {isRunning ? (
-                  <p><strong>Duty Started On :</strong>{dutystartinfo?.duty_start_date}</p>
-                ) : ('')}
-              </div>
-            </IonCardContent>
-            <div className='not-range-parent'>
-              <span>
-                {!inRange && 'You are not in range of duty!'}
-              </span>
+          <IonCardHeader>
+            <IonCardTitle>{t('Your Current Duty Detail')}</IonCardTitle>
+          </IonCardHeader>
+          <IonCardContent className="shift-details-card-content">
+            <div className="shift-details-column">
+              {dutyDetailsFromOngoingDuty && dutyDetailsFromOngoingDuty?.duty_ongoing_info &&
+                dutyDetailsFromOngoingDuty?.duty_ongoing_info?.duty_start_pic && <p className='duty-start-pic-guard'><strong>Guard Duty Image:</strong> <IonImg
+                  src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${dutyDetailsFromOngoingDuty?.duty_ongoing_info?.duty_start_pic}`}
+                ></IonImg></p>}
+              <p><strong>Client Name:</strong> {loggedInUser?.client_name}</p>
+              <p><strong>Site Name & Address:</strong> <span className='text-right'>{loggedInUser?.site_name}, {loggedInUser?.site_city}, {loggedInUser?.site_state}</span></p>
+              <p><strong>Site Status:</strong> {loggedInUser?.site_status}</p>
             </div>
-            {/* {!inAlert && <AlertComponent movementAlertMessage={movementAlertMessage} inAlert={inAlert}
-          setAlertModal={()=>{
-            setAlertModal(true);
-          }}  />} */}
-            {isRunning && elapsedState && <div>
-              <MyStopwatch test={elapsedState} />
-            </div>}
-            <IonGrid className="ion-text-center">
-              <IonRow>
-                <IonCol size="12">
-                  {isRunning ? ( //Duty ENd Button
-                    <IonButton expand="block" onClick={handleDutyEnd} color="danger">
-                      {t('punchOut')}
-                    </IonButton>
-                  ) : ( //Duty Start BUtton
-                    <IonButton disabled={!dutyDetailsFromOngoingDuty?.dutystartbuttonstatus} expand="block" onClick={handleDutyStart} color="primary">
-                      {t('punchIn')}
-                    </IonButton>
-                  )}
-                </IonCol>
-              </IonRow>
-            </IonGrid>
-          </IonCard>
-
-          <IonGrid className="ion-margin ion-text-center">
+            <div className="shift-details-column">
+              <p><strong>Authorized Shift:</strong> {loggedInUser?.auth_shift}</p>
+              <p><strong>Shift Start Time:</strong> {loggedInUser?.shift_start_time}</p>
+              <p><strong>Shift End Time:</strong> {loggedInUser?.shift_end_time}</p>
+              {isRunning ? (
+                <p><strong>Duty Started On :</strong>{dutystartinfo?.duty_start_date}</p>
+              ) : ('')}
+            </div>
+          </IonCardContent>
+          <div className='not-range-parent'>
+            <span>
+              {!inRange && 'You are not in range of duty!'}
+            </span>
+          </div>
+          {isRunning && elapsedState && <div>
+            <MyStopwatch test={elapsedState} />
+          </div>}
+          <IonGrid className="ion-text-center">
             <IonRow>
-              <IonCol size="12" size-md="12" size-lg="12">
-                {/* <IonButton expand="block" color="danger" onClick={() => { setReqType('sos'); setShowRequestModal(true); }}>{t('sos')}</IonButton> */}
+              <IonCol size="12">
+                {isRunning ? ( //Duty ENd Button
+                  <IonButton disabled={!dutyDetailsFromOngoingDuty?.dutyendbuttonstatus} expand="block" onClick={handleDutyEnd} color="danger">
+                    {t('punchOut')}
+                  </IonButton>
+                ) : ( //Duty Start BUtton
+                  <IonButton disabled={!dutyDetailsFromOngoingDuty?.dutystartbuttonstatus} expand="block" onClick={handleDutyStart} color="primary">
+                    {t('punchIn')}
+                  </IonButton>
+                )}
               </IonCol>
             </IonRow>
           </IonGrid>
+        </IonCard>
 
-          <IonAlert
-            isOpen={showAlert}
-            onDidDismiss={() => setShowAlert(false)}
-            header={'Alert'}
-            message={alertMessage}
-            buttons={['OK']}
-          />
+        <IonGrid className="ion-margin ion-text-center">
+          <IonRow>
+            <IonCol size="12" size-md="12" size-lg="12">
+              {/* <IonButton expand="block" color="danger" onClick={() => { setReqType('sos'); setShowRequestModal(true); }}>{t('sos')}</IonButton> */}
+            </IonCol>
+          </IonRow>
+        </IonGrid>
 
-          <IonModal isOpen={showRequestModal} onDidDismiss={() => setShowRequestModal(false)}>
-            <IonHeader>
-              <IonToolbar>
-                <IonTitle>{reqType === 'sos' ? 'Create SOS Request' : reqType === 'leaveapplication' ? 'Create Leave Request' : 'Create Ticket'}</IonTitle>
-                <IonButtons slot="end">
-                  <IonButton onClick={() => setShowRequestModal(false)}>
-                    <IonIcon icon={closeOutline} size="large"></IonIcon>
-                  </IonButton>
-                </IonButtons>
-              </IonToolbar>
-            </IonHeader>
-            <IonContent>
-              <IonList>
+        <IonAlert
+          isOpen={showAlert}
+          onDidDismiss={() => setShowAlert(false)}
+          header={'Alert'}
+          message={alertMessage}
+          buttons={['OK']}
+        />
+
+        <IonModal isOpen={showRequestModal} onDidDismiss={() => setShowRequestModal(false)}>
+          <IonHeader>
+            <IonToolbar>
+              <IonTitle>{reqType === 'sos' ? 'Create SOS Request' : reqType === 'leaveapplication' ? 'Create Leave Request' : 'Create Ticket'}</IonTitle>
+              <IonButtons slot="end">
+                <IonButton onClick={() => setShowRequestModal(false)}>
+                  <IonIcon icon={closeOutline} size="large"></IonIcon>
+                </IonButton>
+              </IonButtons>
+            </IonToolbar>
+          </IonHeader>
+          <IonContent>
+            <IonList>
+              <IonItem>
+                <IonLabel position="floating">Subject</IonLabel>
+                <IonInput value={reqSubject} onIonChange={e => setReqSubject(e.detail.value!)}></IonInput>
+              </IonItem>
+              <IonItem>
+                <IonLabel position="floating">Description</IonLabel>
+                <IonInput value={reqDesc} onIonChange={e => setReqDesc(e.detail.value!)}></IonInput>
+              </IonItem>
+              {reqType === 'leaveapplication' ? (
                 <IonItem>
-                  <IonLabel position="floating">Subject</IonLabel>
-                  <IonInput value={reqSubject} onIonChange={e => setReqSubject(e.detail.value!)}></IonInput>
+                  <IonLabel position="floating">Other Details (From - To Date)</IonLabel>
+                  <IonInput value={reqOtherDetail} onIonChange={e => setReqOtherDetail(e.detail.value!)}></IonInput>
                 </IonItem>
+              ) : reqType === 'ticket' ? (
                 <IonItem>
-                  <IonLabel position="floating">Description</IonLabel>
-                  <IonInput value={reqDesc} onIonChange={e => setReqDesc(e.detail.value!)}></IonInput>
+                  <IonLabel>Priority</IonLabel>
+                  <IonSelect value={priority} onIonChange={e => setPriority(e.detail.value)}>
+                    <IonSelectOption value="LOW">Low</IonSelectOption>
+                    <IonSelectOption value="MEDIUM">Medium</IonSelectOption>
+                    <IonSelectOption value="HIGH">High</IonSelectOption>
+                  </IonSelect>
                 </IonItem>
-                {reqType === 'leaveapplication' ? (
-                  <IonItem>
-                    <IonLabel position="floating">Other Details (From - To Date)</IonLabel>
-                    <IonInput value={reqOtherDetail} onIonChange={e => setReqOtherDetail(e.detail.value!)}></IonInput>
-                  </IonItem>
-                ) : reqType === 'ticket' ? (
-                  <IonItem>
-                    <IonLabel>Priority</IonLabel>
-                    <IonSelect value={priority} onIonChange={e => setPriority(e.detail.value)}>
-                      <IonSelectOption value="LOW">Low</IonSelectOption>
-                      <IonSelectOption value="MEDIUM">Medium</IonSelectOption>
-                      <IonSelectOption value="HIGH">High</IonSelectOption>
-                    </IonSelect>
-                  </IonItem>
-                ) : null}
-              </IonList>
-              <IonButton expand="full" onClick={handleCreateRequest}>Create {reqType === 'ticket' ? 'Ticket' : reqType === 'leaveapplication' ? 'Leave Request' : 'SOS Request'}</IonButton>
-            </IonContent>
-          </IonModal>
-        </div>
+              ) : null}
+            </IonList>
+            <IonButton expand="full" onClick={handleCreateRequest}>Create {reqType === 'ticket' ? 'Ticket' : reqType === 'leaveapplication' ? 'Leave Request' : 'SOS Request'}</IonButton>
+          </IonContent>
+        </IonModal>
+      </div>
       {/* </IonContent> */}
       <div className="footer">
         <IonTitle className="footer ion-text-center">Helpline | +91 90999 XXXXX</IonTitle>
@@ -563,7 +532,7 @@ const DashboardComp: React.FC = ({onLocalStorageChange}) => {
   );
 };
 
-const Dashboard = () =>{
+const Dashboard = () => {
   const { name } = useParams<{ name: string }>();
   const { t } = useTranslation();
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
@@ -584,16 +553,16 @@ const Dashboard = () =>{
   }, []);
 
   const handleLocalStorageChange = useCallback((newValue) => {
-    if(newValue?.alertKey != itemFromLocalStorage?.alertKey){
+    if (newValue?.alertKey != itemFromLocalStorage?.alertKey) {
       setItemFromLocalStorage(newValue);
       console.log(`LocalStorage 'guardalertkey' changed:`, newValue);
-    }else{
+    } else {
       console.error("no effect due to new val ", newValue);
     }
   }, []);
   // Empty dependency array ensures effect runs only once
 
-  return(
+  return (
     <>
       <IonPage>
         <IonHeader>
@@ -611,41 +580,33 @@ const Dashboard = () =>{
           </IonToolbar>
         </IonHeader>
         <IonContent className="page-content">
-        <IonHeader collapse="condense">
-          <IonTitle>{name}</IonTitle>
-        </IonHeader>
-        <div className="content">
-          <div className="header_title">
-            <IonTitle className="header_title ion-text-center">{t('Welcome')} {loggedInUser?.full_name}</IonTitle>
+          <IonHeader collapse="condense">
+            <IonTitle>{name}</IonTitle>
+          </IonHeader>
+          <div className="content">
+            <div className="header_title">
+              <IonTitle className="header_title ion-text-center">{t('Welcome')} {loggedInUser?.full_name}</IonTitle>
+            </div>
+            {itemFromLocalStorage && itemFromLocalStorage?.alertKey && <div
+              style={{ paddingRight: '10px', paddingLeft: '10px' }}
+            ><AlertComponent movementAlertMessage={movementAlertMessage} inAlert={inAlert}
+              setAlertModal={() => {
+                setAlertModal(true);
+              }} /></div>}
+            <DashboardComp onLocalStorageChange={handleLocalStorageChange} />
           </div>
-          {itemFromLocalStorage && itemFromLocalStorage?.alertKey && <div
-          style={{paddingRight:'10px', paddingLeft:'10px'}}
-          ><AlertComponent movementAlertMessage={movementAlertMessage} inAlert={inAlert}
-          setAlertModal={()=>{
-            setAlertModal(true);
-          }}  /></div>}
-{/* <IonItem>
-<IonInput value={reqSubjectModal}
-onIonInput={e => 
-{
-console.log(e);
-setreqSubjectModal(e.detail.value!)                                }
-}></IonInput>
-</IonItem> */}
-          <DashboardComp onLocalStorageChange={handleLocalStorageChange} />
-        </div>
-        {/* ALERT MODAL GOES BELOW */}
+          {/* ALERT MODAL GOES BELOW */}
 
-        {<ModalComponent alertModal={alertModal} movementAlertMessage={movementAlertMessage} inAlert={inAlert}
-          setAlertModal={()=>{
-            console.log("setAlertModal(false) called", alertModal);
-            setAlertModal(false);
-          }}
-          itemFromLocalStorage={itemFromLocalStorage}
+          {<ModalComponent alertModal={alertModal} movementAlertMessage={movementAlertMessage} inAlert={inAlert}
+            setAlertModal={() => {
+              console.log("setAlertModal(false) called", alertModal);
+              setAlertModal(false);
+            }}
+            itemFromLocalStorage={itemFromLocalStorage}
           />
-        }
+          }
         </IonContent>
-        </IonPage>
+      </IonPage>
     </>
   )
 }
@@ -653,9 +614,9 @@ setreqSubjectModal(e.detail.value!)                                }
 export default Dashboard;
 
 
-function AlertComponent(props){
+function AlertComponent(props) {
 
-  return(
+  return (
     <div className='alertClassForMessage not-range-parent' style={{
       marginTop: "5px", marginBottom: '5px',
       padding: '15px', border: '2px solid red', position: 'relative'
@@ -663,14 +624,14 @@ function AlertComponent(props){
       <div>
         ALERT!
       </div>
-      <div style={{fontSize:'12px'}}>
+      <div style={{ fontSize: '12px' }}>
         Please answer below alert question!
       </div>
-      <div className='blink_me' style={{color:'#000', marginTop:'5px'}}>
+      <div className='blink_me' style={{ color: '#000', marginTop: '5px' }}>
         {`Alert Question: ${JSON.stringify(props.movementAlertMessage)}`}
       </div>
       <div>
-        <IonButton expand="block" onClick={()=> props.setAlertModal()} color="danger">
+        <IonButton expand="block" onClick={() => props.setAlertModal()} color="danger">
           {'REPLY ALERT'}
         </IonButton>
       </div>
@@ -678,7 +639,7 @@ function AlertComponent(props){
   )
 }
 
-function ModalComponent(props){
+function ModalComponent(props) {
   const [present, dismiss] = useIonToast();
   console.log("itemFromLocalStorage---------------------------------------", props.itemFromLocalStorage);
   const [alertModal, setAlertModal] = useState(false);
@@ -694,7 +655,7 @@ function ModalComponent(props){
     formData.append('latitude', props.itemFromLocalStorage.lat);
     formData.append('longitude', props.itemFromLocalStorage.long);
     formData.append('alertreply', alertReplyInput);
-    formData.append('alertmsg', props.itemFromLocalStorage.movementAlertMessage );
+    formData.append('alertmsg', props.itemFromLocalStorage.movementAlertMessage);
 
     axios.post('https://guard.ghamasaana.com/guard_new_api/alert_message_status.php', formData).then((response) => {
       if (response.data && response.data.success) {
@@ -722,7 +683,7 @@ function ModalComponent(props){
     });
   }
 
-  return(
+  return (
     <IonModal isOpen={props.alertModal} onDidDismiss={() => props.setAlertModal()}>
       <IonHeader>
         <IonToolbar>
@@ -742,13 +703,6 @@ function ModalComponent(props){
               setAlertReplyInput(e.detail.value!)
             }}></IonTextarea>
           </IonItem>
-{/* <IonItem>
-<IonInput value={reqSubjectModal} onIonInput={e => 
-{
-console.log(e.detail.value!);
-setreqSubjectModal(e.detail.value!)                                }
-}></IonInput>
-</IonItem> */}
         </IonList>
         <IonButton expand="full" onClick={() => handleAlertReply()}>Submit Alert Reply</IonButton>
       </IonContent>

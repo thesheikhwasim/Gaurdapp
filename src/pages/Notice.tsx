@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar, IonImg, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonItem, IonList, IonLabel, IonLoading, IonIcon, IonModal, IonButton } from '@ionic/react';
+import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar, IonImg, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonItem, IonList, IonLabel, IonLoading, IonIcon, IonModal, IonButton, IonGrid } from '@ionic/react';
 import { useParams, useHistory } from 'react-router';
 import './Page.css';
 import axios from 'axios';
@@ -102,44 +102,42 @@ const Notice: React.FC = () => {
         <IonHeader collapse="condense">
           <IonTitle>{name}</IonTitle>
         </IonHeader>
-        <IonCard className='ion-text-center shadowCard'>
+        <div className='ion-text-center shadowCard'>
           <IonCardHeader>
             <IonCardTitle className='logintitle' color={'dark'}>Notice</IonCardTitle>
             <IonCardSubtitle className='subtitle' color={'dark'}>Important Points for Guards and Duty</IonCardSubtitle>
           </IonCardHeader>
 
           <IonCardContent>
-            {loading ? (
-              <IonLoading isOpen={loading} message={'Loading...'} />
-            ) : noticeData ? (
-              <IonList>
-                {noticeData.map((item, index) => (
-                  <IonItem key={index} className='notificationSpecialItem' onClick={() => triggerDetails(item)}>
-                    <div className='notificationContainer'>
-                      <div className='notificationTitle'>
-                        <span>{item?.NoticeCategory}</span>
-                      </div>
-                      <div className='notificationBody'>
-                        <span>{item?.NoticeContent} ajdhjkadhadhjahdhajdhjadhasjdjashjdjasjdjasdasdjk</span>
-                      </div>
+            <IonGrid>
+              {(noticeData && noticeData.length > 0) ? (noticeData.map((item, index) => (
+                <IonCard className='card' key={index}>
+                  <div className="shift-details-column">
+                    <p style={{marginBottom:'0px'}}><strong>Notification Title: </strong></p>
+                    <div style={{textAlign:'left', marginBottom: '10px'}}>
+                      <div>{item?.NoticeCategory || ''}</div>
                     </div>
-                    <div className='notificationIconReadUnread'>
-                      {item?.ShowStatus != 1 && <IonIcon icon={mailUnreadOutline} />}
+                    <p style={{marginBottom:'0px'}}><strong>Notification Description : </strong></p>
+                    <div style={{textAlign:'left'}}>
+                      <div>{item?.NoticeContent || ''}</div>
                     </div>
-                  </IonItem>
-                ))}
-              </IonList>
-            ) : (
-              <IonLabel>No notice data available<br></br><br></br><br></br><br></br><br></br><br></br><br></br><br></br><br></br><br></br></IonLabel>
-            )}
+                  </div>
+                </IonCard>
+              ))) : (
+                <IonLabel><div className='notFound'>
+                  <IonImg src="./assets/imgs/nodata.svg" alt="header" />
+                  No notice found</div>
+                </IonLabel>
+              )}
+            </IonGrid>
             <IonModal id="example-modal" isOpen={modalOpen} onDidDismiss={() => {
               // Call API so that list updates only when status is updated
-              if(noticeDetails?.ShowStatus !=1){
+              if (noticeDetails?.ShowStatus != 1) {
                 fetchNoticeData();
               }
               // close modal
               setModalOpen(false);
-              }}>
+            }}>
               <div className="wrapper">
                 <h4>Notice {noticeDetails?.ShowStatus}</h4>
                 <div className='notificationContainerModal'>
@@ -153,7 +151,7 @@ const Notice: React.FC = () => {
               </div>
             </IonModal>
           </IonCardContent>
-        </IonCard>
+        </div>
         <div className='footer'>
           <IonTitle className='footer ion-text-center'>Helpline | +91 90999 XXXXX</IonTitle>
         </div>

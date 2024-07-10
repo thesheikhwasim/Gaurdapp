@@ -25,6 +25,7 @@ const GetRequests: React.FC = () => {
     const url = "https://guard.ghamasaana.com/guard_new_api/request.php";
     const formData = new FormData();
     formData.append('action', "request_data");
+    formData.append('req_type', "req");
     formData.append('token', token);
     formData.append('subject', "");
     formData.append('message', "");
@@ -34,7 +35,7 @@ const GetRequests: React.FC = () => {
       .then(response => {
         if (response.data && response.data.success) {
           setRequestData(response.data.employee_data.request_data);
-          console.log(response.data.employee_data.request_data, token, )
+          console.log(response.data.employee_data.request_data, token,)
         } else {
           console.error('Failed to fetch requests:', response.data);
         }
@@ -48,7 +49,7 @@ const GetRequests: React.FC = () => {
 
   const { name } = useParams<{ name: string; }>();
 
-  function newLeaveRequestNav(){
+  function newLeaveRequestNav() {
     console.log("New Leave Request CLickec");
     setReqType('leaveapplication');
     setShowRequestModal(true);
@@ -63,7 +64,7 @@ const GetRequests: React.FC = () => {
     formData.append('ReqDesc', reqDesc);
     formData.append('reqotherdetail', reqOtherDetail);
     console.log(token);
-    console.log("formDATA create----> ", JSON.stringify(formData)); 
+    console.log("formDATA create----> ", JSON.stringify(formData));
     // return false;
 
     axios
@@ -108,45 +109,40 @@ const GetRequests: React.FC = () => {
           <IonTitle>{name}</IonTitle>
         </IonToolbar>
       </IonHeader>
-
       <IonContent fullscreen>
-      <IonFab horizontal="end" vertical="bottom" slot="fixed">
+        {/* <IonFab horizontal="end" vertical="bottom" slot="fixed">
         <IonFabButton onClick={()=> newLeaveRequestNav()}>
           <IonIcon icon={add}></IonIcon>
         </IonFabButton>
-      </IonFab>
+      </IonFab> */}
         {loading ? (
           <IonLoading isOpen={loading} message={'Loading...'} />
         ) : (
           <>
-     <div className="header_title">
-        <IonTitle className="header_title ion-text-center">Your Request Information</IonTitle>
-      </div>
-      <IonCard className='shift-details-card-content'>
-    
-                {requestData ? (
-                  <IonGrid>
-            
-                    {requestData.map((ticket, index) => (
-                        <IonCard className='card' key={index}>
-                    <div className="shift-details-column">
-                <p><strong>Request Type: </strong>{ticket.ReqType || 'N/A'}</p>
-                <p><strong>Request Date : </strong>{ticket.ReqDatetime || 'N/A'}</p>
-                <p><strong>Request Description : </strong>{ticket.ReqDesc || 'N/A'}</p> 
-                <p><strong>Request ID : </strong>{ticket.ReqID || 'N/A'}</p> 
-                <p><strong>Request Status : </strong>{ticket.ReqStatus || 'N/A'}</p> 
-                <p><strong>Request Action : </strong>{ticket.ReqAction || 'N/A'}</p> 
-                </div>      
-                  
-                        </IonCard>
-                    ))}
-                  </IonGrid>
-                ) : (
-                  <IonLabel><div className='notFound'>
-                    <IonImg src="./assets/imgs/nodata.svg" alt="header" />
-                    No requests found</div></IonLabel>
-                )}
-
+            <div className="header_title">
+              <IonTitle className="header_title ion-text-center">Your Request Information</IonTitle>
+            </div>
+            <IonCard className='shift-details-card-content'>
+              {(requestData && requestData.length > 0) ? (
+                <IonGrid>
+                  {requestData.map((ticket, index) => (
+                    <IonCard className='card' key={index}>
+                      <div className="shift-details-column">
+                        <p><strong>Request Type: </strong>{ticket.ReqType || 'N/A'}</p>
+                        <p><strong>Request Date : </strong>{ticket.ReqDatetime || 'N/A'}</p>
+                        <p><strong>Request Description : </strong>{ticket.ReqDesc || 'N/A'}</p>
+                        <p><strong>Request ID : </strong>{ticket.ReqID || 'N/A'}</p>
+                        <p><strong>Request Status : </strong>{ticket.ReqStatus || 'N/A'}</p>
+                        <p><strong>Request Action : </strong>{ticket.ReqAction || 'N/A'}</p>
+                      </div>
+                    </IonCard>
+                  ))}
+                </IonGrid>
+              ) : (
+                <IonLabel><div className='notFound'>
+                  <IonImg src="./assets/imgs/nodata.svg" alt="header" />
+                  No requests found</div></IonLabel>
+              )}
             </IonCard>
             <div className='footer'>
               <IonTitle className='footer ion-text-center'>Helpline | +91 90999 XXXXX</IonTitle>
@@ -155,34 +151,34 @@ const GetRequests: React.FC = () => {
         )}
         {/* modal code goes below */}
         <IonModal isOpen={showRequestModal} onDidDismiss={() => setShowRequestModal(false)}>
-            <IonHeader>
-              <IonToolbar>
-                <IonTitle>{'Create Leave Request'}</IonTitle>
-                <IonButtons slot="end">
-                  <IonButton onClick={() => setShowRequestModal(false)}>
-                    <IonIcon icon={closeOutline} size="large"></IonIcon>
-                  </IonButton>
-                </IonButtons>
-              </IonToolbar>
-            </IonHeader>
-            <IonContent>
-              <IonList>
-                <IonItem>
-                  <IonLabel position="floating">Subject</IonLabel>
-                  <IonInput value={reqSubject} onIonInput={e => setReqSubject(e.detail.value!)}></IonInput>
-                </IonItem>
-                <IonItem>
-                  <IonLabel position="floating">Description</IonLabel>
-                  <IonInput value={reqDesc} onIonInput={e => setReqDesc(e.detail.value!)}></IonInput>
-                </IonItem>
-                  <IonItem>
-                    <IonLabel position="floating">Other Details (From - To Date)</IonLabel>
-                    <IonInput value={reqOtherDetail} onIonChange={e => setReqOtherDetail(e.detail.value!)}></IonInput>
-                  </IonItem>
-              </IonList>
-              <IonButton expand="full" onClick={handleCreateRequest}>Create {'Leave Request'}</IonButton>
-            </IonContent>
-          </IonModal>
+          <IonHeader>
+            <IonToolbar>
+              <IonTitle>{'Create Leave Request'}</IonTitle>
+              <IonButtons slot="end">
+                <IonButton onClick={() => setShowRequestModal(false)}>
+                  <IonIcon icon={closeOutline} size="large"></IonIcon>
+                </IonButton>
+              </IonButtons>
+            </IonToolbar>
+          </IonHeader>
+          <IonContent>
+            <IonList>
+              <IonItem>
+                <IonLabel position="floating">Subject</IonLabel>
+                <IonInput value={reqSubject} onIonInput={e => setReqSubject(e.detail.value!)}></IonInput>
+              </IonItem>
+              <IonItem>
+                <IonLabel position="floating">Description</IonLabel>
+                <IonInput value={reqDesc} onIonInput={e => setReqDesc(e.detail.value!)}></IonInput>
+              </IonItem>
+              <IonItem>
+                <IonLabel position="floating">Other Details (From - To Date)</IonLabel>
+                <IonInput value={reqOtherDetail} onIonChange={e => setReqOtherDetail(e.detail.value!)}></IonInput>
+              </IonItem>
+            </IonList>
+            <IonButton expand="full" onClick={handleCreateRequest}>Create {'Leave Request'}</IonButton>
+          </IonContent>
+        </IonModal>
       </IonContent>
     </IonPage>
   );
