@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar, IonImg, IonButton, IonInput, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonItem, IonList, IonFooter } from '@ionic/react';
+import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar, IonImg, IonButton, IonInput, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonItem, IonList, IonFooter, useIonToast } from '@ionic/react';
 import { useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useHistory } from 'react-router-dom';
 import { usePhotoGallery } from '../../src/hooks/usePhotoGallery';
 import axios from 'axios';
-
+import { Geolocation } from '@capacitor/geolocation';
 import './Page.css';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { registerNotifications } from '../utility/pushNotifications';
@@ -22,12 +22,30 @@ const Login: React.FC = () => {
   const [btnEnabled, setBtnEnabled] = useState<boolean>(false);
   const [deviceId, setDeviceId] = useState<string>('');
   const { photos, takePhoto } = usePhotoGallery();
+  const [present, dismiss] = useIonToast();
 
   useEffect(() => {
+    registerLocationPermissions();
     let tempDeviceId = localStorage.getItem('deviceId');
     setDeviceId(tempDeviceId);
     registerNotifications();
+    console.log("Login pafe effect called");
   }, [])
+
+  async function registerLocationPermissions() {
+    const permissions = await Geolocation.requestPermissions();
+
+    // console.log("PERMISSION", permissions);
+    // Case to validate permission is denied, if denied error message alert will be shown
+    console.log("Login page permissions rendered", permissions);
+    Geolocation.getCurrentPosition()
+    .then((position) => {
+      console.info("There will be no issue dashboard related to location. ", position);
+    })
+    .catch((error) => {
+      console.error("There will be issue on dashboard related to location. ", error);
+    });
+  }
 
   useEffect(() => {
     // Load data from local storage when the component mounts
@@ -61,9 +79,9 @@ const Login: React.FC = () => {
   }
 
   const formValidation = () => {
-    if(empid != '' && mpin != '' && mobileNumber != ''){
+    if (empid != '' && mpin != '' && mobileNumber != '') {
       setBtnEnabled(true);
-    }else if(btnEnabled){
+    } else if (btnEnabled) {
       setBtnEnabled(false);
     }
     console.log(btnEnabled);
@@ -90,10 +108,10 @@ const Login: React.FC = () => {
           // }
 
           // if (photos && photos.filepath) {
-            
-            localStorage.setItem('loggedInUser', JSON.stringify(response.employee_data));
-            localStorage.setItem('token', response.token);
-            history.push('/pages/tabs/Dashboard');
+
+          localStorage.setItem('loggedInUser', JSON.stringify(response.employee_data));
+          localStorage.setItem('token', response.token);
+          history.push('/pages/tabs/Dashboard');
           // } else {
           //   alert('Please click a photo before logging in');
           // }
@@ -160,13 +178,13 @@ const Login: React.FC = () => {
                 />
               </IonItem>
               <IonItem className='ion-margin-bottom'>
-                <IonButton 
-                  disabled={!btnEnabled} 
-                  style={{ width: '100%' }} 
-                  expand="block" 
-                  color="primary" 
-                  size="default" 
-                  onClick={()=> handleLogin()}>{t('Login')}</IonButton>
+                <IonButton
+                  disabled={!btnEnabled}
+                  style={{ width: '100%' }}
+                  expand="block"
+                  color="primary"
+                  size="default"
+                  onClick={() => handleLogin()}>{t('Login')}</IonButton>
               </IonItem>
             </IonList>
           </IonCardContent>

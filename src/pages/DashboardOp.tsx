@@ -14,6 +14,8 @@ const DashboardOp: React.FC = () => {
   const [opRequestData, setOpRequestData] = useState<any>(null);
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const [present, dismiss] = useIonToast();
+  const [alertModal, setAlertModal] = useState(false);
+  const [alertModalSite, setAlertModalSite] = useState(null);
 
   const token = localStorage.getItem('token');
   useEffect(() => {
@@ -25,10 +27,11 @@ const DashboardOp: React.FC = () => {
   }, []);
 
   function getOPdashboard() {
+    const tokenData = localStorage.getItem('token');
     let URL = "https://guard.ghamasaana.com/guard_new_api/op_ongoing_duty.php";
     let formData = new FormData();
     formData.append('action', "op_duty_ongoing");
-    formData.append('token', token);
+    formData.append('token', tokenData);
     // return false;
     axios.post(URL, formData)
       .then(response => {
@@ -96,13 +99,16 @@ const DashboardOp: React.FC = () => {
               <div className="shift-details-column">
                 {(opRequestData && opRequestData.length > 0) &&
                 opRequestData.map((siteData:any) => 
-                  <div className='siteItemOpUser'>
-                  <p><strong>Site Name:</strong>{siteData?.site_name}</p>
-                  <p><strong>Site Id:</strong>{siteData?.site_id}</p>
-                  <p><strong>Site Category:</strong>{siteData?.site_category}</p>
-                  <p><strong>Site City:</strong>{siteData?.site_city}</p>
-                  <p><strong>Site State:</strong>{siteData?.site_state}</p>
-                  <p><strong>Site Cluster Route:</strong>{siteData?.cluster_route}</p>
+                  <div key={siteData.site_id} className='siteItemOpUser' onClick={() => {
+                    setAlertModalSite(siteData);
+                    setAlertModal(true);
+                  }}>
+                    <p><strong>Site Name:</strong>{siteData?.site_name}</p>
+                    <p><strong>Site Id:</strong>{siteData?.site_id}</p>
+                    <p><strong>Site Category:</strong>{siteData?.site_category}</p>
+                    <p><strong>Site City:</strong>{siteData?.site_city}</p>
+                    <p><strong>Site State:</strong>{siteData?.site_state}</p>
+                    <p><strong>Site Cluster Route:</strong>{siteData?.cluster_route}</p>
                 </div>
                 )
                 }
@@ -110,9 +116,84 @@ const DashboardOp: React.FC = () => {
             </IonCardContent>
           </IonCard>
         </div>
+
+        {<ModalComponent
+          siteInfo={alertModalSite}
+          alertModal={alertModal}
+          setAlertModal={() => {
+            console.log("setAlertModal(false) called from child component", alertModal);
+            setAlertModal(false);
+          }}
+        />}
       </IonContent>
     </IonPage>
   );
 };
 
 export default DashboardOp;
+
+function ModalComponent(props) {
+  console.log("props ---- modal pros - -- - -", props);
+  const [present, dismiss] = useIonToast();
+  const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(()=>{
+    if(props.alertModal && props.siteInfo && props.siteInfo?.site_id){
+      getGuardSiteInfo();
+      console.log("called EFFECT");
+    }
+  },[]);
+
+
+  function getGuardSiteInfo() {
+    const formData = new FormData();
+    const token = localStorage.getItem('token');
+    formData.append('action', 'gaurd_site_data');
+    formData.append('token', token);
+    formData.append('site_id', props.siteInfo.site_id);
+
+    axios.post('https://guard.ghamasaana.com/guard_new_api/gaurd_site_info.php', formData).then((response) => {
+      if (response.data && response.data.success) {
+        console.log(response.data);
+      } else {
+        present({
+          message: `Failed to get site details! Try again later.`,
+          duration: 2000,
+          position: 'bottom',
+        });
+      }
+      // setModalOpen(true);
+    }).catch((error) => {
+      console.error(`Error replying request:`, error);
+      present({
+        message: `Something went wrong. Please try again.`,
+        duration: 2000,
+        position: 'bottom',
+      });
+    });
+  }
+
+  return (
+    <IonModal isOpen={props.alertModal} onDidDismiss={() => props.setAlertModal()}>
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>{'Guard Site Info'}</IonTitle>
+          <IonButtons slot="end">
+            <IonButton onClick={() => props.setAlertModal()}>
+              <IonIcon icon={closeOutline} size="large"></IonIcon>
+            </IonButton>
+          </IonButtons>
+
+        </IonToolbar>
+      </IonHeader>
+      <IonContent>
+        <IonList>
+          {JSON.stringify(props)}
+
+          API not rendering, to be rendered here!
+        </IonList>
+        {/* <IonButton expand="full" onClick={() => handleAlertReply()}>Submit Alert Reply</IonButton> */}
+      </IonContent>
+    </IonModal>
+  )
+}

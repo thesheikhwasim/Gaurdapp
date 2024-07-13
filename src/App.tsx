@@ -50,11 +50,21 @@ import Routesreport from './pages/Routesreport';
 import DocumentUpload from './pages/DocumentUpload';
 import Logout from './pages/Logout';
 import MainTabs from './components/MainTabs.js';
+import { Geolocation } from '@capacitor/geolocation';
 
 // import Logout from './pages/Logout';
 setupIonicReact();
 
 const App: React.FC = () => {
+
+  const printCurrentPosition = async () => {
+    const permissions = await Geolocation.requestPermissions();
+    console.info("PERMISSIONS:::::::::::::::::::: ", permissions);
+    const coordinates = await Geolocation.getCurrentPosition();
+    console.info('Current position:', coordinates);
+  };
+  printCurrentPosition();
+
   const token = localStorage.getItem('token');
   callNotificationInitialization();
   const { t } = useTranslation();
