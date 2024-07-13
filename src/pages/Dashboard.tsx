@@ -99,7 +99,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
       fetchOngoingDuty(res);
     }).catch((error)=>{
       console.error("BEFORE CALLED ONGOING LOCATION ERROR");
-    });;
+    });
   }
 
   //Added to re-load ongoing duty on refresher pulled
