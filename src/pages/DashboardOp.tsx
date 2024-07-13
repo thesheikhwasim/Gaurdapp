@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { IonButtons, IonLoading, IonContent, IonGrid, IonRow, IonCol, IonHeader, IonLabel, IonMenuButton, IonPage, IonTitle, IonToolbar, IonImg, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonFab, IonFabButton, IonIcon, IonItem, IonList, IonInput, IonSelectOption, IonButton, IonModal, IonSelect, useIonToast, IonTextarea, IonRefresher, IonRefresherContent, RefresherEventDetail } from '@ionic/react';
 import { useParams } from 'react-router';
 import axios from 'axios';
@@ -6,32 +6,47 @@ import './Page.css';
 import useAuth from '../hooks/useAuth'; // Import the custom hook
 import { add, closeOutline } from 'ionicons/icons';
 import { useTranslation } from 'react-i18next';
+import { Geolocation } from '@capacitor/geolocation';
 
 const DashboardOp: React.FC = () => {
   const { t } = useTranslation();
-
   const { name } = useParams<{ name: string }>();
   const [opRequestData, setOpRequestData] = useState<any>(null);
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const [present, dismiss] = useIonToast();
   const [alertModal, setAlertModal] = useState(false);
   const [alertModalSite, setAlertModalSite] = useState(null);
+  const [Latitude, setLatitude] = useState('');
+  const [Longitude, setLongitude] = useState('');
 
   const token = localStorage.getItem('token');
   useEffect(() => {
-    getOPdashboard();
+    captureLocation().then((res) => {
+      console.log("BEFORE CALLED ONGOING of OP::::", res);
+      getOPdashboard(res);
+    }).catch((error) => {
+      console.error("BEFORE CALLED ONGOING LOCATION ERROR");
+    });
+    // getOPdashboard();
     const storedData = localStorage.getItem('loggedInUser');
     if (storedData) {
       setLoggedInUser(JSON.parse(storedData));
     }
   }, []);
 
-  function getOPdashboard() {
+  function getOPdashboard(dataParam = 0) {
     const tokenData = localStorage.getItem('token');
     let URL = "https://guard.ghamasaana.com/guard_new_api/op_ongoing_duty.php";
     let formData = new FormData();
     formData.append('action', "op_duty_ongoing");
     formData.append('token', tokenData);
+    if (dataParam && dataParam?.coords && dataParam?.coords?.latitude) {
+      formData.append('latitude', dataParam?.coords?.latitude);
+      formData.append('longitude', dataParam?.coords?.longitude);
+    } else {
+      formData.append('latitude', Latitude);
+      formData.append('longitude', Longitude);
+    }
     // return false;
     axios.post(URL, formData)
       .then(response => {
@@ -54,9 +69,49 @@ const DashboardOp: React.FC = () => {
       });
   }
 
+  const captureLocation = () => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const permissions = await Geolocation.checkPermissions();
+        // console.log("PERMISSION", permissions);
+        // Case to validate permission is denied, if denied error message alert will be shown
+        if (permissions?.location == "denied") {
+          present({
+            message: `"Location permission is denied, kindly enable from settings.`,
+            duration: 2000,
+            position: 'bottom',
+          });
+        }
+        Geolocation.getCurrentPosition()
+          .then((position) => {
+            if (position && position.coords.latitude) {
+              setLatitude(position.coords.latitude.toString());
+              setLongitude(position.coords.longitude.toString());
+            }
+            resolve(position);
+          })
+          .catch((error) => {
+            present({
+              message: `"Location permission is denied, kindly enable from settings.`,
+              duration: 2000,
+              position: 'bottom',
+            });
+            reject(error);
+          });
+      } catch (error) {
+        present({
+          message: `"Location permission is denied, kindly enable from settings.`,
+          duration: 2000,
+          position: 'bottom',
+        });
+        reject(error);
+      }
+    });
+  };
+
   function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
-     //Function that hits when ion pull to refresh is called
-     setTimeout(() => {
+    //Function that hits when ion pull to refresh is called
+    setTimeout(() => {
       console.log("PAGE TO be ReFRESHED");
       getOPdashboard();
       event.detail.complete();
@@ -98,23 +153,28 @@ const DashboardOp: React.FC = () => {
             <IonCardContent className="shift-details-card-content">
               <div className="shift-details-column">
                 {(opRequestData && opRequestData.length > 0) &&
-                opRequestData.map((siteData:any) => 
-                  <div key={siteData.site_id} className='siteItemOpUser' onClick={() => {
-                    setAlertModalSite(siteData);
-                    setAlertModal(true);
-                  }}>
-                    <p><strong>Site Name:</strong>{siteData?.site_name}</p>
-                    <p><strong>Site Id:</strong>{siteData?.site_id}</p>
-                    <p><strong>Site Category:</strong>{siteData?.site_category}</p>
-                    <p><strong>Site City:</strong>{siteData?.site_city}</p>
-                    <p><strong>Site State:</strong>{siteData?.site_state}</p>
-                    <p><strong>Site Cluster Route:</strong>{siteData?.cluster_route}</p>
-                </div>
-                )
+                  opRequestData.map((siteData: any) =>
+                    <div key={siteData.site_id} className='siteItemOpUser' onClick={() => {
+                      setAlertModalSite(siteData);
+                      setAlertModal(true);
+                    }}>
+                      <p><strong>Site Name:</strong>{siteData?.site_name}</p>
+                      <p><strong>Site Id:</strong>{siteData?.site_id}</p>
+                      <p><strong>Site Category:</strong>{siteData?.site_category}</p>
+                      <p><strong>Site City:</strong>{siteData?.site_city}</p>
+                      <p><strong>Site State:</strong>{siteData?.site_state}</p>
+                      <p><strong>Site Cluster Route:</strong>{siteData?.cluster_route}</p>
+                    </div>
+                  )
                 }
               </div>
             </IonCardContent>
           </IonCard>
+          {(opRequestData && opRequestData.length > 0) &&
+            <div className='dutyStartStopContainer'>
+              <DutyStartStopAndMovement ongoingData={opRequestData} />
+            </div>
+          }
         </div>
 
         {<ModalComponent
@@ -137,12 +197,12 @@ function ModalComponent(props) {
   const [present, dismiss] = useIonToast();
   const [modalOpen, setModalOpen] = useState(false);
 
-  useEffect(()=>{
-    if(props.alertModal && props.siteInfo && props.siteInfo?.site_id){
+  useEffect(() => {
+    if (props.alertModal && props.siteInfo && props.siteInfo?.site_id) {
       getGuardSiteInfo();
       console.log("called EFFECT");
     }
-  },[]);
+  }, [props.alertModal]);
 
 
   function getGuardSiteInfo() {
@@ -195,5 +255,184 @@ function ModalComponent(props) {
         {/* <IonButton expand="full" onClick={() => handleAlertReply()}>Submit Alert Reply</IonButton> */}
       </IonContent>
     </IonModal>
+  )
+}
+
+
+const DutyStartStopAndMovement = (props: any) => {
+  const { t } = useTranslation();
+  const intervalRef = useRef(null);
+  const [present, dismiss] = useIonToast();
+  const [Latitude, setLatitude] = useState('');
+  const [Longitude, setLongitude] = useState('');
+  const [prevLatitude, setPrevLatitude] = useState('');
+  const [prevLongitude, setPrevLongitude] = useState('');
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+
+  useEffect(() => {
+    captureLocation().then((res) => {
+      dutyMovementHandler(res);
+    }).catch((error)=>{
+      console.error("ELAPSEDTIME LOCATION ERROR");
+    });
+    return () => {
+      clearInterval(intervalRef?.current);
+    }
+  }, [elapsedTime])
+
+  console.log("ongoing duty data sent as props::: "), props.ongoingData;
+
+  function startStopHandler(startStopParam: string) {
+    captureLocation().then((res) => {
+      startStopParam == 'START' ? handleDutyStart(res) : handleDutyEnd(res);
+    }).catch((error) => {
+      console.error("BEFORE CALLED ONGOING LOCATION ERROR");
+      present({
+        message: `Location Error! Duty cannot be ${startStopParam == 'START' ? 'started' : 'stopped'}, contact us.`,
+        duration: 4000,
+        position: 'bottom',
+      });
+    });
+  }
+
+  async function handleDutyEnd(dataParam = 0) {
+    clearInterval(intervalRef?.current);
+    let STOP_URL = 'https://guard.ghamasaana.com/guard_new_api/opdutystart.php';
+    let formData = new FormData();
+    const token = localStorage.getItem('token');
+    formData.append('action', 'op_punch_out');
+    formData.append('token', token);
+    if (dataParam && dataParam?.coords && dataParam?.coords?.latitude) {
+      formData.append('latitude', dataParam?.coords?.latitude);
+      formData.append('longitude', dataParam?.coords?.longitude);
+    } else {
+      formData.append('latitude', Latitude);
+      formData.append('longitude', Longitude);
+    }
+
+    const response = await axios.post(STOP_URL, formData);
+    const data = response.data;
+    // Case to validate API was success and employee data is available
+    if (data?.success) {
+
+    }else{
+      
+    }
+  }
+
+  async function handleDutyStart(dataParam = 0) {
+    let START_URL = 'https://guard.ghamasaana.com/guard_new_api/opdutystart.php';
+    let formData = new FormData();
+    const token = localStorage.getItem('token');
+    formData.append('action', 'op_punch_in');
+    formData.append('token', token);
+    if (dataParam && dataParam?.coords && dataParam?.coords?.latitude) {
+      formData.append('latitude', dataParam?.coords?.latitude);
+      formData.append('longitude', dataParam?.coords?.longitude);
+    } else {
+      formData.append('latitude', Latitude);
+      formData.append('longitude', Longitude);
+    }
+
+    const response = await axios.post(START_URL, formData);
+    const data = response.data;
+    // Case to validate API was success and employee data is available
+    if (data?.success) {
+      intervalRef.current = setInterval(() => {
+        setElapsedTime((prevTime) => prevTime + 1);
+      }, 5000);
+      setIsRunning(true);
+      dutyMovementHandler();
+    }else{
+
+    }
+  };
+
+  const dutyMovementHandler = (dataParam = 0) => {
+    // Call duty movement API
+    dutyMovementApi(dataParam).then((movementResponse) => {
+      if (movementResponse && !movementResponse.success) {
+        console.log(movementResponse);
+      } else {
+        // Update previous location only if API call was successful
+        setPrevLatitude(Latitude);
+        setPrevLongitude(Longitude);
+      }
+    });
+  }
+
+  async function dutyMovementApi(dataParam = 0) {
+    try {
+      if (Latitude !== prevLatitude || Longitude !== prevLongitude) {
+        console.error("LAT LONG IS DIFFERENT MOVEMENT RECORDED", Latitude, "!==", prevLatitude);
+        let MOVEMENT_URL = 'https://guard.ghamasaana.com/guard_new_api/optripmovement.php';
+        let formData = new FormData();
+        const token = localStorage.getItem('token');
+        formData.append('action', 'op_trip_movement');
+        formData.append('token', token);
+        formData.append('latitude', Latitude);
+        formData.append('longitude', Longitude);
+
+        const response = await axios.post(MOVEMENT_URL, formData);
+        console.log("Movement Response OP:::::", response);
+        if (response && response?.data && response?.data?.success) {
+          //in case any action to perform based on sending dutymovement
+        }
+        return response.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error:', error);
+      return null;
+    }
+  }
+
+  const captureLocation = () => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const permissions = await Geolocation.checkPermissions();
+        if (permissions?.location == "denied") {
+          present({
+            message: `"Location permission is denied, kindly enable from settings.`,
+            duration: 2000,
+            position: 'bottom',
+          });
+        }
+        Geolocation.getCurrentPosition()
+          .then((position) => {
+            if (position && position.coords.latitude) {
+              setLatitude(position?.coords?.latitude.toString());
+              setLongitude(position?.coords?.longitude.toString());
+            }
+            resolve(position);
+          })
+          .catch((error) => {
+
+            reject(error);
+          });
+      } catch (error) {
+
+        reject(error);
+      }
+    });
+  };
+
+  return (
+    <IonGrid className="ion-text-center">
+      <IonRow>
+        <IonCol size="12">
+          {props.isRunning ? ( //Duty ENd Button
+            <IonButton expand="block" onClick={() => startStopHandler('START')} color="danger">
+              {t('punchOut')}
+            </IonButton>
+          ) : ( //Duty Start BUtton
+            <IonButton expand="block" onClick={() => startStopHandler('STOP')} color="primary">
+              {t('punchIn')}
+            </IonButton>
+          )}
+        </IonCol>
+      </IonRow>
+    </IonGrid>
   )
 }
