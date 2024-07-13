@@ -30,6 +30,16 @@ const MainTabs: React.FC<MainTabsProps> = () => {
     setLoggedUserData(JSON.parse(loggedUserData));
     console.log("Tab logged user type condition", loggedUserData);
   }, []);
+
+  function renderDashboardHandler(){
+    if(loggedUserData && loggedUserData?.designation_catagory == 'Operation'){
+      console.log("++++++renderDashboardHandler ", 'checker', loggedUserData);
+      return <DashboardOp />;
+    }else if(loggedUserData && loggedUserData?.designation_catagory == 'Guard'){
+      console.log("++++++renderDashboardHandler ", 'guard', loggedUserData);
+      return <Dashboard />;
+    }
+  }
   return (
     <IonTabs>
       <IonRouterOutlet>
@@ -40,7 +50,7 @@ const MainTabs: React.FC<MainTabsProps> = () => {
         */}
         <Route
           path="/pages/tabs/Dashboard"
-          render={() => (loggedUserData && loggedUserData?.designation == 'Checker') ? <DashboardOp />: <Dashboard />}
+          render={() => renderDashboardHandler()}
           exact={true}
         />
         <Route
