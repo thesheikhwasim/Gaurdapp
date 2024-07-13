@@ -35,7 +35,7 @@ const MainTabs: React.FC<MainTabsProps> = () => {
     if(loggedUserData && loggedUserData?.designation_catagory == 'Operation'){
       console.log("++++++renderDashboardHandler ", 'checker', loggedUserData);
       return <DashboardOp />;
-    }else if(loggedUserData && loggedUserData?.designation_catagory == 'Guard'){
+    }else if(loggedUserData && (loggedUserData?.designation_catagory == 'Guard' || loggedUserData?.designation_catagory == 'Gaurd')){
       console.log("++++++renderDashboardHandler ", 'guard', loggedUserData);
       return <Dashboard />;
     }

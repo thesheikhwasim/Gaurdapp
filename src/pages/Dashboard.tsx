@@ -89,18 +89,31 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
       setLoggedInUser(JSON.parse(storedData));
     }
     if (storedToken) {
-      fetchOngoingDuty();
+      ongoingNewHandlerWithLocation();
     }
   }, []);
 
+  function ongoingNewHandlerWithLocation(){
+    captureLocation().then((res) => {
+      console.log("BEFORE CALLED ONGOING::::", res);
+      fetchOngoingDuty(res);
+    }).catch((error)=>{
+      console.error("BEFORE CALLED ONGOING LOCATION ERROR");
+    });;
+  }
+
   //Added to re-load ongoing duty on refresher pulled
   useEffect(() => {
-    fetchOngoingDuty();
+    if(reloadPage){
+      ongoingNewHandlerWithLocation();
+    }
   },[reloadPage])
 
   useEffect(() => {
     captureLocation().then((res) => {
       dutyMovementHandler();
+    }).catch((error)=>{
+      console.error("ELAPSEDTIME LOCATION ERROR");
     });
   }, [elapsedTime])
 
@@ -108,12 +121,21 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   const { t } = useTranslation();
   const { takePhoto } = usePhotoGallery();
 
-  const fetchOngoingDuty = async () => {
+  const fetchOngoingDuty = async (dataParam=0) => {
+    console.log("Inside Ongoing function");
     try {
-      const formData = new FormData();
+      let formData = new FormData();
       formData.append('action', 'duty_ongoing');
       formData.append('token', token);
-
+      if(dataParam && dataParam?.coords && dataParam?.coords?.latitude){
+        formData.append('latitude', dataParam?.coords?.latitude);
+        formData.append('longitude', dataParam?.coords?.longitude);
+      }else{
+        formData.append('latitude', Latitude);
+        formData.append('longitude', Longitude);
+      }
+      
+      console.log("Ongoing Duty formdata:: ", formData);
       const response = await axios.post('https://guard.ghamasaana.com/guard_new_api/ongoing_duty.php', formData);
       const data = response.data;
 
@@ -143,7 +165,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
           }, 5000);
         }
       } else {
-        console.log("Ongoing re-fetched else case, check when there is difference after refresh ");
+        // console.log("Ongoing re-fetched else case, check when there is difference after refresh ");
       }
     } catch (error) {
       console.error('Error fetching ongoing duty:', error);
@@ -161,7 +183,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
     return new Promise(async (resolve, reject) => {
       try {
         const permissions = await Geolocation.checkPermissions();
-        console.log("PERMISSION", permissions);
+        // console.log("PERMISSION", permissions);
         // Case to validate permission is denied, if denied error message alert will be shown
         if (permissions?.location == "denied") {
           present({
@@ -252,7 +274,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
     captureLocation().then((res) => {
       if (Latitude !== '') {
         takePhoto().then(async (photoData) => {
-          console.log("Photo Data Returned From Camera Base64 format---", photoData);
+          // console.log("Photo Data Returned From Camera Base64 format---", photoData);
           const formData = new FormData();
           const token = localStorage.getItem('token');
           formData.append('action', 'punch_in');
@@ -267,7 +289,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
                 fetchOngoingDuty();
                 intervalRef.current = setInterval(() => {
                   setElapsedTime((prevTime) => prevTime + 1);
-                  console.log("Timer is set for every 5 seconds", intervalRef);
+                  // console.log("Timer is set for every 5 seconds", intervalRef);
                 }, 5000);
                 setIsRunning(true);
                 dutyMovementHandler();
@@ -343,8 +365,8 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
     formData.append('reqsubject', reqSubject);
     formData.append('ReqDesc', reqDesc);
     formData.append('reqotherdetail', reqOtherDetail);
-    console.log(token);
-    console.log("formDATA create----> ", JSON.stringify(formData));
+    // console.log(token);
+    // console.log("formDATA create----> ", JSON.stringify(formData));
     // return false;
 
     axios
@@ -421,7 +443,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
       });
     });
   }
-  console.log("re-render check")
+  console.log("Page state updated and re-rendered")
 
   return (
     <div>
@@ -455,6 +477,12 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
               {!inRange && 'You are not in range of duty!'}
             </span>
           </div>
+          {!isRunning && dutyDetailsFromOngoingDuty && dutyDetailsFromOngoingDuty?.timetostartduty && 
+          <div className='not-range-parent'>
+            <span>
+              {dutyDetailsFromOngoingDuty?.timetostartduty}
+            </span>
+          </div>}
           {isRunning && elapsedState && <div>
             <MyStopwatch test={elapsedState} />
           </div>}
@@ -550,7 +578,7 @@ const Dashboard = () => {
   const [itemFromLocalStorage, setItemFromLocalStorage] = useState(
     localStorage.getItem('guardalertkey') || ''
   );
-  const [reloader, setReloader] = useState(true);
+  const [reloader, setReloader] = useState(false);
   // const [reqSubjectModal, setreqSubjectModal] = useState('');
 
 
@@ -564,9 +592,9 @@ const Dashboard = () => {
   const handleLocalStorageChange = useCallback((newValue) => {
     if (newValue?.alertKey != itemFromLocalStorage?.alertKey) {
       setItemFromLocalStorage(newValue);
-      console.log(`LocalStorage 'guardalertkey' changed:`, newValue);
+      // console.log(`LocalStorage 'guardalertkey' changed:`, newValue);
     } else {
-      console.error("no effect due to new val ", newValue);
+      // console.error("no effect due to new val ", newValue);
     }
   }, []);
   // Empty dependency array ensures effect runs only once
@@ -574,7 +602,7 @@ const Dashboard = () => {
   function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
     //Function that hits when ion pull to refresh is called
     setTimeout(() => {
-      console.log("PAGE TO be ReFRESHED");
+      // console.log("PAGE TO be ReFRESHED");
       setReloader(!reloader);
       event.detail.complete();
     }, 500);
@@ -620,7 +648,7 @@ const Dashboard = () => {
 
           {<ModalComponent alertModal={alertModal} movementAlertMessage={movementAlertMessage} inAlert={inAlert}
             setAlertModal={() => {
-              console.log("setAlertModal(false) called", alertModal);
+              // console.log("setAlertModal(false) called", alertModal);
               setAlertModal(false);
             }}
             itemFromLocalStorage={itemFromLocalStorage}
@@ -662,7 +690,7 @@ function AlertComponent(props) {
 
 function ModalComponent(props) {
   const [present, dismiss] = useIonToast();
-  console.log("itemFromLocalStorage---------------------------------------", props.itemFromLocalStorage);
+  // console.log("itemFromLocalStorage---------------------------------------", props.itemFromLocalStorage);
   const [alertModal, setAlertModal] = useState(false);
   const [alertReplyInput, setAlertReplyInput] = useState('');
   // const [reqSubjectModal, setreqSubjectModal] = useState('');
