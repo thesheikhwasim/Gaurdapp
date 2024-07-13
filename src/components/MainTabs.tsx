@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   IonTabs,
   IonRouterOutlet,
@@ -15,13 +15,31 @@ import SessionDetail from '../pages/DutyInfo';
 import MapView from '../pages/DutyInfo';
 import Notice from '../pages/Notice';
 import Dashboard from '../pages/Dashboard';
-import GetTicket from '../pages/getTicket';
+import DashboardOp from '../pages/DashboardOp';
+ import GetTicket from '../pages/getTicket';
 import GetRequests from '../pages/getRequest';
 import DutyInfo from '../pages/DutyInfo';
 
-interface MainTabsProps {}
+interface MainTabsProps { }
 
 const MainTabs: React.FC<MainTabsProps> = () => {
+  const [loggedUserData, setLoggedUserData] = useState();
+
+  useEffect(() => {
+    const loggedUserData = localStorage.getItem('loggedInUser');
+    setLoggedUserData(JSON.parse(loggedUserData));
+    console.log("Tab logged user type condition", loggedUserData);
+  }, []);
+
+  function renderDashboardHandler(){
+    if(loggedUserData && loggedUserData?.designation_catagory == 'Operation'){
+      console.log("++++++renderDashboardHandler ", 'checker', loggedUserData);
+      return <DashboardOp />;
+    }else if(loggedUserData && loggedUserData?.designation_catagory == 'Guard'){
+      console.log("++++++renderDashboardHandler ", 'guard', loggedUserData);
+      return <Dashboard />;
+    }
+  }
   return (
     <IonTabs>
       <IonRouterOutlet>
@@ -32,7 +50,7 @@ const MainTabs: React.FC<MainTabsProps> = () => {
         */}
         <Route
           path="/pages/tabs/Dashboard"
-          render={() => <Dashboard />}
+          render={() => renderDashboardHandler()}
           exact={true}
         />
         <Route
@@ -46,7 +64,7 @@ const MainTabs: React.FC<MainTabsProps> = () => {
           exact={true}
         />
         <Route path="/pages/tabs/Dashboard/:id" component={SessionDetail} />
-        <Route exact path="/pages/tabs/Dashboard/DutyInfo" component={DutyInfo}/>
+        <Route exact path="/pages/tabs/Dashboard/DutyInfo" component={DutyInfo} />
         <Route path="/pages/tabs/getTicket/:id" component={SessionDetail} />
         <Route path="/pages/tabs/getRequest" render={() => <GetRequests />} exact={true} />
         <Route path="/pages/tabs/Notice" render={() => <Notice />} exact={true} />

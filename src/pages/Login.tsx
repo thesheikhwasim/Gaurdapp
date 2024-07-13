@@ -160,7 +160,13 @@ const Login: React.FC = () => {
                 />
               </IonItem>
               <IonItem className='ion-margin-bottom'>
-                <IonButton disabled={!btnEnabled} style={{ width: '100%' }} expand="block" color="primary" size="default" onClick={()=> handleLogin()}>{t('Login')}</IonButton>
+                <IonButton 
+                  disabled={!btnEnabled} 
+                  style={{ width: '100%' }} 
+                  expand="block" 
+                  color="primary" 
+                  size="default" 
+                  onClick={()=> handleLogin()}>{t('Login')}</IonButton>
               </IonItem>
             </IonList>
           </IonCardContent>

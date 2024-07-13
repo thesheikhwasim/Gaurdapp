@@ -26,6 +26,9 @@ import {
   IonAlert,
   IonIcon,
   IonTextarea,
+  IonRefresher,
+  IonRefresherContent,
+  RefresherEventDetail,
 } from '@ionic/react';
 
 import { isPlatform } from '@ionic/react';
@@ -46,7 +49,7 @@ import useAuth from '../hooks/useAuth';
 import { close, closeOutline, personCircleOutline } from 'ionicons/icons';
 import MyStopwatch from './DashboardMyTimer';
 
-const DashboardComp: React.FC = ({ onLocalStorageChange }) => {
+const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   const [duty, setDuty] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const token = localStorage.getItem('token');
@@ -89,6 +92,11 @@ const DashboardComp: React.FC = ({ onLocalStorageChange }) => {
       fetchOngoingDuty();
     }
   }, []);
+
+  //Added to re-load ongoing duty on refresher pulled
+  useEffect(() => {
+    fetchOngoingDuty();
+  },[reloadPage])
 
   useEffect(() => {
     captureLocation().then((res) => {
@@ -542,6 +550,7 @@ const Dashboard = () => {
   const [itemFromLocalStorage, setItemFromLocalStorage] = useState(
     localStorage.getItem('guardalertkey') || ''
   );
+  const [reloader, setReloader] = useState(true);
   // const [reqSubjectModal, setreqSubjectModal] = useState('');
 
 
@@ -562,6 +571,15 @@ const Dashboard = () => {
   }, []);
   // Empty dependency array ensures effect runs only once
 
+  function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
+    //Function that hits when ion pull to refresh is called
+    setTimeout(() => {
+      console.log("PAGE TO be ReFRESHED");
+      setReloader(!reloader);
+      event.detail.complete();
+    }, 500);
+  }
+
   return (
     <>
       <IonPage>
@@ -580,6 +598,9 @@ const Dashboard = () => {
           </IonToolbar>
         </IonHeader>
         <IonContent className="page-content">
+          <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+            <IonRefresherContent></IonRefresherContent>
+          </IonRefresher>
           <IonHeader collapse="condense">
             <IonTitle>{name}</IonTitle>
           </IonHeader>
@@ -593,7 +614,7 @@ const Dashboard = () => {
               setAlertModal={() => {
                 setAlertModal(true);
               }} /></div>}
-            <DashboardComp onLocalStorageChange={handleLocalStorageChange} />
+            <DashboardComp onLocalStorageChange={handleLocalStorageChange} reloadPage={reloader} />
           </div>
           {/* ALERT MODAL GOES BELOW */}
 

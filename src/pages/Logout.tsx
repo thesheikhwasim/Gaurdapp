@@ -24,9 +24,12 @@ const Logout: React.FC = () => {
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('token');
         localStorage.removeItem('loggedInUser');
+        localStorage.removeItem('photosData');
+        localStorage.removeItem('guardalertkey');
 
         // Redirect to login page
         history.push('/pages/login');
+        window.location.reload()
       } catch (error) {
         console.error('Error logging out:', error);
         // Handle the error as needed
