@@ -40,9 +40,21 @@ const Login: React.FC = () => {
     console.log("Login page permissions rendered", permissions);
     Geolocation.getCurrentPosition()
     .then((position) => {
+      if(position &&( position?.coarseLocation == 'denied' || position?.location == 'denied')){
+        present({
+          message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
+          duration: 5000,
+          position: 'bottom',
+        });
+      }
       console.info("There will be no issue dashboard related to location. ", position);
     })
     .catch((error) => {
+      present({
+        message: `Error in fetching location, re-start app by veryfying permissions!`,
+        duration: 5000,
+        position: 'bottom',
+      });
       console.error("There will be issue on dashboard related to location. ", error);
     });
   }
@@ -58,7 +70,7 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     formValidation();
-  }, [empid, mpin, mobileNumber]);
+  }, [empid, mpin]);
 
   const saveToStorage = () => {
     // Save data to local storage
@@ -79,7 +91,7 @@ const Login: React.FC = () => {
   }
 
   const formValidation = () => {
-    if (empid != '' && mpin != '' && mobileNumber != '') {
+    if (empid != '' && mpin != '') {
       setBtnEnabled(true);
     } else if (btnEnabled) {
       setBtnEnabled(false);
@@ -93,7 +105,7 @@ const Login: React.FC = () => {
       const formData = new FormData();
       formData.append('empid', empid);
       formData.append('mpin', mpin);
-      formData.append('mobile', mobileNumber);
+      // formData.append('mobile', mobileNumber);
       formData.append('action', "login");
       formData.append('deviceId', deviceId);
 
@@ -167,7 +179,7 @@ const Login: React.FC = () => {
                   }}
                 />
               </IonItem>
-              <IonItem className='ion-margin-bottom'>
+              {/* <IonItem className='ion-margin-bottom'>
                 <IonInput
                   type="number"
                   value={mobileNumber}
@@ -176,7 +188,7 @@ const Login: React.FC = () => {
                     setMobileNumber(e.detail.value!);
                   }}
                 />
-              </IonItem>
+              </IonItem> */}
               <IonItem className='ion-margin-bottom'>
                 <IonButton
                   disabled={!btnEnabled}
