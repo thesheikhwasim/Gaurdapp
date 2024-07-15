@@ -58,10 +58,11 @@ setupIonicReact();
 const App: React.FC = () => {
 
   const printCurrentPosition = async () => {
+    console.log("PERMISSIONS CHECK");
     const permissions = await Geolocation.requestPermissions();
-    console.info("PERMISSIONS:::::::::::::::::::: ", permissions);
+    console.log("PERMISSIONS:::::::::::::::::::: ", permissions);
     const coordinates = await Geolocation.getCurrentPosition();
-    console.info('Current position:', coordinates);
+    console.log('Current position:', coordinates);
   };
   printCurrentPosition();
 

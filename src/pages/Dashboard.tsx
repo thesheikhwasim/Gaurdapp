@@ -96,6 +96,10 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   function ongoingNewHandlerWithLocation(){
     captureLocation().then((res) => {
       console.log("BEFORE CALLED ONGOING::::", res);
+      if((res && res?.coords && res?.coords?.latitude)){
+        setPrevLatitude(res?.coords?.latitude);
+        setPrevLongitude(res?.coords?.longitude);
+      }
       fetchOngoingDuty(res);
     }).catch((error)=>{
       console.error("BEFORE CALLED ONGOING LOCATION ERROR");
@@ -111,7 +115,18 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
 
   useEffect(() => {
     captureLocation().then((res) => {
-      dutyMovementHandler();
+      console.log("res------ below movement called::: ", res);
+      console.log("PREVIOUS LAT LONG IS:::: ", prevLatitude, "--long--", prevLongitude);
+      if((res && res?.coords && res?.coords?.latitude) && (prevLatitude != res?.coords?.latitude || prevLongitude != res?.coords?.longitude) && prevLatitude){
+        setPrevLatitude(res?.coords?.latitude);
+        setPrevLongitude(res?.coords?.longitude);
+        dutyMovementHandler();
+        // present({
+        //   message: `${res?.coords?.latitude} == ${prevLatitude} && ${res?.coords?.longitude} == ${prevLongitude}`,
+        //   duration: 3000,
+        //   position: 'bottom',
+        // });
+      }
     }).catch((error)=>{
       console.error("ELAPSEDTIME LOCATION ERROR");
     });
@@ -187,25 +202,30 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
         // Case to validate permission is denied, if denied error message alert will be shown
         if (permissions?.location == "denied") {
           present({
-            message: `"Location permission is denied, kindly enable from settings.`,
-            duration: 2000,
+            message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
+            duration: 5000,
             position: 'bottom',
           });
         }
-        Geolocation.getCurrentPosition()
+
+        const options = {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        };
+        Geolocation.getCurrentPosition(options)
           .then((position) => {
             if (position && position.coords.latitude) {
+              console.log("CAPTURE LOCATION is setting lat long:::: ",position.coords.latitude.toString(), "-- longitude--", position.coords.longitude.toString());
               setLatitude(position.coords.latitude.toString());
               setLongitude(position.coords.longitude.toString());
             }
             resolve(position);
           })
           .catch((error) => {
-
             reject(error);
           });
       } catch (error) {
-
         reject(error);
       }
     });
@@ -229,7 +249,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
 
   async function dutyMovementApi() {
     try {
-      if (Latitude !== prevLatitude || Longitude !== prevLongitude) {
+      // if (Latitude !== prevLatitude || Longitude !== prevLongitude) {
         const formData = new FormData();
         const token = localStorage.getItem('token');
         formData.append('action', 'duty_movement');
@@ -238,6 +258,11 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
         formData.append('longitude', Longitude);
 
         const response = await axios.post('https://guard.ghamasaana.com/guard_new_api/dutystartmovement.php', formData);
+        // present({
+        //   message: `Duty Movement Called!`,
+        //   duration: 2000,
+        //   position: 'bottom',
+        // });
         if (response && response?.data && 'range_status' in response.data[0]) {
           if (inRange != response.data[0]?.range_status) {
             SetInRange(response.data[0]?.range_status);
@@ -262,7 +287,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
           }
         }
         return response.data;
-      }
+      // }
       return null;
     } catch (error) {
       console.error('Error:', error);
@@ -315,11 +340,13 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
       if (movementResponse && !movementResponse.success) {
         setAlertMessage(movementResponse.message);
         setShowAlert(true);
-      } else {
-        // Update previous location only if API call was successful
-        setPrevLatitude(Latitude);
-        setPrevLongitude(Longitude);
-      }
+      } 
+      // else {
+      //   console.error("SETTING LAT LONG IN ELSE CASE");
+      //   // Update previous location only if API call was successful
+      //   setPrevLatitude(Latitude);
+      //   setPrevLongitude(Longitude);
+      // }
     });
   }
 
@@ -473,6 +500,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
             </div>
           </IonCardContent>
           <div className='not-range-parent'>
+            {/* {elapsedTime} */}
             <span>
               {!inRange && 'You are not in range of duty!'}
             </span>
@@ -490,11 +518,19 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
             <IonRow>
               <IonCol size="12">
                 {isRunning ? ( //Duty ENd Button
-                  <IonButton disabled={!dutyDetailsFromOngoingDuty?.dutyendbuttonstatus} expand="block" onClick={handleDutyEnd} color="danger">
+                  <IonButton 
+                    disabled={!dutyDetailsFromOngoingDuty?.dutyendbuttonstatus} 
+                    expand="block" 
+                    onClick={handleDutyEnd} 
+                    color="danger">
                     {t('punchOut')}
                   </IonButton>
                 ) : ( //Duty Start BUtton
-                  <IonButton disabled={!dutyDetailsFromOngoingDuty?.dutystartbuttonstatus} expand="block" onClick={handleDutyStart} color="primary">
+                  <IonButton 
+                    disabled={!dutyDetailsFromOngoingDuty?.dutystartbuttonstatus} 
+                    expand="block" 
+                    onClick={handleDutyStart} 
+                    color="primary">
                     {t('punchIn')}
                   </IonButton>
                 )}
