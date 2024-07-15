@@ -99,8 +99,10 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
       if((res && res?.coords && res?.coords?.latitude)){
         setPrevLatitude(res?.coords?.latitude);
         setPrevLongitude(res?.coords?.longitude);
+        fetchOngoingDuty(res);
+      }else{
+
       }
-      fetchOngoingDuty(res);
     }).catch((error)=>{
       console.error("BEFORE CALLED ONGOING LOCATION ERROR");
     });
@@ -475,69 +477,71 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   return (
     <div>
       <div className="content">
+        {JSON.stringify(dutyDetailsFromOngoingDuty) != "{}" ? 
         <IonCard className="shift-details-card">
 
-          <IonCardHeader>
-            <IonCardTitle>{t('Your Current Duty Detail')}</IonCardTitle>
-          </IonCardHeader>
-          <IonCardContent className="shift-details-card-content">
-            <div className="shift-details-column">
-              {dutyDetailsFromOngoingDuty && dutyDetailsFromOngoingDuty?.duty_ongoing_info &&
-                dutyDetailsFromOngoingDuty?.duty_ongoing_info?.duty_start_pic && <p className='duty-start-pic-guard'><strong>Guard Duty Image:</strong> <IonImg
-                  src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${dutyDetailsFromOngoingDuty?.duty_ongoing_info?.duty_start_pic}`}
-                ></IonImg></p>}
-              <p><strong>Client Name:</strong> {loggedInUser?.client_name}</p>
-              <p><strong>Site Name & Address:</strong> <span className='text-right'>{loggedInUser?.site_name}, {loggedInUser?.site_city}, {loggedInUser?.site_state}</span></p>
-              <p><strong>Site Status:</strong> {loggedInUser?.site_status}</p>
-            </div>
-            <div className="shift-details-column">
-              <p><strong>Authorized Shift:</strong> {loggedInUser?.auth_shift}</p>
-              <p><strong>Shift Start Time:</strong> {loggedInUser?.shift_start_time}</p>
-              <p><strong>Shift End Time:</strong> {loggedInUser?.shift_end_time}</p>
-              {isRunning ? (
-                <p><strong>Duty Started On :</strong>{dutystartinfo?.duty_start_date}</p>
-              ) : ('')}
-            </div>
-          </IonCardContent>
-          <div className='not-range-parent'>
-            {/* {elapsedTime} */}
-            <span>
-              {!inRange && 'You are not in range of duty!'}
-            </span>
-          </div>
-          {!isRunning && dutyDetailsFromOngoingDuty && dutyDetailsFromOngoingDuty?.timetostartduty && 
-          <div className='not-range-parent'>
-            <span>
-              {dutyDetailsFromOngoingDuty?.timetostartduty}
-            </span>
-          </div>}
-          {isRunning && elapsedState && <div>
-            <MyStopwatch test={elapsedState} />
-          </div>}
-          <IonGrid className="ion-text-center">
-            <IonRow>
-              <IonCol size="12">
-                {isRunning ? ( //Duty ENd Button
-                  <IonButton 
-                    disabled={!dutyDetailsFromOngoingDuty?.dutyendbuttonstatus} 
-                    expand="block" 
-                    onClick={handleDutyEnd} 
-                    color="danger">
-                    {t('punchOut')}
-                  </IonButton>
-                ) : ( //Duty Start BUtton
-                  <IonButton 
-                    disabled={!dutyDetailsFromOngoingDuty?.dutystartbuttonstatus} 
-                    expand="block" 
-                    onClick={handleDutyStart} 
-                    color="primary">
-                    {t('punchIn')}
-                  </IonButton>
-                )}
-              </IonCol>
-            </IonRow>
-          </IonGrid>
-        </IonCard>
+<IonCardHeader>
+  <IonCardTitle>{t('Your Current Duty Detail')}</IonCardTitle>
+</IonCardHeader>
+<IonCardContent className="shift-details-card-content">
+  <div className="shift-details-column">
+    {dutyDetailsFromOngoingDuty && dutyDetailsFromOngoingDuty?.duty_ongoing_info &&
+      dutyDetailsFromOngoingDuty?.duty_ongoing_info?.duty_start_pic && <p className='duty-start-pic-guard'><strong>Guard Duty Image:</strong> <IonImg
+        src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${dutyDetailsFromOngoingDuty?.duty_ongoing_info?.duty_start_pic}`}
+      ></IonImg></p>}
+    <p><strong>Client Name:</strong> {loggedInUser?.client_name}</p>
+    <p><strong>Site Name & Address:</strong> <span className='text-right'>{loggedInUser?.site_name}, {loggedInUser?.site_city}, {loggedInUser?.site_state}</span></p>
+    <p><strong>Site Status:</strong> {loggedInUser?.site_status}</p>
+  </div>
+  <div className="shift-details-column">
+    <p><strong>Authorized Shift:</strong> {loggedInUser?.auth_shift}</p>
+    <p><strong>Shift Start Time:</strong> {loggedInUser?.shift_start_time}</p>
+    <p><strong>Shift End Time:</strong> {loggedInUser?.shift_end_time}</p>
+    {isRunning ? (
+      <p><strong>Duty Started On :</strong>{dutystartinfo?.duty_start_date}</p>
+    ) : ('')}
+  </div>
+</IonCardContent>
+<div className='not-range-parent'>
+  <span>
+    {!inRange && 'You are not in range of duty!'}
+  </span>
+</div>
+{!isRunning && dutyDetailsFromOngoingDuty && dutyDetailsFromOngoingDuty?.timetostartduty && 
+<div className='not-range-parent'>
+  <span>
+    {dutyDetailsFromOngoingDuty?.timetostartduty}
+  </span>
+</div>}
+{isRunning && elapsedState && <div>
+  <MyStopwatch test={elapsedState} />
+</div>}
+<IonGrid className="ion-text-center">
+  <IonRow>
+    <IonCol size="12">
+      {isRunning ? ( //Duty ENd Button
+        <IonButton 
+          disabled={!dutyDetailsFromOngoingDuty?.dutyendbuttonstatus} 
+          expand="block" 
+          onClick={handleDutyEnd} 
+          color="danger">
+          {t('punchOut')}
+        </IonButton>
+      ) : ( //Duty Start BUtton
+        <IonButton 
+          disabled={!dutyDetailsFromOngoingDuty?.dutystartbuttonstatus} 
+          expand="block" 
+          onClick={handleDutyStart} 
+          color="primary">
+          {t('punchIn')}
+        </IonButton>
+      )}
+    </IonCol>
+  </IonRow>
+</IonGrid>
+</IonCard> 
+: <div className='errorDashboardData'>Error fetching ongoing duty data.</div>}
+        
 
         <IonGrid className="ion-margin ion-text-center">
           <IonRow>

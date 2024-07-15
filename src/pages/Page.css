@@ -397,3 +397,10 @@ ion-modal#example-modal .wrapper {
   margin-bottom: 5px;
   border-radius: 5px;
 }
+
+.errorDashboardData{
+  text-align: center;
+  padding: 20px;
+  color: red;
+  font-weight: bold;
+}
