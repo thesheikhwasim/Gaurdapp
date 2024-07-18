@@ -49,6 +49,10 @@ const GetRequests: React.FC = () => {
   const token = localStorage.getItem('token');
   useEffect(() => {
     getSubjectListAPI();
+    getTicketListAPI();
+  }, []);
+
+  function getTicketListAPI() {
     const url = "https://guard.ghamasaana.com/guard_new_api/request.php";
     const formData = new FormData();
     formData.append('action', "request_data");
@@ -72,7 +76,7 @@ const GetRequests: React.FC = () => {
         console.error('Error fetching requests:', error);
         setLoading(false);
       });
-  }, []);
+  }
 
   function getSubjectListAPI() {
     let URL = "https://guard.ghamasaana.com/guard_new_api/ticket_subject.php";
@@ -134,6 +138,7 @@ const GetRequests: React.FC = () => {
           setShowRequestModal(false);
           setReqSubject('');
           setReqDesc('');
+          getTicketListAPI();
         } else {
           present({
             message: `Failed to create ${reqType} request. Please try again.`,
@@ -220,22 +225,22 @@ const GetRequests: React.FC = () => {
           <IonContent>
             <IonList>
               {/* <IonItem> */}
-                {/* <IonLabel position="floating">Subject</IonLabel> */}
-                {/* <IonInput value={reqSubject} onIonInput={e => setReqSubject(e.detail.value!)}></IonInput> */}
-                {/* <div>{JSON.stringify(subjectList)}</div> */}
-                <IonItem>
-                  <IonSelect 
-                    label="Subject" 
-                    placeholder="Select Subject"
-                    onIonChange={(e) => {
-                      console.log(`ionChange fired with value: ${e.detail.value}`);
-                      setReqSubject(e.detail.value);
-                    }}>
-                    {subjectList && subjectList.map((subjectItem: any) => 
+              {/* <IonLabel position="floating">Subject</IonLabel> */}
+              {/* <IonInput value={reqSubject} onIonInput={e => setReqSubject(e.detail.value!)}></IonInput> */}
+              {/* <div>{JSON.stringify(subjectList)}</div> */}
+              <IonItem>
+                <IonSelect
+                  label="Subject"
+                  placeholder="Select Subject"
+                  onIonChange={(e) => {
+                    console.log(`ionChange fired with value: ${e.detail.value}`);
+                    setReqSubject(e.detail.value);
+                  }}>
+                  {subjectList && subjectList.map((subjectItem: any) =>
                     <IonSelectOption value={subjectItem.ticket_subject}>{subjectItem.ticket_subject}</IonSelectOption>
                   )}
-                  </IonSelect>
-                </IonItem>
+                </IonSelect>
+              </IonItem>
               {/* </IonItem> */}
               <IonItem>
                 <IonLabel position="floating">Description</IonLabel>

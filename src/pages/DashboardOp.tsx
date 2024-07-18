@@ -196,21 +196,38 @@ function ModalComponent(props) {
   console.log("props ---- modal pros - -- - -", props);
   const [present, dismiss] = useIonToast();
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalLatitude, setModalLatitude] = useState("");
+  const [modalLongitude, setModalLongitude] = useState("");
 
   useEffect(() => {
     if (props.alertModal && props.siteInfo && props.siteInfo?.site_id) {
-      getGuardSiteInfo();
+      Geolocation.getCurrentPosition().then((position) => {
+        if (position && position.coords.latitude) {
+          setModalLatitude(position?.coords?.latitude.toString());
+          setModalLongitude(position?.coords?.longitude.toString());
+          getGuardSiteInfo(position?.coords);
+        }
+        }).catch((error) => {
+          console.log("Issue in location so guard data cannot be loaded.");
+          present({
+            message: `Failed to get guard site details! Try again later.`,
+            duration: 3000,
+            position: 'bottom',
+          });
+      });
       console.log("called EFFECT");
     }
   }, [props.alertModal]);
 
 
-  function getGuardSiteInfo() {
+  function getGuardSiteInfo(dataParam = 0) {
     const formData = new FormData();
     const token = localStorage.getItem('token');
     formData.append('action', 'gaurd_site_data');
     formData.append('token', token);
     formData.append('site_id', props.siteInfo.site_id);
+    formData.append('latitude', dataParam?.latitude);
+    formData.append('longitude', dataParam?.longitude);
 
     axios.post('https://guard.ghamasaana.com/guard_new_api/gaurd_site_info.php', formData).then((response) => {
       if (response.data && response.data.success) {
@@ -272,13 +289,19 @@ const DutyStartStopAndMovement = (props: any) => {
 
   useEffect(() => {
     captureLocation().then((res) => {
-      dutyMovementHandler(res);
+      if((res && res?.coords && res?.coords?.latitude) && (prevLatitude != res?.coords?.latitude || prevLongitude != res?.coords?.longitude) && prevLatitude){
+        setPrevLatitude(res?.coords?.latitude);
+        setPrevLongitude(res?.coords?.longitude);
+        dutyMovementHandler(res);
+        console.log("OPERATIONS------> movement record called lat long not same");
+      }
     }).catch((error)=>{
       console.error("ELAPSEDTIME LOCATION ERROR");
     });
-    return () => {
-      clearInterval(intervalRef?.current);
-    }
+    console.log("OPERATIONS------> elapsedtime called via useeffect");
+    // return () => {
+    //   clearInterval(intervalRef?.current);
+    // }
   }, [elapsedTime])
 
   console.log("ongoing duty data sent as props::: "), props.ongoingData;
@@ -298,7 +321,7 @@ const DutyStartStopAndMovement = (props: any) => {
 
   async function handleDutyEnd(dataParam = 0) {
     clearInterval(intervalRef?.current);
-    let STOP_URL = 'https://guard.ghamasaana.com/guard_new_api/opdutystart.php';
+    let STOP_URL = 'https://guard.ghamasaana.com/guard_new_api/opdutystop.php';
     let formData = new FormData();
     const token = localStorage.getItem('token');
     formData.append('action', 'op_punch_out');
@@ -316,8 +339,8 @@ const DutyStartStopAndMovement = (props: any) => {
     // Case to validate API was success and employee data is available
     if (data?.success) {
 
-    }else{
-      
+    } else {
+
     }
   }
 
@@ -339,12 +362,14 @@ const DutyStartStopAndMovement = (props: any) => {
     const data = response.data;
     // Case to validate API was success and employee data is available
     if (data?.success) {
+      console.log("OPERATIONS----> duty start is success, interval to be set below this");
       intervalRef.current = setInterval(() => {
         setElapsedTime((prevTime) => prevTime + 1);
+        console.log("OPERATIONS----> Inside interval set function");
       }, 5000);
       setIsRunning(true);
       dutyMovementHandler();
-    }else{
+    } else {
 
     }
   };
@@ -364,7 +389,6 @@ const DutyStartStopAndMovement = (props: any) => {
 
   async function dutyMovementApi(dataParam = 0) {
     try {
-      if (Latitude !== prevLatitude || Longitude !== prevLongitude) {
         console.error("LAT LONG IS DIFFERENT MOVEMENT RECORDED", Latitude, "!==", prevLatitude);
         let MOVEMENT_URL = 'https://guard.ghamasaana.com/guard_new_api/optripmovement.php';
         let formData = new FormData();
@@ -380,8 +404,6 @@ const DutyStartStopAndMovement = (props: any) => {
           //in case any action to perform based on sending dutymovement
         }
         return response.data;
-      }
-      return null;
     } catch (error) {
       console.error('Error:', error);
       return null;
@@ -412,7 +434,6 @@ const DutyStartStopAndMovement = (props: any) => {
             reject(error);
           });
       } catch (error) {
-
         reject(error);
       }
     });
@@ -423,11 +444,11 @@ const DutyStartStopAndMovement = (props: any) => {
       <IonRow>
         <IonCol size="12">
           {props.isRunning ? ( //Duty ENd Button
-            <IonButton expand="block" onClick={() => startStopHandler('START')} color="danger">
+            <IonButton expand="block" onClick={() => startStopHandler('STOP')} color="danger">
               {t('punchOut')}
             </IonButton>
           ) : ( //Duty Start BUtton
-            <IonButton expand="block" onClick={() => startStopHandler('STOP')} color="primary">
+            <IonButton expand="block" onClick={() => startStopHandler('START')} color="primary">
               {t('punchIn')}
             </IonButton>
           )}

@@ -123,11 +123,6 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
         setPrevLatitude(res?.coords?.latitude);
         setPrevLongitude(res?.coords?.longitude);
         dutyMovementHandler();
-        // present({
-        //   message: `${res?.coords?.latitude} == ${prevLatitude} && ${res?.coords?.longitude} == ${prevLongitude}`,
-        //   duration: 3000,
-        //   position: 'bottom',
-        // });
       }
     }).catch((error)=>{
       console.error("ELAPSEDTIME LOCATION ERROR");
@@ -178,7 +173,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
         setdutystartinfo(data.employee_data.duty_ongoing_info);
         if (intervalRef.current == null) {
           intervalRef.current = setInterval(() => {
-            setElapsedTime((prevTime) => prevTime - 1);
+            setElapsedTime((prevTime) => prevTime + 1);
           }, 5000);
         }
       } else {
