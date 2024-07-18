@@ -403,4 +403,18 @@ ion-modal#example-modal .wrapper {
   padding: 20px;
   color: red;
   font-weight: bold;
+  display: flex;
+  height: calc(100vh - 245px);
+  justify-content: center;
+  align-items: center;
+}
+
+.noRunningDutyEmptyBlock{
+  text-align: center;
+  padding: 20px;
+  font-weight: bold;
+  display: flex;
+  height: calc(100vh - 300px);
+  justify-content: center;
+  align-items: center;
 }
