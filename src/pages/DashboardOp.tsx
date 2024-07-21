@@ -7,6 +7,7 @@ import useAuth from '../hooks/useAuth'; // Import the custom hook
 import { add, closeOutline } from 'ionicons/icons';
 import { useTranslation } from 'react-i18next';
 import { Geolocation } from '@capacitor/geolocation';
+import { usePhotoGallery } from '../hooks/usePhotoGallery';
 
 const DashboardOp: React.FC = () => {
   const { t } = useTranslation();
@@ -18,6 +19,7 @@ const DashboardOp: React.FC = () => {
   const [alertModalSite, setAlertModalSite] = useState(null);
   const [Latitude, setLatitude] = useState('');
   const [Longitude, setLongitude] = useState('');
+  const [isRunning, setIsRunning] = useState(false);
 
   const token = localStorage.getItem('token');
   useEffect(() => {
@@ -50,14 +52,21 @@ const DashboardOp: React.FC = () => {
     // return false;
     axios.post(URL, formData)
       .then(response => {
-        if (response.data && response.data.success) {
+        if (response?.data && response?.data?.success) {
           setOpRequestData(response?.data?.employee_data?.site_route);
+          if(response?.data?.employee_data?.duty_ongoing_info && response?.data?.employee_data?.duty_ongoing_info?.length){
+            setIsRunning(true);
+          }else{
+            if(isRunning){
+              setIsRunning(false);
+            }
+          }
         } else {
-          present({
-            message: `Error getting subject list from API!`,
-            duration: 2000,
-            position: 'bottom',
-          });
+          // present({
+          //   message: `Error getting subject list from API!`,
+          //   duration: 2000,
+          //   position: 'bottom',
+          // });
         }
       })
       .catch(error => {
@@ -118,6 +127,14 @@ const DashboardOp: React.FC = () => {
     }, 500);
   }
 
+  function updateDashboardUIData(dataParam:any){
+    // alert("Main UI updating function due to child movement");
+    if(!alertModal){
+      setOpRequestData(dataParam);
+    }else{
+      console.log("Since alert modal was true state cannot be updated or else form will cause issue due to re-render.");
+    }
+  }
 
   return (
     <IonPage>
@@ -148,33 +165,29 @@ const DashboardOp: React.FC = () => {
           <IonCard className="shift-details-card">
 
             <IonCardHeader>
-              <IonCardTitle className='card-title-op'>{t('Your Current Duty Detail')}</IonCardTitle>
+              <IonCardTitle className='card-title-op'>{t('Nearby Sites')}</IonCardTitle>
             </IonCardHeader>
-            <IonCardContent className="shift-details-card-content">
-              <div className="shift-details-column">
-                {(opRequestData && opRequestData.length > 0) &&
-                  opRequestData.map((siteData: any) =>
-                    <div key={siteData.site_id} className='siteItemOpUser' onClick={() => {
-                      setAlertModalSite(siteData);
-                      setAlertModal(true);
-                    }}>
-                      <p><strong>Site Name:</strong>{siteData?.site_name}</p>
-                      <p><strong>Site Id:</strong>{siteData?.site_id}</p>
-                      <p><strong>Site Category:</strong>{siteData?.site_category}</p>
-                      <p><strong>Site City:</strong>{siteData?.site_city}</p>
-                      <p><strong>Site State:</strong>{siteData?.site_state}</p>
-                      <p><strong>Site Cluster Route:</strong>{siteData?.cluster_route}</p>
-                    </div>
-                  )
-                }
+
+            <IonCardCustomComponent 
+              opRequestData={opRequestData} 
+              isRunningAPI={isRunning}
+              setAlertModalSite={(data:any) => setAlertModalSite(data)}
+              setAlertModal={(value:any) => setAlertModal(value)}
+            />
+
+            {(opRequestData && opRequestData.length > 0) &&
+              <div className='dutyStartStopContainer'>
+                <DutyStartStopAndMovement 
+                  ongoingData={opRequestData} 
+                  isRunningAPI={isRunning} 
+                  refreshList={()=> getOPdashboard()}
+                  updateUIforMovement={(data:any) => updateDashboardUIData(data)}
+                />
               </div>
-            </IonCardContent>
+            }
           </IonCard>
-          {(opRequestData && opRequestData.length > 0) &&
-            <div className='dutyStartStopContainer'>
-              <DutyStartStopAndMovement ongoingData={opRequestData} />
-            </div>
-          }
+
+          
         </div>
 
         {<ModalComponent
@@ -192,14 +205,45 @@ const DashboardOp: React.FC = () => {
 
 export default DashboardOp;
 
-function ModalComponent(props) {
-  console.log("props ---- modal pros - -- - -", props);
+function IonCardCustomComponent(props){
+
+  return(<IonCardContent className="shift-details-card-content">
+    <div className="shift-details-column">
+      {(props.opRequestData && props.opRequestData.length > 0) &&
+        props.opRequestData.map((siteData: any, key:number) =>
+          <div 
+            key={siteData.site_id} 
+            className='siteItemOpUser' 
+            onClick={() => {
+              props.setAlertModalSite(siteData);
+              props.setAlertModal(true);
+            }}
+          >
+            <p><strong>Site Name:</strong>{siteData?.site_name}</p>
+            <p><strong>Site Id:</strong>{siteData?.site_id}</p>
+            <p><strong>Site Category:</strong>{siteData?.site_category}</p>
+            <p><strong>Site City:</strong>{siteData?.site_city}</p>
+            <p><strong>Site State:</strong>{siteData?.site_state}</p>
+            <p><strong>Site Cluster Route:</strong>{siteData?.cluster_route}</p>
+          </div>
+        )
+      }
+    </div>
+  </IonCardContent>)
+}
+
+function ModalComponent(props) { //Modal Component, so that side effect does not re-render main dashboardOP component
+  const { takePhoto } = usePhotoGallery();
   const [present, dismiss] = useIonToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLatitude, setModalLatitude] = useState("");
   const [modalLongitude, setModalLongitude] = useState("");
+  const [commentOfGuard, setCommentOfGuard] = useState("");
+  const [imageOfGuard, setImageOfGuard] = useState("");
+  const [imageNameOfGuard, setImageNameOfGuard] = useState("");
+  const [guardSiteInfoDetailsFetched, setGuardSiteInfoDetailsFetched] = useState(null);
 
-  useEffect(() => {
+  useEffect(() => { //Effect to call guard site info based on alertmodal opened/not opened
     if (props.alertModal && props.siteInfo && props.siteInfo?.site_id) {
       Geolocation.getCurrentPosition().then((position) => {
         if (position && position.coords.latitude) {
@@ -220,18 +264,26 @@ function ModalComponent(props) {
   }, [props.alertModal]);
 
 
-  function getGuardSiteInfo(dataParam = 0) {
+  function getGuardSiteInfo(dataParam = 0) { //API to get guard site details based on dashbard selected SITE ID
     const formData = new FormData();
     const token = localStorage.getItem('token');
     formData.append('action', 'gaurd_site_data');
     formData.append('token', token);
     formData.append('site_id', props.siteInfo.site_id);
+    // formData.append('site_id', 'HR0080');
     formData.append('latitude', dataParam?.latitude);
     formData.append('longitude', dataParam?.longitude);
 
     axios.post('https://guard.ghamasaana.com/guard_new_api/gaurd_site_info.php', formData).then((response) => {
       if (response.data && response.data.success) {
         console.log(response.data);
+        setGuardSiteInfoDetailsFetched(response?.data?.employee_data);
+      } else if(!response?.data?.success && response?.data?.message){
+        present({
+          message: `${response?.data?.message}`,
+          duration: 3000,
+          position: 'bottom',
+        });
       } else {
         present({
           message: `Failed to get site details! Try again later.`,
@@ -250,26 +302,122 @@ function ModalComponent(props) {
     });
   }
 
+  function handleSubmitSiteInfo(){ //Submit guard site info by manager (click photo add comment and submit)
+    let SITE_SUBMIT_URL = 'https://guard.ghamasaana.com/guard_new_api/opsitevisitInfo.php';
+    let formData = new FormData();
+    const token = localStorage.getItem('token');
+    formData.append('action', 'op_site_visit_info');
+    formData.append('token', token);
+    formData.append('site_id', props.siteInfo?.site_id);
+    // formData.append('site_id', 'HR0080');
+    formData.append('latitude', modalLatitude);
+    formData.append('longitude', modalLongitude);
+    formData.append('operation_remark', commentOfGuard);
+    formData.append('remark_Image', imageOfGuard);
+    formData.append('route_name', props.siteInfo?.route_name);
+    formData.append('gaurd_emp_id', guardSiteInfoDetailsFetched?.emp_id);
+    formData.append('shift_type', guardSiteInfoDetailsFetched?.shift);
+
+    axios.post(SITE_SUBMIT_URL, formData).then((response) => {
+      if (response.data && response.data.success) {
+        console.log(response.data);
+        // setGuardSiteInfoDetailsFetched(response?.data?.employee_data);
+        present({
+          message: `Visited site info data added successsfully!`,
+          duration: 2000,
+          position: 'bottom',
+        });
+        // props.setAlertModal()
+        setImageNameOfGuard("")
+        setImageOfGuard("")
+        setCommentOfGuard("")
+      }else{
+        present({
+          message: `Guard site details submision failed.`,
+          duration: 2000,
+          position: 'bottom',
+        });
+      }
+    }).catch(()=>{
+      present({
+        message: `Something went wrong in submitting guard site details. Please try again.`,
+        duration: 2000,
+        position: 'bottom',
+      });
+    })
+  }
+
+  const capturedPhoto = () => { //Function to capture photo which will be sent to API on submission
+    takePhoto().then(async (photoData:any) => {
+      console.log("PHOTO DATA::::", JSON.stringify(photoData));
+      setImageOfGuard(JSON.stringify(photoData));
+      setImageNameOfGuard(`Guard_${props.siteInfo?.site_id}_site.${photoData.format}`)
+      Promise.resolve(photoData);
+    }).catch((error:any) => {
+      present({
+        message: `Error in image capture. ${error}`,
+        duration: 2000,
+        position: 'bottom',
+      });
+      Promise.reject()
+    })
+  }
+
+  function closeModalFunction(){
+    setImageNameOfGuard("");
+    setImageOfGuard("");
+    setCommentOfGuard("");
+    props.setAlertModal();
+  }
+
   return (
-    <IonModal isOpen={props.alertModal} onDidDismiss={() => props.setAlertModal()}>
+    <IonModal isOpen={props.alertModal} onDidDismiss={() => closeModalFunction()}>
       <IonHeader>
         <IonToolbar>
           <IonTitle>{'Guard Site Info'}</IonTitle>
           <IonButtons slot="end">
-            <IonButton onClick={() => props.setAlertModal()}>
+            <IonButton onClick={() => closeModalFunction()}>
               <IonIcon icon={closeOutline} size="large"></IonIcon>
             </IonButton>
           </IonButtons>
-
         </IonToolbar>
       </IonHeader>
       <IonContent>
         <IonList>
-          {JSON.stringify(props)}
-
+          {/* {JSON.stringify(props.siteInfo)}
           API not rendering, to be rendered here!
+          {JSON.stringify(guardSiteInfoDetailsFetched)} */}
+          <div className='guardDetails'>
+            {guardSiteInfoDetailsFetched && guardSiteInfoDetailsFetched?.photo &&
+              <p className='duty-start-pic-guard'><strong>Guard Image:</strong> 
+                <IonImg
+                  src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${guardSiteInfoDetailsFetched?.photo}`}
+                ></IonImg>
+              </p>
+            }
+            <p className='duty-start-pic-guard'><strong>Guard Name:</strong> 
+              {guardSiteInfoDetailsFetched?.full_name}
+            </p>
+          </div>
+          <IonItem>
+            <IonLabel position="floating">Add Comment</IonLabel>
+            <IonInput value={commentOfGuard} onIonChange={e => setCommentOfGuard(e.detail.value!)}></IonInput>
+          </IonItem>
+          <IonItem>
+            <button className='guardAddBtnCustom' onClick={()=>capturedPhoto()}>
+              {imageNameOfGuard ? imageNameOfGuard : 'Add Image'}
+            </button>
+            {/* <IonButton
+            className='crossIconBtnGuard'
+            onClick={() => {
+              alert('tter')
+            }}>
+              <IonIcon icon={closeOutline} size="large" color='grey'></IonIcon>
+            </IonButton> */}
+          </IonItem>
+          {/* <div>{imageNameOfGuard}</div> */}
         </IonList>
-        {/* <IonButton expand="full" onClick={() => handleAlertReply()}>Submit Alert Reply</IonButton> */}
+        <IonButton expand="full" onClick={() => handleSubmitSiteInfo()}>Submit Site Information</IonButton>
       </IonContent>
     </IonModal>
   )
@@ -287,21 +435,34 @@ const DutyStartStopAndMovement = (props: any) => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
 
-  useEffect(() => {
-    captureLocation().then((res) => {
-      if((res && res?.coords && res?.coords?.latitude) && (prevLatitude != res?.coords?.latitude || prevLongitude != res?.coords?.longitude) && prevLatitude){
-        setPrevLatitude(res?.coords?.latitude);
-        setPrevLongitude(res?.coords?.longitude);
-        dutyMovementHandler(res);
-        console.log("OPERATIONS------> movement record called lat long not same");
+  useEffect(()=>{
+    if(props.isRunningAPI){
+      if (intervalRef.current == null) {
+        intervalRef.current = setInterval(() => {
+          setElapsedTime((prevTime) => prevTime + 1);
+        }, 5000);
       }
-    }).catch((error)=>{
-      console.error("ELAPSEDTIME LOCATION ERROR");
-    });
-    console.log("OPERATIONS------> elapsedtime called via useeffect");
-    // return () => {
-    //   clearInterval(intervalRef?.current);
-    // }
+    }
+  },[props.isRunningAPI])
+
+  useEffect(() => {
+    if(props.isRunningAPI){
+      captureLocation().then((res) => {
+        if((res && 
+          res?.coords && 
+          res?.coords?.latitude) && 
+          (prevLatitude != res?.coords?.latitude || prevLongitude != res?.coords?.longitude) && 
+          res?.coords?.longitude){
+          setPrevLatitude(res?.coords?.latitude);
+          setPrevLongitude(res?.coords?.longitude);
+          dutyMovementHandler(res);
+          console.log("OPERATIONS------> movement record called lat long not same");
+        }
+      }).catch((error)=>{
+        console.error("ELAPSEDTIME LOCATION ERROR");
+      });
+      console.log("OPERATIONS------> elapsedtime called via useeffect", JSON.stringify(prevLatitude));
+    }
   }, [elapsedTime])
 
   console.log("ongoing duty data sent as props::: "), props.ongoingData;
@@ -336,6 +497,7 @@ const DutyStartStopAndMovement = (props: any) => {
 
     const response = await axios.post(STOP_URL, formData);
     const data = response.data;
+    props.refreshList();
     // Case to validate API was success and employee data is available
     if (data?.success) {
 
@@ -369,6 +531,15 @@ const DutyStartStopAndMovement = (props: any) => {
       }, 5000);
       setIsRunning(true);
       dutyMovementHandler();
+      props.refreshList();
+      if (data && data.success && data?.employee_data &&
+        data?.employee_data?.site_route && data?.employee_data?.site_route.length > 0
+      ) {
+        //in case any action to perform based on sending dutymovement
+        setTimeout(() => {
+          props.updateUIforMovement(data?.employee_data?.site_route);
+        }, 1000);
+      }
     } else {
 
     }
@@ -389,19 +560,27 @@ const DutyStartStopAndMovement = (props: any) => {
 
   async function dutyMovementApi(dataParam = 0) {
     try {
-        console.error("LAT LONG IS DIFFERENT MOVEMENT RECORDED", Latitude, "!==", prevLatitude);
+        console.error(dataParam, "LAT LONG IS DIFFERENT MOVEMENT RECORDED", Latitude, "!==", prevLatitude);
         let MOVEMENT_URL = 'https://guard.ghamasaana.com/guard_new_api/optripmovement.php';
         let formData = new FormData();
         const token = localStorage.getItem('token');
         formData.append('action', 'op_trip_movement');
         formData.append('token', token);
-        formData.append('latitude', Latitude);
-        formData.append('longitude', Longitude);
+        if (dataParam && dataParam?.coords && dataParam?.coords?.latitude) {
+          formData.append('latitude', dataParam?.coords?.latitude);
+          formData.append('longitude', dataParam?.coords?.longitude);
+        } else {
+          formData.append('latitude', Latitude);
+          formData.append('longitude', Longitude);
+        }
 
         const response = await axios.post(MOVEMENT_URL, formData);
         console.log("Movement Response OP:::::", response);
-        if (response && response?.data && response?.data?.success) {
+        if (response && response?.data && response?.data?.success && response?.data?.employee_data &&
+          response?.data?.employee_data?.site_route && response?.data?.employee_data?.site_route.length > 0
+        ) {
           //in case any action to perform based on sending dutymovement
+          props.updateUIforMovement(response?.data?.employee_data?.site_route);
         }
         return response.data;
     } catch (error) {
@@ -443,7 +622,7 @@ const DutyStartStopAndMovement = (props: any) => {
     <IonGrid className="ion-text-center">
       <IonRow>
         <IonCol size="12">
-          {props.isRunning ? ( //Duty ENd Button
+          {props.isRunningAPI ? ( //Duty ENd Button
             <IonButton expand="block" onClick={() => startStopHandler('STOP')} color="danger">
               {t('punchOut')}
             </IonButton>

@@ -155,10 +155,10 @@ const DutyInfo: React.FC = () => {
     axios.post(URL, formData)
       .then(response => {
         if (response.data && response.data.success) {
-          if (response?.data?.employee_data?.duty_info?.length > 0) { //condition to update count of record
-            setTotalRecordCount(response.data.employee_data.duty_info.length);
+          if (response?.data?.employee_data?.op_duty_info?.length > 0) { //condition to update count of record
+            setTotalRecordCount(response.data.employee_data.op_duty_info.length);
           }
-          setDutyData(response.data.employee_data.duty_info);
+          setDutyData(response.data.employee_data.op_duty_info);
         } else {
           console.error('Failed to fetch duty info:', response.data);
         }
@@ -298,13 +298,13 @@ const DutyInfo: React.FC = () => {
                       <p><strong>Duty Ended On:</strong> {getDisplayValue(duty.duty_end_date)}</p>
                       <p><strong>Duty Start Verified?:</strong> {getDisplayValue(duty.start_verification_status)}</p>
                       <p><strong>Duty End Verified?:</strong> {getDisplayValue(duty.end_verification_status)}</p>
-                      <IonButton style={{ width: '100%' }} expand="block" color="primary" onClick={() => {
+                     {!isOperations && <IonButton style={{ width: '100%' }} expand="block" color="primary" onClick={() => {
                         setDutyid(duty.duty_id);
                         setDutyEndDate(duty.duty_end_date);
                         setDutySubject(`Request Raised for ${duty?.duty_id} on ${duty?.duty_end_date.split(' ')[0]}`);
                         setReqType('ticket');
                         setShowRequestModal(true);
-                      }}>Raise Concern</IonButton>
+                      }}>Raise Concern</IonButton>}
                     </div>
                   </IonCard>
                 ))
