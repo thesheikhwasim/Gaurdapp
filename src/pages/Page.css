@@ -418,3 +418,23 @@ ion-modal#example-modal .wrapper {
   justify-content: center;
   align-items: center;
 }
+
+button.guardAddBtnCustom {
+  background: none;
+  padding: 10px 20px;
+  width: 100%;
+  text-align: left;
+  padding-left: 0px;
+  font-size: 16px;
+}
+
+div.guardDetails p{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+div.guardDetails{
+  padding-left: 16px;
+  padding-right: 16px;
+}
