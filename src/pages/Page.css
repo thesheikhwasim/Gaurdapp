@@ -409,6 +409,16 @@ ion-modal#example-modal .wrapper {
   align-items: center;
 }
 
+.managerMapView{
+  padding: 20px;
+  padding-top: 0px;;
+}
+
+.mapHeight{
+  height: calc(100vh - 245px);
+width: 100%;
+}
+
 .noRunningDutyEmptyBlock{
   text-align: center;
   padding: 20px;

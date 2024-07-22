@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { IonButtons, IonLoading, IonContent, IonGrid, IonRow, IonCol, IonHeader, IonLabel, IonMenuButton, IonPage, IonTitle, IonToolbar, IonImg, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonFab, IonFabButton, IonIcon, IonItem, IonList, IonInput, IonSelectOption, IonButton, IonModal, IonSelect, useIonToast, IonTextarea, IonRefresher, IonRefresherContent, RefresherEventDetail } from '@ionic/react';
-import { useParams } from 'react-router';
+import { useHistory, useParams } from 'react-router';
 import axios from 'axios';
 import './Page.css';
 import useAuth from '../hooks/useAuth'; // Import the custom hook
@@ -24,7 +24,7 @@ const DashboardOp: React.FC = () => {
   const token = localStorage.getItem('token');
   useEffect(() => {
     captureLocation().then((res) => {
-      console.log("BEFORE CALLED ONGOING of OP::::", res);
+      // console.log("BEFORE CALLED ONGOING of OP::::", res);
       getOPdashboard(res);
     }).catch((error) => {
       console.error("BEFORE CALLED ONGOING LOCATION ERROR");
@@ -121,7 +121,7 @@ const DashboardOp: React.FC = () => {
   function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
     //Function that hits when ion pull to refresh is called
     setTimeout(() => {
-      console.log("PAGE TO be ReFRESHED");
+      // console.log("PAGE TO be ReFRESHED");
       getOPdashboard();
       event.detail.complete();
     }, 500);
@@ -194,7 +194,7 @@ const DashboardOp: React.FC = () => {
           siteInfo={alertModalSite}
           alertModal={alertModal}
           setAlertModal={() => {
-            console.log("setAlertModal(false) called from child component", alertModal);
+            // console.log("setAlertModal(false) called from child component", alertModal);
             setAlertModal(false);
           }}
         />}
@@ -252,14 +252,14 @@ function ModalComponent(props) { //Modal Component, so that side effect does not
           getGuardSiteInfo(position?.coords);
         }
         }).catch((error) => {
-          console.log("Issue in location so guard data cannot be loaded.");
+          // console.log("Issue in location so guard data cannot be loaded.");
           present({
             message: `Failed to get guard site details! Try again later.`,
             duration: 3000,
             position: 'bottom',
           });
       });
-      console.log("called EFFECT");
+      // console.log("called EFFECT");
     }
   }, [props.alertModal]);
 
@@ -276,7 +276,7 @@ function ModalComponent(props) { //Modal Component, so that side effect does not
 
     axios.post('https://guard.ghamasaana.com/guard_new_api/gaurd_site_info.php', formData).then((response) => {
       if (response.data && response.data.success) {
-        console.log(response.data);
+        // console.log(response.data);
         setGuardSiteInfoDetailsFetched(response?.data?.employee_data);
       } else if(!response?.data?.success && response?.data?.message){
         present({
@@ -320,7 +320,7 @@ function ModalComponent(props) { //Modal Component, so that side effect does not
 
     axios.post(SITE_SUBMIT_URL, formData).then((response) => {
       if (response.data && response.data.success) {
-        console.log(response.data);
+        // console.log(response.data);
         // setGuardSiteInfoDetailsFetched(response?.data?.employee_data);
         present({
           message: `Visited site info data added successsfully!`,
@@ -349,7 +349,7 @@ function ModalComponent(props) { //Modal Component, so that side effect does not
 
   const capturedPhoto = () => { //Function to capture photo which will be sent to API on submission
     takePhoto().then(async (photoData:any) => {
-      console.log("PHOTO DATA::::", JSON.stringify(photoData));
+      // console.log("PHOTO DATA::::", JSON.stringify(photoData));
       setImageOfGuard(JSON.stringify(photoData));
       setImageNameOfGuard(`Guard_${props.siteInfo?.site_id}_site.${photoData.format}`)
       Promise.resolve(photoData);
@@ -434,6 +434,8 @@ const DutyStartStopAndMovement = (props: any) => {
   const [prevLongitude, setPrevLongitude] = useState('');
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
+  const history = useHistory();
+
 
   useEffect(()=>{
     if(props.isRunningAPI){
@@ -456,16 +458,16 @@ const DutyStartStopAndMovement = (props: any) => {
           setPrevLatitude(res?.coords?.latitude);
           setPrevLongitude(res?.coords?.longitude);
           dutyMovementHandler(res);
-          console.log("OPERATIONS------> movement record called lat long not same");
+          // console.log("OPERATIONS------> movement record called lat long not same");
         }
       }).catch((error)=>{
         console.error("ELAPSEDTIME LOCATION ERROR");
       });
-      console.log("OPERATIONS------> elapsedtime called via useeffect", JSON.stringify(prevLatitude));
+      // console.log("OPERATIONS------> elapsedtime called via useeffect", JSON.stringify(prevLatitude));
     }
   }, [elapsedTime])
 
-  console.log("ongoing duty data sent as props::: "), props.ongoingData;
+  // console.log("ongoing duty data sent as props::: "), props.ongoingData;
 
   function startStopHandler(startStopParam: string) {
     captureLocation().then((res) => {
@@ -524,10 +526,10 @@ const DutyStartStopAndMovement = (props: any) => {
     const data = response.data;
     // Case to validate API was success and employee data is available
     if (data?.success) {
-      console.log("OPERATIONS----> duty start is success, interval to be set below this");
+      // console.log("OPERATIONS----> duty start is success, interval to be set below this");
       intervalRef.current = setInterval(() => {
         setElapsedTime((prevTime) => prevTime + 1);
-        console.log("OPERATIONS----> Inside interval set function");
+        // console.log("OPERATIONS----> Inside interval set function");
       }, 5000);
       setIsRunning(true);
       dutyMovementHandler();
@@ -575,7 +577,7 @@ const DutyStartStopAndMovement = (props: any) => {
         }
 
         const response = await axios.post(MOVEMENT_URL, formData);
-        console.log("Movement Response OP:::::", response);
+        // console.log("Movement Response OP:::::", response);
         if (response && response?.data && response?.data?.success && response?.data?.employee_data &&
           response?.data?.employee_data?.site_route && response?.data?.employee_data?.site_route.length > 0
         ) {
@@ -633,6 +635,7 @@ const DutyStartStopAndMovement = (props: any) => {
           )}
         </IonCol>
       </IonRow>
+      <button onClick={() =>history.push('/pages/MapView')}>Goto MapView</button>
     </IonGrid>
   )
 }
