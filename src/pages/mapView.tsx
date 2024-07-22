@@ -101,7 +101,8 @@ const GetRequests: React.FC = () => {
             if(singleData?.site_latitude != "" && singleData?.site_longitute != ""){
                 let newKeyVal = {
                     lat: parseFloat(singleData?.site_latitude),
-                    lng: parseFloat(singleData?.site_longitute)
+                    lng: parseFloat(singleData?.site_longitute),
+                    site_name: singleData?.site_name
                 }
                 output.push(newKeyVal)
             }
@@ -198,6 +199,10 @@ const GoogleMapPolyline = (props:any) => {
     //   localStorage.setItem("googleMapPolyline", JSON.stringify(arr));
     // };
 
+    const showDetailsOfPlace = (param, param2) => {
+console.log("param ---- ---- --- ", param, param2)
+    }
+
     return isLoaded ? (
         <>
             <GoogleMap
@@ -219,7 +224,7 @@ const GoogleMapPolyline = (props:any) => {
                 {/* =====Marker===== */}
                 {path.map((item, i) => (
                     <Marker key={i} position={item}
-                    // onClick={() => removeItem(i)}
+                    onClick={() => showDetailsOfPlace(i,item)}
                     />
                 ))}
             </GoogleMap>
