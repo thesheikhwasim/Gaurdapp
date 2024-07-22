@@ -1,17 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { IonButtons, IonLoading, IonContent, IonGrid, IonRow, IonCol, IonHeader, IonLabel, IonMenuButton, IonPage, IonTitle, IonToolbar, IonImg, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle } from '@ionic/react';
 import { useParams } from 'react-router';
 import axios from 'axios';
 import './Page.css';
-import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+// import { GoogleMap } from '@capacitor/google-maps';
+import {
+    GoogleMap,
+    useJsApiLoader,
+    Polyline,
+    Marker,
+} from "@react-google-maps/api";
+import { Geolocation } from '@capacitor/geolocation';
+import { useTranslation } from 'react-i18next';
+
 
 const GetRequests: React.FC = () => {
     // useAuth(); // Enforce login requirement
-
     const [requestData, setRequestData] = useState<any>(null);
     const [loggedInUser, setLoggedInUser] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [ProfileData, setProfileData] = useState<any>({});
+    const [latlongMarkers, setLatLongMarkers] = useState([{}]);
+    const [mapLoad, setMapLoad] = useState(false);
+    const [currentLatLong, setCurrentLatLong]= useState({})
+    const { t } = useTranslation();
+
 
     const token = localStorage.getItem('token');
     useEffect(() => {
@@ -23,7 +36,21 @@ const GetRequests: React.FC = () => {
             setLoggedInUser(JSON.parse(storedData));
         }
         if (storedToken) {
-            fetchProfileData(storedToken);
+            Geolocation.getCurrentPosition()
+            .then((position) => {
+              if (position && position.coords.latitude) {
+                  let tempCurObj = {
+                      lat: parseFloat(position?.coords?.latitude),
+                      lng: parseFloat(position?.coords?.longitude)
+                  }
+                setCurrentLatLong(tempCurObj);
+                fetchProfileData(storedToken);
+                getOPdashboard();
+              }
+            })
+            .catch((error) => {
+              console.log("get current lat long error");
+            });
         }
     }, []);
 
@@ -45,42 +72,69 @@ const GetRequests: React.FC = () => {
         }
     };
 
+    function getOPdashboard(dataParam = 0) {
+        const tokenData = localStorage.getItem('token');
+        let URL = "https://guard.ghamasaana.com/guard_new_api/op_ongoing_duty.php";
+        let formData = new FormData();
+        formData.append('action', "op_duty_ongoing");
+        formData.append('token', tokenData);
+        formData.append('latitude', '22.31');
+        formData.append('longitude', '22.31');
+        // return false;
+        axios.post(URL, formData)
+          .then(response => {
+            if (response?.data && response?.data?.success) {
+              manipulateForLatLongSet(response?.data?.employee_data?.site_route);
+            }
+          })
+          .catch(error => {
+            alert('error')
+          });
+      }
+
+      function manipulateForLatLongSet(allDataParams: object){
+        console.log("YOU NEED TO MANIPULATE THIS::::: ", allDataParams);
+        const output = []
+
+        for (const singleData of allDataParams) {
+            console.log("SingleData::: ", singleData);
+            if(singleData?.site_latitude != "" && singleData?.site_longitute != ""){
+                let newKeyVal = {
+                    lat: parseFloat(singleData?.site_latitude),
+                    lng: parseFloat(singleData?.site_longitute)
+                }
+                output.push(newKeyVal)
+            }
+        }
+        console.log("output----->>>>>>>>>>>>> ",output);
+        setLatLongMarkers(output);
+        setMapLoad(true);
+      }
+
     const { name } = useParams<{ name: string; }>();
+
 
     return (
         <IonPage>
             <IonHeader>
-                <IonToolbar>
-                    <IonButtons slot="start">
-                        <IonMenuButton />
-                    </IonButtons>
-                    <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '60px', width: '100%' }} />
-                    <IonTitle>{name}</IonTitle>
-                </IonToolbar>
-            </IonHeader>
-
-            <IonContent fullscreen>
-                {loading ? (
-                    <IonLoading isOpen={loading} message={'Loading...'} />
-                ) : (
-                    <>
-                        <div className="header_title">
-                            <IonTitle className="header_title ion-text-center">Your Map</IonTitle>
-                        </div>
-                        <IonCard className='shift-details-card-content'>
-
-                            <IonLabel><div className='notFoundIdCard'>
-                                <div className='managerMapView'>
-                                    test <MyComponent />
-                                </div>
-                            </div></IonLabel>
-                        </IonCard>
-                        <div className='footer'>
-                            <IonTitle className='footer ion-text-center'>Helpline | +91 90999 XXXXX</IonTitle>
-                        </div>
-                    </>
-                )}
-            </IonContent>
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonMenuButton />
+          </IonButtons>
+          <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '60px', width: '100%' }} />
+        </IonToolbar>
+      </IonHeader>
+      <div className="content">
+          <div className="header_title">
+            <IonTitle className="header_title ion-text-center">{t('Welcome')} {loggedInUser?.full_name}</IonTitle>
+          </div>
+        </div>
+            <div className='managerMapView'>
+                <div>Map with Guard Markers</div>
+                {mapLoad && <GoogleMapPolyline customMarkers={latlongMarkers}
+                    currentLatLong={currentLatLong}
+                />}
+            </div>
         </IonPage>
     );
 };
@@ -89,7 +143,7 @@ export default GetRequests;
 
 
 const containerStyle = {
-    width: '400px',
+    width: '100%',
     height: '400px'
 };
 
@@ -98,37 +152,80 @@ const center = {
     lng: -38.523
 };
 
-function MyComponent() {
+// latitude: 28.5053906
+// longitude: 77.3216623
+
+const GoogleMapPolyline = (props:any) => {
+    const [path, setPath] = useState([{}]);
     const { isLoaded } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: "YOUR_API_KEY"
-    })
+        googleMapsApiKey: 'AIzaSyC2wtQLe_g17Kim5fquySnPT3z3qtM79oA',
+    });
 
-    const [map, setMap] = React.useState(null)
+    useEffect(() => {
+        //   const localData = localStorage.getItem("googleMapPolyline");
+        //   if (localData) {
+        //     const parsedData = JSON.parse(localData);
+        //     setPath(parsedData);
+        //   }
+        const latLng = JSON.parse(JSON.stringify(path));
+        let mergedData = latLng.concat(props.customMarkers);
 
-    const onLoad = React.useCallback(function callback(map) {
-        // This is just an example of getting and using the map instance!!! don't just blindly copy!
-        const bounds = new window.google.maps.LatLngBounds(center);
-        map.fitBounds(bounds);
+        setTimeout(() => {
+            setPath(mergedData);
+        },3000)
+    }, []);
 
-        setMap(map)
-    }, [])
+    const addPointToPath = (e) => {
+        try {
+            const latLng = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+            // const latLng2 = { lat: (e.latLng.lat() + 1), lng: e.latLng.lng() };
 
-    const onUnmount = React.useCallback(function callback(map) {
-        setMap(null)
-    }, [])
+            console.log("latLng", latLng);
+            // console.log("latLng2", latLng2);
+            const mergedData = [...path, latLng];
+            console.log("mergedData", mergedData);
+            setPath(mergedData);
+            localStorage.setItem("googleMapPolyline", JSON.stringify(mergedData));
+        } catch (error) {
+            console.error("addPointToPath error", error);
+        }
+    };
+
+    // const removeItem = (index) => {
+    //   const arr = [...path];
+    //   arr.splice(index, 1);
+    //   setPath(arr);
+    //   localStorage.setItem("googleMapPolyline", JSON.stringify(arr));
+    // };
 
     return isLoaded ? (
-        <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={center}
-            zoom={10}
-            onLoad={onLoad}
-            onUnmount={onUnmount}
-        >
-            { /* Child components, such as markers, info windows, etc. */}
-            <></>
-        </GoogleMap>
-    ) : <></>
-}
+        <>
+            <GoogleMap
+                // onClick={addPointToPath}
+                mapContainerStyle={{ width: "100%", height: "calc(100vh - 200px)" }}
+                center={props?.currentLatLong}
+                zoom={11}
+            >
+                {/* =====Polyline===== */}
+                <Polyline
+                path={path}
+                options={{
+                  strokeColor: "#FF0000",
+                  strokeOpacity: 1,
+                  strokeWeight: 2,
+                }}
+              />
+
+                {/* =====Marker===== */}
+                {path.map((item, i) => (
+                    <Marker key={i} position={item}
+                    // onClick={() => removeItem(i)}
+                    />
+                ))}
+            </GoogleMap>
+        </>
+    ) : (
+        <></>
+    );
+};
 

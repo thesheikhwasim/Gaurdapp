@@ -28,3 +28,6 @@ project(':capacitor-push-notifications').projectDir = new File('../node_modules/
 
 include ':capacitor-status-bar'
 project(':capacitor-status-bar').projectDir = new File('../node_modules/@capacitor/status-bar/android')
+
+include ':capacitor-google-maps'
+project(':capacitor-google-maps').projectDir = new File('../node_modules/@capacitor/google-maps/android')
