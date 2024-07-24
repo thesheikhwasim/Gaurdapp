@@ -411,12 +411,11 @@ ion-modal#example-modal .wrapper {
 
 .managerMapView{
   padding: 20px;
-  padding-top: 0px;;
 }
 
 .mapHeight{
   height: calc(100vh - 245px);
-width: 100%;
+  width: 100%;
 }
 
 .noRunningDutyEmptyBlock{
@@ -447,4 +446,15 @@ div.guardDetails p{
 div.guardDetails{
   padding-left: 16px;
   padding-right: 16px;
+}
+.marker-guard-modal span{
+  text-align: right;
+}
+
+.ionBtn-Container{
+  justify-content: end;
+}
+
+.ionBtn-Container ion-icon.ionBtn-Icon {
+  margin-right: -10px;
 }
