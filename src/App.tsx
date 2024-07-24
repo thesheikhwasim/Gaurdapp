@@ -51,6 +51,7 @@ import DocumentUpload from './pages/DocumentUpload';
 import Logout from './pages/Logout';
 import MainTabs from './components/MainTabs.js';
 import { Geolocation } from '@capacitor/geolocation';
+import { registerNotifications } from './utility/pushNotifications.js';
 
 // import Logout from './pages/Logout';
 setupIonicReact();
@@ -63,11 +64,11 @@ const App: React.FC = () => {
     console.log("PERMISSIONS:::::::::::::::::::: ", permissions);
     const coordinates = await Geolocation.getCurrentPosition();
     console.log('Current position:', coordinates);
+    registerNotifications();
   };
   printCurrentPosition();
 
   const token = localStorage.getItem('token');
-  callNotificationInitialization();
   const { t } = useTranslation();
   return (
     <I18nextProvider i18n={i18n}>
@@ -122,7 +123,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
-const callNotificationInitialization = () =>{
-  
-}
