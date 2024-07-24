@@ -26,10 +26,9 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     registerLocationPermissions();
+    registerNotifications();
     let tempDeviceId = localStorage.getItem('deviceId');
     setDeviceId(tempDeviceId);
-    registerNotifications();
-    console.log("Login pafe effect called");
   }, [])
 
   async function registerLocationPermissions() {

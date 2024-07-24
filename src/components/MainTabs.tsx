@@ -67,7 +67,17 @@ const MainTabs: React.FC<MainTabsProps> = () => {
         <Route exact path="/pages/tabs/Dashboard/DutyInfo" component={DutyInfo} />
         <Route path="/pages/tabs/getTicket/:id" component={SessionDetail} />
         <Route path="/pages/tabs/getRequest" render={() => <GetRequests />} exact={true} />
-        <Route path="/pages/tabs/Notice" render={() => <Notice />} exact={true} />
+        <Route 
+          path="/pages/tabs/Dashboard/Notice" 
+          component={Notice}
+          exact={true} 
+        />
+        <Route 
+          path="/pages/tabs/Notice" 
+          render={() => <Notice />} 
+          component={Notice}
+          exact={true} 
+        />
       </IonRouterOutlet>
       <IonTabBar slot="bottom">
         <IonTabButton tab="Dashboard" href="/pages/tabs/Dashboard">

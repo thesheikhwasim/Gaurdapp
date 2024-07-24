@@ -3,7 +3,6 @@ import { IonButtons, IonLoading, IonContent, IonGrid, IonRow, IonCol, IonHeader,
 import { useParams } from 'react-router';
 import axios from 'axios';
 import './Page.css';
-// import { GoogleMap } from '@capacitor/google-maps';
 import {
     GoogleMap,
     useJsApiLoader,

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useHistory } from 'react-router-dom';
 
 import './Page.css';
+import { registerNotifications } from '../utility/pushNotifications';
 
 const LanguageSelector: React.FC = () => {
 
@@ -19,7 +20,7 @@ const LanguageSelector: React.FC = () => {
     // Load data from local storage when the component mounts
     const storedData = localStorage.getItem('isLoggedIn');
     const token = localStorage.getItem('token'); // Assuming token is stored in localStorage
-    
+    registerNotifications();
   
 
 
