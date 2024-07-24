@@ -17,12 +17,15 @@ export const addListeners = async () => {
   });
 
   await PushNotifications.addListener('pushNotificationActionPerformed', notification => {
-    console.log('PUSH NOTIFICATION action performed', notification.actionId, notification.inputValue);
+    console.log('PUSH NOTIFICATION action performed', notification.actionId);
+    if(notification.actionId == 'tap'){
+      console.log('NAVIAGTE NAVIGATE NAVIGATE')
+      hitActionOnTap();
+    }
   });
 }
 
 export const registerNotifications = async () => {
-    console.log("REGISTER FUNCTION FOR PUSH NOTIFICATION CALLED.");
   let permStatus = await PushNotifications.checkPermissions();
 
   if (permStatus.receive === 'prompt') {
@@ -36,7 +39,14 @@ export const registerNotifications = async () => {
   await PushNotifications.register();
 }
 
-const getDeliveredNotifications = async () => {
+export const getDeliveredNotifications = async () => {
   const notificationList = await PushNotifications.getDeliveredNotifications();
   console.log('delivered notifications', notificationList);
+}
+
+const hitActionOnTap = () => {
+  const token = localStorage.getItem('token');
+  if(token){
+    window.location.href = '/pages/tabs/Dashboard/Notice';
+  }
 }

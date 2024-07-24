@@ -7,7 +7,7 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:482927828459:android:ac42db8f042e72f1620dae",
+        "mobilesdk_app_id": "1:482927828459:android:636545a9bd1e4a1e620dae",
         "android_client_info": {
           "package_name": "io.ionic.starter"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBH-lq64yt4l7DAAu6ucSgm0r2AUlU7UeM"
+          "current_key": "AIzaSyAcntYyrTjdpKiD2MLq4GxPWpOhmbOJSKU"
         }
       ],
       "services": {
