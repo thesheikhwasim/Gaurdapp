@@ -24,6 +24,9 @@ import {
   IonSelectOption,
   useIonToast,
   IonAlert,
+  IonRefresher,
+  IonRefresherContent,
+  RefresherEventDetail,
 } from '@ionic/react';
 
 import { isPlatform } from '@ionic/react';
@@ -41,6 +44,7 @@ import { Geolocation } from '@capacitor/geolocation';
 import axios from 'axios';
 import './Page.css';
 import useAuth from '../hooks/useAuth';
+import CustomHeader from './CustomHeader';
 
 const Dashboard: React.FC = () => {
   const [duty, setDuty] = useState(false);
@@ -92,8 +96,12 @@ const Dashboard: React.FC = () => {
 
     try {
       const response = await axios.post(url, formData);
+      console.log("response.data -----  PROFILE", response.data);
       if (response.data && response.data.employee_data) {
         setProfileData(response.data.employee_data);
+        if(response?.data?.employee_data){
+          localStorage.setItem('loggedInUser', JSON.stringify(response?.data?.employee_data));
+        }
       }
       // else {
       //   history.push('/pages/login');
@@ -101,10 +109,17 @@ const Dashboard: React.FC = () => {
     } catch (error) {
       console.error('Error fetching profile data:', error);
       // history.push('/pages/login');
-    } finally {
-      setLoading(false);
     }
   };
+
+  function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
+    //Function that hits when ion pull to refresh is called
+    setTimeout(() => {
+      const storedToken = localStorage.getItem('token');
+      fetchProfileData(storedToken);
+      event.detail.complete();
+    }, 500);
+  }
 
   return (
     <IonPage>
@@ -113,17 +128,14 @@ const Dashboard: React.FC = () => {
           <IonButtons slot="start">
             <IonMenuButton />
           </IonButtons>
-          <IonImg
-            className="header-image"
-            src="./assets/imgs/logo.jpg"
-            alt="header"
-            style={{ display: 'flex', height: '60px', width: '100%' }}
-          />
-          <IonTitle>{name}</IonTitle>
+          <CustomHeader />
         </IonToolbar>
       </IonHeader>
 
       <IonContent className="page-content">
+        <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+          <IonRefresherContent></IonRefresherContent>
+        </IonRefresher>   
         <IonHeader collapse="condense">
           <IonTitle>{name}</IonTitle>
         </IonHeader>
@@ -139,14 +151,14 @@ const Dashboard: React.FC = () => {
             <IonCardContent className="shift-details-card-content">
               <div className="shift-details-column">
                 <div>
-                {ProfileData?.photo && <div className='profileImageParentSh'>
-        <div>
-        <IonImg
-          className='imageionclass'
-          src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${ProfileData.photo}`}
-        ></IonImg>
-        </div>
-      </div>}
+                  {ProfileData?.photo && <div className='profileImageParentSh'>
+                    <div>
+                      <IonImg
+                        className='imageionclass'
+                        src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${ProfileData.photo}`}
+                      ></IonImg>
+                    </div>
+                  </div>}
                 </div>
                 <p><strong>Full Name:</strong> <span>{ProfileData?.full_name}</span></p>
                 <p><strong>Roll Number:</strong><span> {ProfileData?.roll_no}</span></p>

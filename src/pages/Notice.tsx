@@ -4,6 +4,7 @@ import { useParams, useHistory } from 'react-router';
 import './Page.css';
 import axios from 'axios';
 import { addCircle, mailUnread, mailUnreadOutline, personCircle } from 'ionicons/icons';
+import CustomHeader from './CustomHeader';
 
 const Notice: React.FC = () => {
   const [noticeData, setNoticeData] = useState<string | null>(null);
@@ -93,7 +94,7 @@ const Notice: React.FC = () => {
           <IonButtons slot="start">
             <IonMenuButton />
           </IonButtons>
-          <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '60px', width: '100%' }} />
+          <CustomHeader />
           <IonTitle>{name}</IonTitle>
         </IonToolbar>
       </IonHeader>

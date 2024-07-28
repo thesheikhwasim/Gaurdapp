@@ -6,6 +6,7 @@ import { useHistory } from 'react-router-dom';
 
 import './Page.css';
 import { registerNotifications } from '../utility/pushNotifications';
+import CustomHeader from './CustomHeader';
 
 const LanguageSelector: React.FC = () => {
 
@@ -66,7 +67,7 @@ const LanguageSelector: React.FC = () => {
           <IonButtons slot="start">
             <IonMenuButton />
           </IonButtons>
-          <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '40px', width: '100%', margin: '0px' }} />
+          <CustomHeader />
           <IonTitle>{name}</IonTitle>
         </IonToolbar>
       </IonHeader>

@@ -8,6 +8,7 @@ import { add, closeOutline } from 'ionicons/icons';
 import { useTranslation } from 'react-i18next';
 import { Geolocation } from '@capacitor/geolocation';
 import { usePhotoGallery } from '../hooks/usePhotoGallery';
+import CustomHeader from './CustomHeader';
 
 const DashboardOp: React.FC = () => {
   const { t } = useTranslation();
@@ -143,7 +144,7 @@ const DashboardOp: React.FC = () => {
           <IonButtons slot="start">
             <IonMenuButton />
           </IonButtons>
-          <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '60px', width: '100%' }} />
+          <CustomHeader />
         </IonToolbar>
       </IonHeader>
 
