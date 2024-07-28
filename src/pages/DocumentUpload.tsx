@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { IonLabel, IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar, IonImg, IonButton, IonInput, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle,IonItem, IonList, IonSelect, IonSelectOption, IonFooter} from '@ionic/react';
 import { useParams } from 'react-router';
 import './Page.css';
+import CustomHeader from './CustomHeader';
 
 const DocumentUpload: React.FC = () => {
   const { name } = useParams<{ name: string; }>();
@@ -66,7 +67,7 @@ const DocumentUpload: React.FC = () => {
           <IonButtons slot="start">
             <IonMenuButton />
           </IonButtons>
-          <IonImg class='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{display:'flex',height:'100px',width:'100%',margin:'7px'}}/>
+          <CustomHeader />
           <IonTitle>{name}</IonTitle>          
         </IonToolbar>
         

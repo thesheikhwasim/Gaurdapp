@@ -48,6 +48,7 @@ import './Page.css';
 import useAuth from '../hooks/useAuth';
 import { close, closeOutline, personCircleOutline } from 'ionicons/icons';
 import MyStopwatch from './DashboardMyTimer';
+import CustomHeader from './CustomHeader';
 
 const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   const [duty, setDuty] = useState(false);
@@ -94,8 +95,8 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   }, []);
 
   function ongoingNewHandlerWithLocation(){
-    captureLocation().then((res) => {
-      console.log("BEFORE CALLED ONGOING::::", res);
+    captureLocation('fromNewOngoingHandler').then((res) => {
+      // console.log("BEFORE CALLED ONGOING::::", res);
       if((res && res?.coords && res?.coords?.latitude)){
         setPrevLatitude(res?.coords?.latitude);
         setPrevLongitude(res?.coords?.longitude);
@@ -104,7 +105,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
 
       }
     }).catch((error)=>{
-      console.error("BEFORE CALLED ONGOING LOCATION ERROR");
+      // console.error("BEFORE CALLED ONGOING LOCATION ERROR");
     });
   }
 
@@ -116,9 +117,9 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   },[reloadPage])
 
   useEffect(() => {
-    captureLocation().then((res) => {
-      console.log("res------ below movement called::: ", res);
-      console.log("PREVIOUS LAT LONG IS:::: ", prevLatitude, "--long--", prevLongitude);
+    captureLocation('fromElapsed').then((res) => {
+      // console.log("res------ below movement called::: ", res);
+      // console.log("PREVIOUS LAT LONG IS:::: ", prevLatitude, "--long--", prevLongitude);
       if((res && res?.coords && res?.coords?.latitude) && (prevLatitude != res?.coords?.latitude || prevLongitude != res?.coords?.longitude) && prevLatitude){
         setPrevLatitude(res?.coords?.latitude);
         setPrevLongitude(res?.coords?.longitude);
@@ -134,7 +135,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   const { takePhoto } = usePhotoGallery();
 
   const fetchOngoingDuty = async (dataParam=0) => {
-    console.log("Inside Ongoing function");
+    // console.log("Inside Ongoing function");
     try {
       let formData = new FormData();
       formData.append('action', 'duty_ongoing');
@@ -147,7 +148,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
         formData.append('longitude', Longitude);
       }
       
-      console.log("Ongoing Duty formdata:: ", formData);
+      // console.log("Ongoing Duty formdata:: ", formData);
       const response = await axios.post('https://guard.ghamasaana.com/guard_new_api/ongoing_duty.php', formData);
       const data = response.data;
 
@@ -191,11 +192,12 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
     return days * 86400 + hours * 3600 + minutes * 60 + seconds;
   };
 
-  const captureLocation = () => {
+  const captureLocation = (fromParam:string) => {
     return new Promise(async (resolve, reject) => {
       try {
         const permissions = await Geolocation.checkPermissions();
-        // console.log("PERMISSION", permissions);
+        console.log("PERMISSION to show message and send DUMMY", permissions);
+        console.log("ABOVE PERMISSION WAS ASKED FROM--- ", fromParam);
         // Case to validate permission is denied, if denied error message alert will be shown
         if (permissions?.location == "denied") {
           present({
@@ -203,6 +205,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
             duration: 5000,
             position: 'bottom',
           });
+          dummyExplicitMovementApi();
         }
 
         const options = {
@@ -213,7 +216,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
         Geolocation.getCurrentPosition(options)
           .then((position) => {
             if (position && position.coords.latitude) {
-              console.log("CAPTURE LOCATION is setting lat long:::: ",position.coords.latitude.toString(), "-- longitude--", position.coords.longitude.toString());
+              // console.log("CAPTURE LOCATION is setting lat long:::: ",position.coords.latitude.toString(), "-- longitude--", position.coords.longitude.toString());
               setLatitude(position.coords.latitude.toString());
               setLongitude(position.coords.longitude.toString());
             }
@@ -239,6 +242,23 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
         });
       return response.data;
     } catch (error) {
+      console.error('Error:', error);
+      return null;
+    }
+  }
+
+  async function dummyExplicitMovementApi(){
+    try{
+      let formData = new FormData();
+      const token = localStorage.getItem('token');
+      formData.append('action', 'duty_movement');
+      formData.append('token', token);
+      formData.append('latitude', 'latitude disabled');
+      formData.append('longitude', 'longitude disabled');
+      let DUMMY_MOVEMENT_URL = 'https://guard.ghamasaana.com/guard_new_api/dutystartmovement.php';
+      const response = await axios.post(DUMMY_MOVEMENT_URL, formData);
+      console.log("response DUMMY -- -", response);
+    }catch (error) {
       console.error('Error:', error);
       return null;
     }
@@ -293,7 +313,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   }
 
   const handleDutyStart = async () => {
-    captureLocation().then((res) => {
+    captureLocation('fromDutyStart').then((res) => {
       if (Latitude !== '') {
         takePhoto().then(async (photoData) => {
           // console.log("Photo Data Returned From Camera Base64 format---", photoData);
@@ -350,7 +370,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   //Duty End API Call
   const handleDutyEnd = async () => {
     clearInterval(intervalRef.current);
-    captureLocation().then(() => {
+    captureLocation('fromDutyEnd').then(() => {
       if (Latitude !== '') {
         const formData = new FormData();
         const token = localStorage.getItem('token');
@@ -467,7 +487,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
       });
     });
   }
-  console.log("Page state updated and re-rendered")
+  // console.log("Page state updated and re-rendered")
 
   return (
     <div>
@@ -651,13 +671,8 @@ const Dashboard = () => {
             <IonButtons slot="start">
               <IonMenuButton />
             </IonButtons>
-            <IonImg
-              className="header-image"
-              src="./assets/imgs/logo.jpg"
-              alt="header"
-              style={{ display: 'flex', height: '60px', width: '100%' }}
-            />
-            <IonTitle>{name}</IonTitle>
+            <CustomHeader />
+            {/* <IonTitle>{name}</IonTitle> */}
           </IonToolbar>
         </IonHeader>
         <IonContent className="page-content">

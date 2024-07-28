@@ -9,6 +9,26 @@ import { Geolocation } from '@capacitor/geolocation';
 import './Page.css';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { registerNotifications } from '../utility/pushNotifications';
+import { Sim } from '@jonz94/capacitor-sim';
+import { Device } from '@capacitor/device';
+import CustomHeader from './CustomHeader';
+
+const sampleSimCardNumber = [
+  {
+  carrierName : "airtel",
+  isoCountryCode:"in",
+  mobileCountryCode: "404",
+  mobileNetworkCode : "10",
+  number : "+918877665544",
+},
+{
+  carrierName : "jio",
+  isoCountryCode:"in",
+  mobileCountryCode: "404",
+  mobileNetworkCode : "10",
+  number : "919898989877",
+}
+]
 
 const Login: React.FC = () => {
   const { t } = useTranslation();
@@ -23,15 +43,56 @@ const Login: React.FC = () => {
   const [deviceId, setDeviceId] = useState<string>('');
   const { photos, takePhoto } = usePhotoGallery();
   const [present, dismiss] = useIonToast();
+  const [simCardsFromDevice, setSimCardsFromDevice] = useState([]);
 
   useEffect(() => {
     registerLocationPermissions();
     registerNotifications();
     let tempDeviceId = localStorage.getItem('deviceId');
     setDeviceId(tempDeviceId);
-  }, [])
+    getSimCards();
+  }, []);
+
+  const getSimCards = async () => {
+    const { simCards } = await Sim.getSimCards();
+    if(simCards){
+      setSimCardsFromDevice(simCards);
+    }
+  }
+
+  function getSimCardsToDisplay(simArr){
+    console.log("simArr ---", simArr);
+    let tempSim = 'Your Phone Numbers: ';
+    // return tempSim;
+
+    if(simArr && simArr.length > 0){
+      simArr.map((e, key) => {
+        if(key == 0){
+          tempSim = tempSim + e.number
+        }else{
+          tempSim = tempSim + ',' + e.number
+        }
+      });
+    }
+    // alert(tempSim)
+    return tempSim;
+
+  }
+
+  async function hitCheckPermissionsForGeolocation (){
+    const checkPermissions = await Geolocation.checkPermissions();
+    console.log("Login page checkPermissions rendered", checkPermissions);
+    if (checkPermissions?.location == "denied") {
+      present({
+        message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
+        duration: 5000,
+        position: 'bottom',
+      });
+    }
+  }
 
   async function registerLocationPermissions() {
+    hitCheckPermissionsForGeolocation();
     const permissions = await Geolocation.requestPermissions();
 
     // console.log("PERMISSION", permissions);
@@ -100,6 +161,7 @@ const Login: React.FC = () => {
 
   const handleLogin = async () => {
     try {
+      hitCheckPermissionsForGeolocation();
       // await takePhoto();
       const formData = new FormData();
       formData.append('empid', empid);
@@ -141,7 +203,7 @@ const Login: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '40px', width: '100%' }} />
+        <CustomHeader />
           <IonTitle>{name}</IonTitle>
         </IonToolbar>
       </IonHeader>
@@ -178,16 +240,18 @@ const Login: React.FC = () => {
                   }}
                 />
               </IonItem>
-              {/* <IonItem className='ion-margin-bottom'>
-                <IonInput
+              {simCardsFromDevice && simCardsFromDevice.length> 0 && <IonItem className='ion-margin-bottom'>
+                <label>{getSimCardsToDisplay(simCardsFromDevice)}</label>
+                {/* <IonInput
                   type="number"
-                  value={mobileNumber}
+                  disabled={true}
+                  value={getSimCardsToDisplay(mobileNumber)}
                   placeholder={t('Mobile Number')}
-                  onIonInput={(e) => {
-                    setMobileNumber(e.detail.value!);
-                  }}
-                />
-              </IonItem> */}
+                  // onIonInput={(e) => {
+                  //   setMobileNumber(e.detail.value!);
+                  // }}
+                /> */}
+              </IonItem>}
               <IonItem className='ion-margin-bottom'>
                 <IonButton
                   disabled={!btnEnabled}

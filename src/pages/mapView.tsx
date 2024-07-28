@@ -14,6 +14,7 @@ import {
 import { Geolocation } from '@capacitor/geolocation';
 import { useTranslation } from 'react-i18next';
 import { closeOutline } from 'ionicons/icons';
+import CustomHeader from './CustomHeader';
 
 
 const GetRequests: React.FC = () => {
@@ -130,7 +131,7 @@ const GetRequests: React.FC = () => {
                     <IonButtons slot="start">
                         <IonMenuButton />
                     </IonButtons>
-                    <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '60px', width: '100%' }} />
+                    <CustomHeader />
                 </IonToolbar>
             </IonHeader>
             <IonContent fullscreen>

@@ -33,6 +33,7 @@ import { useParams, useHistory } from 'react-router';
 import './Page.css';
 import axios from 'axios';
 import { arrowForwardCircleOutline, calendarOutline } from 'ionicons/icons';
+import CustomHeader from './CustomHeader';
 
 const DutyInfo: React.FC = () => {
   const [dutyData, setDutyData] = useState<any>([]);
@@ -232,7 +233,7 @@ const DutyInfo: React.FC = () => {
           <IonButtons slot="start">
             <IonMenuButton />
           </IonButtons>
-          <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '60px', width: '100%' }} />
+          <CustomHeader />
           <IonTitle>{name}</IonTitle>
         </IonToolbar>
       </IonHeader>

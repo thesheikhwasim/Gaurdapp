@@ -4,6 +4,7 @@ import { useParams } from 'react-router';
 import axios from 'axios';
 import './Page.css';
 import useAuth from '../hooks/useAuth'; // Import the custom hook
+import CustomHeader from './CustomHeader';
 
 const GetRequests: React.FC = () => {
   // useAuth(); // Enforce login requirement
@@ -58,8 +59,8 @@ const GetRequests: React.FC = () => {
           <IonButtons slot="start">
             <IonMenuButton />
           </IonButtons>
-          <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '60px', width: '100%' }} />
-          <IonTitle>{name}</IonTitle>
+          <CustomHeader />
+          {/* <IonTitle>{name}</IonTitle> */}
         </IonToolbar>
       </IonHeader>
 

@@ -6,6 +6,7 @@ import { usePhotoGallery } from '../../src/hooks/usePhotoGallery';
 import { Geolocation } from '@capacitor/geolocation';
 import axios from 'axios';
 import './Page.css';
+import CustomHeader from './CustomHeader';
 
 const Dashboard: React.FC = () => {
   const [duty, setDuty] = useState(false);
@@ -156,7 +157,7 @@ const Dashboard: React.FC = () => {
           <IonButtons slot="start">
             <IonMenuButton />
           </IonButtons>
-          <IonImg className='header-image' src="./assets/imgs/logo.jpg" alt="header" style={{ display: 'flex', height: '100px', width: '100%' }} />
+          <CustomHeader />
           <IonTitle>{name}</IonTitle>
         </IonToolbar>
       </IonHeader>

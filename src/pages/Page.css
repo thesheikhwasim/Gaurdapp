@@ -458,3 +458,7 @@ div.guardDetails{
 .ionBtn-Container ion-icon.ionBtn-Icon {
   margin-right: -10px;
 }
+
+.customHeaderParent{
+  display: flex;
+}
