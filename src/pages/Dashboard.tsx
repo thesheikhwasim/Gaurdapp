@@ -30,6 +30,8 @@ import {
   IonRefresherContent,
   RefresherEventDetail,
   useIonLoading,
+  IonLoading,
+  IonSpinner,
 } from '@ionic/react';
 
 import { isPlatform } from '@ionic/react';
@@ -574,7 +576,10 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   </IonRow>
 </IonGrid>
 </IonCard> 
-: <div className='errorDashboardData'>Please wait while loading data.</div>}
+: <div className='errorDashboardData'>
+      <IonSpinner name="lines"></IonSpinner>
+      <i style={{marginLeft:'10px', color: '#000'}}>{`Please wait while loading data.`}</i>
+</div>}
         
 
         <IonGrid className="ion-margin ion-text-center">
