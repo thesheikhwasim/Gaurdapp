@@ -34,7 +34,8 @@ import Face from './pages/Face';
 import Accountupd from './pages/Accountupd';
 import getRequest from './pages/getRequest';
 import getTicket from './pages/getTicket';
-import AddNewGuard from './pages/AddNewGuard';
+import ListGuards from './pages/listgaurd';
+import AddnewGaurd from './pages/AddNewGuard';
 import idCard from './pages/idCard';
 import MapView from './pages/mapView'
 
@@ -106,8 +107,9 @@ const App: React.FC = () => {
               <Route exact path="/pages/Accountupd" component={Accountupd}/>
               {/* <Route exact path="/pages/getRequest" component={getRequest}/> */} 
               {/* <Route exact path="/pages/getTicket" component={getTicket}/> */}
-              <Route exact path="/pages/tabs/Dashboard/DutyInfo" component={DutyInfo}/>
-              <Route exact path="/pages/AddNewGuard" component={AddNewGuard}/>
+              <Route exact path="/pages/tabs/DutyInfo" component={DutyInfo}/>
+              <Route exact path="/pages/listgaurd" component={ListGuards}/>
+              <Route exact path="/pages/AddNewGuard" component={AddnewGaurd}/>
               <Route exact path="/pages/idCard" component={idCard}/>
               <Route exact path="/pages/MapView" component={MapView}/>
               <Route exact path="/pages/LanguageSelector" component={LanguageSelector}/>

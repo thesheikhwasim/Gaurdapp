@@ -5,8 +5,11 @@ import axios from 'axios';
 import './Page.css';
 import useAuth from '../hooks/useAuth'; // Import the custom hook
 import CustomHeader from './CustomHeader';
+import CustomFooter from './CustomFooter';
 import { saveAs } from 'file-saver';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { BASEURL } from '../utilities_constant';
+import { t } from 'i18next';
 
 const GetRequests: React.FC = () => {
   // useAuth(); // Enforce login requirement
@@ -31,7 +34,7 @@ const GetRequests: React.FC = () => {
   }, []);
 
   const fetchProfileData = async (token: string, includeDownload: boolean) => {
-    const url = 'https://guard.ghamasaana.com/guard_new_api/profile.php';
+    const url = BASEURL+'profile.php';
     const formData = new FormData();
     formData.append('action', 'profile_data');
     formData.append('token', token);
@@ -61,7 +64,7 @@ const GetRequests: React.FC = () => {
     // 'downloaded_now'
     console.log("PROFILE DATA::: ", fileParam);
     console.log("PROFILE DATA ID CARD URL :: ", fileParam?.photo);
-      let imageUrl = `https://guard.ghamasaana.com/guard_new_api/emp_image/${fileParam.photo}`;
+      let imageUrl = BASEURL+`emp_image/${fileParam.photo}`;
       try {
         // Fetch the image as a blob using Axios
         const response = await axios.get(imageUrl, { responseType: 'blob' });
@@ -118,7 +121,7 @@ const GetRequests: React.FC = () => {
         ) : (
           <>
             <div className="header_title">
-              <IonTitle className="header_title ion-text-center">Your Id Card</IonTitle>
+              <IonTitle className="header_title ion-text-center">{t('Your ID Card')}</IonTitle>
             </div>
             <IonCard className='shift-details-card-content'>
 
@@ -130,7 +133,7 @@ const GetRequests: React.FC = () => {
                       <div>
                         <IonImg
                           className='imageionclassIdCard'
-                          src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${ProfileData.photo}`}
+                          src={BASEURL+`emp_image/${ProfileData.photo}`}
                         ></IonImg>
                       </div>
                     </div>
@@ -140,7 +143,7 @@ const GetRequests: React.FC = () => {
                       expand="block" 
                       onClick={()=> triggerDownload(ProfileData)} 
                       color="primary">
-                      Download
+                      {t('Download')}
                     </IonButton>}
                     </div>
                   </>
@@ -149,7 +152,7 @@ const GetRequests: React.FC = () => {
               </div></IonLabel>
             </IonCard>
             <div className='footer'>
-              <IonTitle className='footer ion-text-center'>Helpline | +91 90999 XXXXX</IonTitle>
+            <CustomFooter />
             </div>
           </>
         )}

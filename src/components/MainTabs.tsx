@@ -9,16 +9,27 @@ import {
 } from '@ionic/react';
 import { Route, Redirect } from 'react-router';
 import { calendar, location, informationCircle, people, homeOutline, notifications, notificationsCircleOutline, calendarOutline, ticketOutline } from 'ionicons/icons';
-import SpeakerList from '../pages/ListGuard';
+import SpeakerList from '../pages/listgaurd';
 import SpeakerDetail from '../pages/DutyInfo';
 import SessionDetail from '../pages/DutyInfo';
 import MapView from '../pages/DutyInfo';
 import Notice from '../pages/Notice';
+import GetProfile from '../pages/Accountupd';
 import Dashboard from '../pages/Dashboard';
 import DashboardOp from '../pages/DashboardOp';
  import GetTicket from '../pages/getTicket';
-import GetRequests from '../pages/getRequest';
+ import GetSop from '../pages/getSop';
+ import GetGallery from '../pages/getGallery';
+ import GetListGuard from '../pages/listgaurd';
+ import GetIdCard from '../pages/idCard';
+ import GetLanguageSelector from '../pages/LanguageSelector';
+ import GetemergencyContact from '../pages/emergencyContact';
+ import Gethelptxt from '../pages/helptxt';
+ 
+ import GetPostReport from '../pages/getPostReport';
 import DutyInfo from '../pages/DutyInfo';
+import Listgaurd from '../pages/listgaurd';
+import { t } from 'i18next';
 
 interface MainTabsProps { }
 
@@ -28,15 +39,15 @@ const MainTabs: React.FC<MainTabsProps> = () => {
   useEffect(() => {
     const loggedUserData = localStorage.getItem('loggedInUser');
     setLoggedUserData(JSON.parse(loggedUserData));
-    console.log("Tab logged user type condition", loggedUserData);
+    //console.log("Tab logged user type condition", loggedUserData);
   }, []);
 
   function renderDashboardHandler(){
     if(loggedUserData && loggedUserData?.designation_catagory == 'Operation'){
-      console.log("++++++renderDashboardHandler ", 'checker', loggedUserData);
+     // console.log("++++++renderDashboardHandler ", 'checker', loggedUserData);
       return <DashboardOp />;
     }else if(loggedUserData && (loggedUserData?.designation_catagory == 'Guard' || loggedUserData?.designation_catagory == 'Gaurd')){
-      console.log("++++++renderDashboardHandler ", 'guard', loggedUserData);
+      //console.log("++++++renderDashboardHandler ", 'guard', loggedUserData);
       return <Dashboard />;
     }
   }
@@ -44,11 +55,7 @@ const MainTabs: React.FC<MainTabsProps> = () => {
     <IonTabs>
       <IonRouterOutlet>
         <Redirect exact path="/" to="/pages/tabs/Dashboard" />
-        {/*
-          Using the render method prop cuts down the number of renders your components will have due to route changes.
-          Use the component prop when your component depends on the RouterComponentProps passed in automatically.
-        */}
-        <Route
+         <Route
           path="/pages/tabs/Dashboard"
           render={() => renderDashboardHandler()}
           exact={true}
@@ -64,9 +71,20 @@ const MainTabs: React.FC<MainTabsProps> = () => {
           exact={true}
         />
         <Route path="/pages/tabs/Dashboard/:id" component={SessionDetail} />
-        <Route exact path="/pages/tabs/Dashboard/DutyInfo" component={DutyInfo} />
+        <Route exact path="/pages/tabs/DutyInfo" render={() => <GetProfile />} component={DutyInfo} />
+        <Route path="/pages/tabs/getSop" render={() => <GetSop />} exact={true} />
+        <Route path="/pages/tabs/Accountupd" render={() => <GetProfile />} exact={true} />
         <Route path="/pages/tabs/getTicket/:id" component={SessionDetail} />
-        <Route path="/pages/tabs/getRequest" render={() => <GetRequests />} exact={true} />
+        <Route path="/pages/tabs/getSop" render={() => <GetSop />} exact={true} />
+        <Route path="/pages/tabs/getGallery" render={() => <GetGallery />} exact={true} />
+        <Route path="/pages/tabs/listgaurd" render={() => <Listgaurd />} exact={true} />
+        <Route path="/pages/tabs/idCard" render={() => <GetIdCard />} exact={true} />
+        <Route path="/pages/tabs/LanguageSelector" render={() => <GetLanguageSelector />} exact={true} />
+        <Route path="/pages/tabs/emergencyContact" render={() => <GetemergencyContact />} exact={true} />
+        <Route path="/pages/tabs/helptxt" render={() => <Gethelptxt />} exact={true} />
+        
+        <Route path="/pages/tabs/getPostReport" render={() => <GetPostReport />} exact={true} />
+      
         <Route 
           path="/pages/tabs/Dashboard/Notice" 
           component={Notice}
@@ -82,19 +100,23 @@ const MainTabs: React.FC<MainTabsProps> = () => {
       <IonTabBar slot="bottom">
         <IonTabButton tab="Dashboard" href="/pages/tabs/Dashboard">
           <IonIcon icon={homeOutline} />
-          <IonLabel>Dashboard</IonLabel>
+          <IonLabel>{t('dashboard')}</IonLabel>
         </IonTabButton>
         <IonTabButton tab="getTicket" href="/pages/tabs/getTicket">
           <IonIcon icon={ticketOutline} />
-          <IonLabel>Ticket</IonLabel>
+          <IonLabel>{t('Tickets')}</IonLabel>
         </IonTabButton>
-        <IonTabButton tab="getRequest" href="/pages/tabs/getRequest">
+        <IonTabButton tab="getSop" href="/pages/tabs/getSop">
           <IonIcon icon={calendarOutline} />
-          <IonLabel>Leave</IonLabel>
+          <IonLabel>{t('SOP')}</IonLabel>
         </IonTabButton>
         <IonTabButton tab="Notice" href="/pages/tabs/Notice">
           <IonIcon icon={notificationsCircleOutline} />
-          <IonLabel>Notice</IonLabel>
+          <IonLabel>{t('Notification')}</IonLabel>
+        </IonTabButton>
+        <IonTabButton tab="Setting" href="/pages/tabs/Accountupd">
+          <IonIcon icon={people} />
+          <IonLabel>{t('Profile')}</IonLabel>
         </IonTabButton>
       </IonTabBar>
     </IonTabs>

@@ -19,8 +19,13 @@ import {
   personCircleOutline,
   paperPlaneOutline,
   notificationsOutline,
+  imageOutline,
+  informationCircle,
   personAddOutline,
   languageOutline,
+  contractOutline,
+  alertCircleOutline,
+  personCircle,
   logOutOutline,
   logInOutline,
   peopleCircleOutline,
@@ -58,18 +63,18 @@ const Menu: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    console.log("Sessionizes useEffect Called", isLoggedIn);
+  
     if(isLoggedIn){
-      console.log("Inide if ---- ", isLoggedIn);
+      
         const loggedUserData = localStorage.getItem('loggedInUser');
         setLoggedUserData(JSON.parse(loggedUserData));
-        console.log("SH verify logged data inner case", loggedUserData);
+     
     }
   }, [isLoggedIn]);
 
   const menuItems = [
     {
-      title: t('Home'),
+      title: t('dashboard'),
       url: '/pages/tabs/Dashboard',
       iosIcon: calendarClearOutline,
       mdIcon: calendarClearOutline,
@@ -78,7 +83,7 @@ const Menu: React.FC = () => {
     },
     {
       title: t('Duty Info'),
-      url: '/pages/tabs/Dashboard/DutyInfo',
+      url: '/pages/tabs/DutyInfo',
       iosIcon: informationCircleOutline,
       mdIcon: informationCircleOutline,
       isManager: false,
@@ -86,7 +91,7 @@ const Menu: React.FC = () => {
     },
     {
       title: t('Profile'),
-      url: '/pages/Accountupd',
+      url: '/pages/tabs/Accountupd',
       iosIcon: personCircleOutline,
       mdIcon: personCircleOutline,
       isManager: false,
@@ -95,6 +100,21 @@ const Menu: React.FC = () => {
     {
       title: t('Requests'),
       url: '/pages/tabs/getRequest',
+      iosIcon: paperPlaneOutline,
+      mdIcon: paperPlaneOutline,
+      isManager: false,
+      enabled: true
+    },
+    {
+      title: t('incident Report'),
+      url: '/pages/tabs/getGallery',
+      iosIcon: imageOutline,
+      mdIcon: imageOutline,
+      isManager: false
+    },
+    {
+      title: t('Daily Post Report'),
+      url: '/pages/tabs/getPostReport',
       iosIcon: paperPlaneOutline,
       mdIcon: paperPlaneOutline,
       isManager: false,
@@ -117,8 +137,8 @@ const Menu: React.FC = () => {
       enabled: true
     },
     {
-      title: t('Add New Guard'),
-      url: '/pages/AddNewGuard',
+      title: t('New Recruitment'),
+      url: '/pages/tabs/listgaurd',
       iosIcon: personAddOutline,
       mdIcon: personAddOutline,
       isManager: false,
@@ -126,11 +146,10 @@ const Menu: React.FC = () => {
     },
     {
       title: t('Your ID Card'),
-      url: '/pages/idCard',
-      iosIcon: personAddOutline,
-      mdIcon: personAddOutline,
-      isManager: false,
-      enabled: true
+      url: '/pages/tabs/idCard',
+      iosIcon: personCircleOutline,
+      mdIcon: personCircleOutline,
+      isManager: false
     },{
       title: t('Manager'),
       url: '/pages/MapView',
@@ -141,7 +160,7 @@ const Menu: React.FC = () => {
     },
     {
       title: t('Change Language'),
-      url: '/pages/LanguageSelector',
+      url: '/pages/tabs/LanguageSelector',
       iosIcon: languageOutline,
       mdIcon: languageOutline,
       isManager: false,
