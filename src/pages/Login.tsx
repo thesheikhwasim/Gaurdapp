@@ -12,6 +12,7 @@ import { registerNotifications } from '../utility/pushNotifications';
 import { Sim } from '@jonz94/capacitor-sim';
 import { Device } from '@capacitor/device';
 import CustomHeader from './CustomHeader';
+import { useIonRouter } from '@ionic/react';
 
 const sampleSimCardNumber = [
   {
@@ -31,6 +32,8 @@ const sampleSimCardNumber = [
 ]
 
 const Login: React.FC = () => {
+  const router = useIonRouter();
+
   const { t } = useTranslation();
   const { name } = useParams<{ name: string; }>();
   const history = useHistory();
@@ -184,7 +187,7 @@ const Login: React.FC = () => {
 
           localStorage.setItem('loggedInUser', JSON.stringify(response.employee_data));
           localStorage.setItem('token', response.token);
-          history.push('/pages/tabs/Dashboard');
+          router.push('/pages/tabs/Dashboard', 'forward', 'replace');
           // } else {
           //   alert('Please click a photo before logging in');
           // }

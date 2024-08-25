@@ -52,11 +52,23 @@ import Logout from './pages/Logout';
 import MainTabs from './components/MainTabs.js';
 import { Geolocation } from '@capacitor/geolocation';
 import { registerNotifications } from './utility/pushNotifications.js';
-
+import { Capacitor } from "@capacitor/core";
+import { useEffect } from 'react';
+import { App as MinAppObject } from '@capacitor/app';
 // import Logout from './pages/Logout';
 setupIonicReact();
 
 const App: React.FC = () => {
+
+  useEffect(() => {
+    if (Capacitor.isNative) {
+      MinAppObject.addListener("backButton", (e) => {
+        if (window.location.pathname === "/pages/tabs/Dashboard") {
+          MinAppObject.exitApp();
+        }
+      });
+    }
+  }, []);
 
   const printCurrentPosition = async () => {
     console.log("PERMISSIONS CHECK");
