@@ -6,6 +6,9 @@ import './Page.css';
 import useAuth from '../hooks/useAuth'; // Import the custom hook
 import { add, closeOutline } from 'ionicons/icons';
 import CustomHeader from './CustomHeader';
+import CustomFooter from './CustomFooter';
+import { BASEURL } from '../utilities_constant';
+import { t } from 'i18next';
 
 const STATIC_SUBJECT_FAILURE_CASE = [
   {
@@ -80,7 +83,7 @@ const GetRequests: React.FC = () => {
   }
 
   function getSubjectListAPI() {
-    let URL = "https://guard.ghamasaana.com/guard_new_api/ticket_subject.php";
+    let URL = BASEURL+"ticket_subject.php";
     let formData = new FormData();
     formData.append('action', "ticket_subject");
     formData.append('token', token);
@@ -128,7 +131,7 @@ const GetRequests: React.FC = () => {
     // return false;
 
     axios
-      .post('https://guard.ghamasaana.com/guard_new_api/add_new_request.php', formData)
+      .post(BASEURL+'add_new_request.php', formData)
       .then((response) => {
         if (response.data && response.data.success) {
           present({
@@ -158,6 +161,10 @@ const GetRequests: React.FC = () => {
       });
   };
 
+
+
+  
+
   return (
     <IonPage>
       <IonHeader>
@@ -181,7 +188,7 @@ const GetRequests: React.FC = () => {
         ) : (
           <>
             <div className="header_title">
-              <IonTitle className="header_title ion-text-center">Your Ticket Information</IonTitle>
+              <IonTitle className="header_title ion-text-center">{t('Your Ticket Information')}</IonTitle>
             </div>
             <IonCard className='shift-details-card-content'>
               {(requestData && requestData.length > 0) ? (
@@ -189,12 +196,12 @@ const GetRequests: React.FC = () => {
                   {requestData.map((ticket, index) => (
                     <IonCard className='card' key={index}>
                       <div className="shift-details-column">
-                        <p><strong>Request Type: </strong>{ticket.ReqType || 'N/A'}</p>
-                        <p><strong>Request Date : </strong>{ticket.ReqDatetime || 'N/A'}</p>
-                        <p><strong>Request Description : </strong>{ticket.ReqDesc || 'N/A'}</p>
-                        <p><strong>Request ID : </strong>{ticket.ReqID || 'N/A'}</p>
-                        <p><strong>Request Status : </strong>{ticket.ReqStatus || 'N/A'}</p>
-                        <p><strong>Request Action : </strong>{ticket.ReqAction || 'N/A'}</p>
+                        <p><strong>{t('Ticket Type')}: </strong>{ticket.ReqType || 'N/A'}</p>
+                        <p><strong>{t('Ticket Date')}: </strong>{ticket.ReqDatetime || 'N/A'}</p>
+                        <p><strong>{t('Ticket Description')}: </strong>{ticket.ReqDesc || 'N/A'}</p>
+                        <p><strong>{t('Ticket ID')}: </strong>{ticket.ReqID || 'N/A'}</p>
+                        <p><strong>{t('Ticket Status')}: </strong>{ticket.ReqStatus || 'N/A'}</p>
+                        <p><strong>{t('Ticket Action')}: </strong>{ticket.ReqAction || 'N/A'}</p>
                       </div>
                     </IonCard>
                   ))}
@@ -207,15 +214,15 @@ const GetRequests: React.FC = () => {
             </IonCard>
 
             <div className='footer'>
-              <IonTitle className='footer ion-text-center'>Helpline | +91 90999 XXXXX</IonTitle>
+            <CustomFooter />
             </div>
           </>
         )}
         {/* Moal code goes below */}
-        <IonModal isOpen={showRequestModal} onDidDismiss={() => setShowRequestModal(false)}>
+        <IonModal isOpen={showRequestModal} onDidDismiss={() => setShowRequestModal(false)}  >
           <IonHeader>
             <IonToolbar>
-              <IonTitle>{'Create Ticket'}</IonTitle>
+              <IonTitle>{t('Create Ticket')}</IonTitle>
               <IonButtons slot="end">
                 <IonButton onClick={() => setShowRequestModal(false)}>
                   <IonIcon icon={closeOutline} size="large"></IonIcon>
@@ -231,8 +238,8 @@ const GetRequests: React.FC = () => {
               {/* <div>{JSON.stringify(subjectList)}</div> */}
               <IonItem>
                 <IonSelect
-                  label="Subject"
-                  placeholder="Select Subject"
+                  label={t('Subject')}
+                  placeholder={t('Select Subject')}
                   onIonChange={(e) => {
                     console.log(`ionChange fired with value: ${e.detail.value}`);
                     setReqSubject(e.detail.value);
@@ -244,8 +251,8 @@ const GetRequests: React.FC = () => {
               </IonItem>
               {/* </IonItem> */}
               <IonItem>
-                <IonLabel position="floating">Description</IonLabel>
-                <IonTextarea value={reqDesc} onIonInput={e => setReqDesc(e.detail.value!)}></IonTextarea>
+                <IonLabel position="floating">{t('Description')}</IonLabel>
+                <IonTextarea autoGrow={true} rows={10} value={reqDesc} placeholder='Enter your ticket detail here' onIonInput={e => setReqDesc(e.detail.value!)}></IonTextarea>
               </IonItem>
               {/* <IonItem>
                 <IonLabel>Priority</IonLabel>

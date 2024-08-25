@@ -29,6 +29,7 @@ import {
   IonRefresher,
   IonRefresherContent,
   RefresherEventDetail,
+  useIonLoading,
 } from '@ionic/react';
 
 import { isPlatform } from '@ionic/react';
@@ -49,6 +50,10 @@ import useAuth from '../hooks/useAuth';
 import { close, closeOutline, personCircleOutline } from 'ionicons/icons';
 import MyStopwatch from './DashboardMyTimer';
 import CustomHeader from './CustomHeader';
+import CustomFooter from './CustomFooter';
+import { useHistory } from 'react-router-dom';
+import '../utilities_constant';
+import { BASEURL } from '../utilities_constant';
 
 const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   const [duty, setDuty] = useState(false);
@@ -69,23 +74,30 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [reqType, setReqType] = useState('sos');
   const [reqSubject, setReqSubject] = useState('');
+  const [currentsiteid, setcurrentsiteid] = useState('');
   const [reqDesc, setReqDesc] = useState('');
   const [reqOtherDetail, setReqOtherDetail] = useState('');
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [dutystartinfo, setdutystartinfo] = useState<any>(null);
   const [dutyDetailsFromOngoingDuty, setDutyDetailsFromOngoingDuty] = useState<any>({});
+  const [otherdutyDetails, setotherdutyDetails] = useState<any>({});
   const [inRange, SetInRange] = useState<boolean>(true);
   const [inAlert, SetInAlert] = useState<boolean>(false);
   const [movementAlertMessage, SetMovementAlertMessage] = useState<string>('');
   const [elapsedState, setElapsedState] = useState<number>(0);
   const [alertModal, setAlertModal] = useState(false);
   const [alertReplyInput, setAlertReplyInput] = useState('');
-
+  const [Otherdutyinfo, setOtherdutyinfo] = useState<boolean>(false);
+  const [simonenumber, setsimonenumber] = useState('');
+  const [simtwonumber, setsimtwonumber] = useState('');
+  const [upcomingtitle, setupcomingtitle] = useState<boolean>(false);
+  
   useEffect(() => {
     const storedData = localStorage.getItem('loggedInUser');
     const storedToken = localStorage.getItem('token');
-
+    const sellanguage = localStorage.getItem('language');
+    
     if (storedData) {
       setLoggedInUser(JSON.parse(storedData));
     }
@@ -149,13 +161,16 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
       }
       
       // console.log("Ongoing Duty formdata:: ", formData);
-      const response = await axios.post('https://guard.ghamasaana.com/guard_new_api/ongoing_duty.php', formData);
+      const response = await axios.post(BASEURL+'ongoing_duty.php', formData);
       const data = response.data;
 
       // Case to validate API was success and employee data is available
       if (data?.success && data?.employee_data) {
         setDutyDetailsFromOngoingDuty(data.employee_data);
-
+        setcurrentsiteid(data.employee_data.site_id);
+     setOtherdutyinfo(data.employee_data.other_duty_info);
+     setotherdutyDetails(data.employee_data.other_duty_detail);
+     setupcomingtitle(data.employee_data.upcomming_duty);
         // Case to validate start date is available which is responsible to show Duty timer
         if (data?.employee_data && data?.employee_data?.duty_ongoing_info && data?.employee_data?.duty_ongoing_info?.duty_start_date) {
           let past = new Date(data?.employee_data?.duty_ongoing_info?.duty_start_date);
@@ -172,6 +187,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
         setIsRunning(true);
         setElapsedTime(convertRemainingTime(data.employee_data.remaining_time));
         setdutystartinfo(data.employee_data.duty_ongoing_info);
+   
         if (intervalRef.current == null) {
           intervalRef.current = setInterval(() => {
             setElapsedTime((prevTime) => prevTime + 1);
@@ -234,8 +250,8 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   async function dutyApi(formData, dutyEnd) {
     try {
       const response = dutyEnd
-        ? await axios.post('https://guard.ghamasaana.com/guard_new_api/dutystop.php', formData)
-        : await axios.post('https://guard.ghamasaana.com/guard_new_api/dutystart.php', formData, {
+        ? await axios.post(BASEURL+'dutystop.php', formData)
+        : await axios.post(BASEURL+'dutystart.php', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -255,7 +271,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
       formData.append('token', token);
       formData.append('latitude', 'latitude disabled');
       formData.append('longitude', 'longitude disabled');
-      let DUMMY_MOVEMENT_URL = 'https://guard.ghamasaana.com/guard_new_api/dutystartmovement.php';
+      let DUMMY_MOVEMENT_URL = BASEURL+'dutystartmovement.php';
       const response = await axios.post(DUMMY_MOVEMENT_URL, formData);
       console.log("response DUMMY -- -", response);
     }catch (error) {
@@ -274,7 +290,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
         formData.append('latitude', Latitude);
         formData.append('longitude', Longitude);
 
-        const response = await axios.post('https://guard.ghamasaana.com/guard_new_api/dutystartmovement.php', formData);
+        const response = await axios.post(BASEURL+'dutystartmovement.php', formData);
         // present({
         //   message: `Duty Movement Called!`,
         //   duration: 2000,
@@ -323,8 +339,10 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
           formData.append('token', token);
           formData.append('latitude', Latitude);
           formData.append('longitude', Longitude);
+          formData.append('cursiteid', currentsiteid);
           formData.append('duty_start_verification', 'Face_Recognition');
           formData.append('duty_start_pic', JSON.stringify(photoData));
+        
           dutyApi(formData, false)
             .then((response) => {
               if (response && response.success) {
@@ -414,7 +432,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
     // return false;
 
     axios
-      .post('https://guard.ghamasaana.com/guard_new_api/add_new_request.php', formData)
+      .post(BASEURL+'add_new_request.php', formData)
       .then((response) => {
         if (response.data && response.data.success) {
           present({
@@ -462,7 +480,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
     formData.append('alertreply', alertReplyInput);
     formData.append('alertmsg', movementAlertMessage);
 
-    axios.post('https://guard.ghamasaana.com/guard_new_api/alert_message_status.php', formData).then((response) => {
+    axios.post(BASEURL+'alert_message_status.php', formData).then((response) => {
       if (response.data && response.data.success) {
         present({
           message: `Your alert reply has been submitted successfully!`,
@@ -501,19 +519,20 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
 <IonCardContent className="shift-details-card-content">
   <div className="shift-details-column">
     {dutyDetailsFromOngoingDuty && dutyDetailsFromOngoingDuty?.duty_ongoing_info &&
-      dutyDetailsFromOngoingDuty?.duty_ongoing_info?.duty_start_pic && <p className='duty-start-pic-guard'><strong>Guard Duty Image:</strong> <IonImg
-        src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${dutyDetailsFromOngoingDuty?.duty_ongoing_info?.duty_start_pic}`}
+      dutyDetailsFromOngoingDuty?.duty_ongoing_info?.duty_start_pic && <p className='duty-start-pic-guard'><strong>{t('Your Duty Pic')}:</strong> <IonImg
+        src={BASEURL+`dutyverificationimg/${dutyDetailsFromOngoingDuty?.duty_ongoing_info?.duty_start_pic}`}
       ></IonImg></p>}
-    <p><strong>Client Name:</strong> {loggedInUser?.client_name}</p>
-    <p><strong>Site Name & Address:</strong> <span className='text-right'>{loggedInUser?.site_name}, {loggedInUser?.site_city}, {loggedInUser?.site_state}</span></p>
-    <p><strong>Site Status:</strong> {loggedInUser?.site_status}</p>
-  </div>
+    <p><strong>{t('Client Name')}:</strong> {dutyDetailsFromOngoingDuty?.client_name}</p>
+    <p><strong>{t('Site Name & Address')}:</strong> <span className='text-right'>{dutyDetailsFromOngoingDuty?.site_name}, {dutyDetailsFromOngoingDuty?.site_city}, {dutyDetailsFromOngoingDuty?.site_state}</span></p>
+    <p><strong>{t('Site ID')}:</strong> {dutyDetailsFromOngoingDuty?.site_id}</p>
+    <p><strong>{t('Sol ID')}:</strong> {dutyDetailsFromOngoingDuty?.sol_id}</p>
+      </div>
   <div className="shift-details-column">
-    <p><strong>Authorized Shift:</strong> {loggedInUser?.auth_shift}</p>
-    <p><strong>Shift Start Time:</strong> {loggedInUser?.shift_start_time}</p>
-    <p><strong>Shift End Time:</strong> {loggedInUser?.shift_end_time}</p>
+    <p><strong>{t('Authorized Shift')}:</strong> {dutyDetailsFromOngoingDuty?.auth_shift}</p>
+    <p><strong>{t('Shift Start Time')}:</strong> {dutyDetailsFromOngoingDuty?.shift_start_time}</p>
+    <p><strong>{t('Shift End Time')}:</strong> {dutyDetailsFromOngoingDuty?.shift_end_time}</p>
     {isRunning ? (
-      <p><strong>Duty Started On :</strong>{dutystartinfo?.duty_start_date}</p>
+      <p><strong>{t('Duty Started On')}:</strong>{dutystartinfo?.duty_start_date}</p>
     ) : ('')}
   </div>
 </IonCardContent>
@@ -555,7 +574,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   </IonRow>
 </IonGrid>
 </IonCard> 
-: <div className='errorDashboardData'>Error fetching ongoing duty data.</div>}
+: <div className='errorDashboardData'>Please wait while loading data.</div>}
         
 
         <IonGrid className="ion-margin ion-text-center">
@@ -615,9 +634,48 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
           </IonContent>
         </IonModal>
       </div>
-      {/* </IonContent> */}
+   
+   
+
+      
+        {Otherdutyinfo ? (
+          <div className="content">
+        <IonCard className="shift-details-card">
+{upcomingtitle ? (<IonCardHeader>
+  <IonCardTitle>{t('Next Duty Detail')}</IonCardTitle>
+</IonCardHeader>):(<IonCardHeader>
+  <IonCardTitle>{t('Previous Duty Detail')}</IonCardTitle>
+</IonCardHeader>)}
+
+<IonCardContent className="shift-details-card-content">
+  <div className="shift-details-column">
+  
+    <p><strong>{t('Client Name')}:</strong> {otherdutyDetails?.client_name}</p>
+    <p><strong>{t('Site Name & Address')}:</strong> <span className='text-right'>{otherdutyDetails?.site_name}, {otherdutyDetails?.site_city}, {dutyDetailsFromOngoingDuty?.site_state}</span></p>
+    <p><strong>{t('Site ID')}:</strong> {otherdutyDetails?.site_id}</p>
+    <p><strong>{t('Sol ID')}:</strong> {otherdutyDetails?.sol_id}</p>
+      </div>
+  <div className="shift-details-column">
+    <p><strong>{t('Authorized Shift')}:</strong> {otherdutyDetails?.auth_shift}</p>
+    <p><strong>{t('Shift Start Time')}:</strong> {otherdutyDetails?.shift_start_time}</p>
+    <p><strong>{t('Shift End Time')}:</strong> {otherdutyDetails?.shift_end_time}</p>
+
+  </div>
+</IonCardContent>
+
+
+</IonCard> 
+</div>
+) : ('')}
+        
+
+  
+
+
+   
+      
       <div className="footer">
-        <IonTitle className="footer ion-text-center">Helpline | +91 90999 XXXXX</IonTitle>
+      <CustomFooter />
       </div>
     </div>
   );
@@ -756,7 +814,7 @@ function ModalComponent(props) {
     formData.append('alertreply', alertReplyInput);
     formData.append('alertmsg', props.itemFromLocalStorage.movementAlertMessage);
 
-    axios.post('https://guard.ghamasaana.com/guard_new_api/alert_message_status.php', formData).then((response) => {
+    axios.post(BASEURL+'alert_message_status.php', formData).then((response) => {
       if (response.data && response.data.success) {
         present({
           message: `Your alert reply has been submitted successfully!`,

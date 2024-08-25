@@ -45,6 +45,8 @@ import axios from 'axios';
 import './Page.css';
 import useAuth from '../hooks/useAuth';
 import CustomHeader from './CustomHeader';
+import CustomFooter from './CustomFooter';
+import { BASEURL } from '../utilities_constant';
 
 const Dashboard: React.FC = () => {
   const [duty, setDuty] = useState(false);
@@ -58,6 +60,7 @@ const Dashboard: React.FC = () => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const intervalRef = useRef(null);
   const [showModal, setShowModal] = useState(false);
+  const [Loading, setLoading] = useState(true);
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [priority, setPriority] = useState('LOW');
@@ -71,6 +74,7 @@ const Dashboard: React.FC = () => {
   const [alertMessage, setAlertMessage] = useState('');
   const [dutystartinfo, setdutystartinfo] = useState<any>(null);
   const [ProfileData, setProfileData] = useState<any>({});
+  const [reloader, setReloader] = useState(false);
   useEffect(() => {
     const storedData = localStorage.getItem('loggedInUser');
     const storedToken = localStorage.getItem('token');
@@ -89,19 +93,15 @@ const Dashboard: React.FC = () => {
 
 
   const fetchProfileData = async (token: string) => {
-    const url = 'https://guard.ghamasaana.com/guard_new_api/profile.php';
+    const url = BASEURL+'profile.php';
     const formData = new FormData();
     formData.append('action', 'profile_data');
     formData.append('token', token);
 
     try {
       const response = await axios.post(url, formData);
-      console.log("response.data -----  PROFILE", response.data);
       if (response.data && response.data.employee_data) {
         setProfileData(response.data.employee_data);
-        if(response?.data?.employee_data){
-          localStorage.setItem('loggedInUser', JSON.stringify(response?.data?.employee_data));
-        }
       }
       // else {
       //   history.push('/pages/login');
@@ -109,18 +109,18 @@ const Dashboard: React.FC = () => {
     } catch (error) {
       console.error('Error fetching profile data:', error);
       // history.push('/pages/login');
+    } finally {
+      setLoading(false);
     }
   };
-
   function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
     //Function that hits when ion pull to refresh is called
     setTimeout(() => {
-      const storedToken = localStorage.getItem('token');
-      fetchProfileData(storedToken);
+    //console.log("PAGE TO be ReFRESHED");
+      setReloader(!reloader);
       event.detail.complete();
     }, 500);
   }
-
   return (
     <IonPage>
       <IonHeader>
@@ -129,19 +129,21 @@ const Dashboard: React.FC = () => {
             <IonMenuButton />
           </IonButtons>
           <CustomHeader />
+          <IonContent className="page-content">
+          <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+            <IonRefresherContent></IonRefresherContent>
+          </IonRefresher></IonContent>
+          <IonTitle>{name}</IonTitle>
         </IonToolbar>
       </IonHeader>
 
       <IonContent className="page-content">
-        <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
-          <IonRefresherContent></IonRefresherContent>
-        </IonRefresher>   
         <IonHeader collapse="condense">
           <IonTitle>{name}</IonTitle>
         </IonHeader>
         <div className="content">
           <div className="header_title">
-            <IonTitle className="header_title ion-text-center">Welcome {loggedInUser?.full_name}</IonTitle>
+            <IonTitle className="header_title ion-text-center">{t('Welcome')} {loggedInUser?.full_name}</IonTitle>
           </div>
           <IonCard className="shift-details-card profilepage">
 
@@ -151,36 +153,37 @@ const Dashboard: React.FC = () => {
             <IonCardContent className="shift-details-card-content">
               <div className="shift-details-column">
                 <div>
-                  {ProfileData?.photo && <div className='profileImageParentSh'>
-                    <div>
-                      <IonImg
-                        className='imageionclass'
-                        src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${ProfileData.photo}`}
-                      ></IonImg>
-                    </div>
-                  </div>}
+                {ProfileData?.photo && <div className='profileImageParentSh'>
+        <div>
+        <IonImg
+          className='imageionclass'
+          src={BASEURL+`emp_image/${ProfileData.photo}`}
+        ></IonImg>
+        </div>
+      </div>}
                 </div>
-                <p><strong>Full Name:</strong> <span>{ProfileData?.full_name}</span></p>
-                <p><strong>Roll Number:</strong><span> {ProfileData?.roll_no}</span></p>
-                <p><strong>Emp ID:</strong> <span>{ProfileData?.emp_id}</span></p>
-                <p><strong>Designation:</strong><span> {ProfileData?.designation}</span></p>
-                <p><strong>State:</strong><span> {ProfileData?.recruit_state}</span></p>
-                <p><strong>Mobile Number:</strong> <span>{ProfileData?.reg_mobile_no}</span></p>
-                <p><strong>Current Status:</strong><span> {ProfileData?.emp_status}</span></p>
-                <p><strong>DOB:</strong><span> {ProfileData?.dob}</span></p>
-                <p><strong>DOJ:</strong><span> {ProfileData?.doj}</span></p>
+                <p><strong>{t('Full Name')}:</strong> <span>{ProfileData?.full_name}</span></p>
+                <p><strong>{t('Roll Number')}:</strong><span> {ProfileData?.roll_no}</span></p>
+                <p><strong>{t('Emp ID')}:</strong> <span>{ProfileData?.emp_id}</span></p>
+                <p><strong>{t('Designation')}:</strong><span> {ProfileData?.designation}</span></p>
+               {/* <p><strong>State:</strong><span> {ProfileData?.recruit_state}</span></p>*/}
+                <p><strong>{t('Mobile Number')}:</strong> <span>{ProfileData?.reg_mobile_no}</span></p>
+                {/*<p><strong>Current Status:</strong><span> {ProfileData?.emp_status}</span></p>*/}
+                <p><strong>{t('DOB')}:</strong><span> {ProfileData?.dob}</span></p>
+                <p><strong>{t('Registration Date')}:</strong><span> {ProfileData?.reg_date} </span></p>
+               {/* <p><strong>DOJ:</strong><span> {ProfileData?.doj}</span></p>
                 <p><strong>Id Card Valid UPTO:</strong><span>{ProfileData?.id_card_valid_upto}</span></p>
                 <p><strong>Mobile Verified:</strong><span> {ProfileData?.mobile_verified} </span></p>
-                <p><strong>Registeration Date:</strong><span> {ProfileData?.reg_date} </span></p>
+                
                 <p><strong>Last Updated On:</strong> <span>{ProfileData?.last_updated_on}</span></p>
-                <p><strong>Aadhar No:</strong> {ProfileData?.aadhar_no}</p>
+                <p><strong>Aadhar No:</strong> {ProfileData?.aadhar_no}</p>*/}
               </div>
             </IonCardContent>
           </IonCard>
         </div>
       </IonContent>
       <div className="footer">
-        <IonTitle className="footer ion-text-center">Helpline | +91 90999 XXXXX</IonTitle>
+      <CustomFooter />
       </div>
     </IonPage>
   );

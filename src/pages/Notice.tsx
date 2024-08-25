@@ -5,6 +5,9 @@ import './Page.css';
 import axios from 'axios';
 import { addCircle, mailUnread, mailUnreadOutline, personCircle } from 'ionicons/icons';
 import CustomHeader from './CustomHeader';
+import CustomFooter from './CustomFooter';
+import { BASEURL } from '../utilities_constant';
+import { t } from 'i18next';
 
 const Notice: React.FC = () => {
   const [noticeData, setNoticeData] = useState<string | null>(null);
@@ -27,7 +30,7 @@ const Notice: React.FC = () => {
 
   const fetchNoticeData = async () => {
     const token = localStorage.getItem('token');
-    const url = 'https://guard.ghamasaana.com/guard_new_api/notice.php';
+    const url = BASEURL+'notice.php';
     const formData = new FormData();
     formData.append('action', 'notice_data');
     formData.append('token', token);
@@ -65,7 +68,7 @@ const Notice: React.FC = () => {
 
   function callReadApi(item) {
     const tokenVal = localStorage.getItem('token');
-    let URL = "https://guard.ghamasaana.com/guard_new_api/notice_status.php";
+    let URL = BASEURL+"notice_status.php";
     const formData = new FormData();
     formData.append('action', "notice_status");
     formData.append('token', tokenVal);
@@ -105,8 +108,8 @@ const Notice: React.FC = () => {
         </IonHeader>
         <div className='ion-text-center shadowCard'>
           <IonCardHeader>
-            <IonCardTitle className='logintitle' color={'dark'}>Notice</IonCardTitle>
-            <IonCardSubtitle className='subtitle' color={'dark'}>Important Points for Guards and Duty</IonCardSubtitle>
+            <IonCardTitle className='logintitle' color={'dark'}>{t('Notification')}</IonCardTitle>
+            <IonCardSubtitle className='subtitle' color={'dark'}>{t('Important Points for Guards/Duty')}</IonCardSubtitle>
           </IonCardHeader>
 
           <IonCardContent>
@@ -114,11 +117,11 @@ const Notice: React.FC = () => {
               {(noticeData && noticeData.length > 0) ? (noticeData.map((item, index) => (
                 <IonCard className='card' key={index}>
                   <div className="shift-details-column">
-                    <p style={{marginBottom:'0px'}}><strong>Notification Title: </strong></p>
+                    <p style={{marginBottom:'0px'}}><strong>{t('Notification Title')}: </strong></p>
                     <div style={{textAlign:'left', marginBottom: '10px'}}>
                       <div>{item?.NoticeCategory || ''}</div>
                     </div>
-                    <p style={{marginBottom:'0px'}}><strong>Notification Description : </strong></p>
+                    <p style={{marginBottom:'0px'}}><strong>{t('Notification Description')}: </strong></p>
                     <div style={{textAlign:'left'}}>
                       <div>{item?.NoticeContent || ''}</div>
                     </div>
@@ -154,7 +157,7 @@ const Notice: React.FC = () => {
           </IonCardContent>
         </div>
         <div className='footer'>
-          <IonTitle className='footer ion-text-center'>Helpline | +91 90999 XXXXX</IonTitle>
+        <CustomFooter />
         </div>
       </IonContent>
     </IonPage>

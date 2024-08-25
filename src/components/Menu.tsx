@@ -19,8 +19,13 @@ import {
   personCircleOutline,
   paperPlaneOutline,
   notificationsOutline,
+  imageOutline,
+  informationCircle,
   personAddOutline,
   languageOutline,
+  contractOutline,
+  alertCircleOutline,
+  personCircle,
   logOutOutline,
   logInOutline,
   peopleCircleOutline,
@@ -41,7 +46,7 @@ const Menu: React.FC = () => {
   useEffect(() => {
     const checkLoginStatus = () => {
       const loggedInStatus = localStorage.getItem('isLoggedIn') === 'true';
-      console.log('Login status:', loggedInStatus); // Debugging line
+   
       setIsLoggedIn(loggedInStatus);
     };
     // const loggedUserData = localStorage.getItem('loggedInUser');
@@ -61,18 +66,18 @@ const Menu: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    console.log("Sessionizes useEffect Called", isLoggedIn);
+  
     if(isLoggedIn){
-      console.log("Inide if ---- ", isLoggedIn);
+      
         const loggedUserData = localStorage.getItem('loggedInUser');
         setLoggedUserData(JSON.parse(loggedUserData));
-        console.log("SH verify logged data inner case", loggedUserData);
+     
     }
   }, [isLoggedIn]);
 
   const menuItems = [
     {
-      title: t('Home'),
+      title: t('dashboard'),
       url: '/pages/tabs/Dashboard',
       iosIcon: calendarClearOutline,
       mdIcon: calendarClearOutline,
@@ -80,21 +85,36 @@ const Menu: React.FC = () => {
     },
     {
       title: t('Duty Info'),
-      url: '/pages/tabs/Dashboard/DutyInfo',
+      url: '/pages/tabs/DutyInfo',
       iosIcon: informationCircleOutline,
       mdIcon: informationCircleOutline,
-      isManager: false
+      isManager: false,
+      enabled: loggedUserData?.dutydisplay == 1 ? true: false
     },
     {
       title: t('Profile'),
-      url: '/pages/Accountupd',
+      url: '/pages/tabs/Accountupd',
       iosIcon: personCircleOutline,
       mdIcon: personCircleOutline,
       isManager: false
     },
     {
-      title: t('Requests'),
-      url: '/pages/tabs/getRequest',
+      title: t('SOP'),
+      url: '/pages/tabs/getSop',
+      iosIcon: paperPlaneOutline,
+      mdIcon: paperPlaneOutline,
+      isManager: false
+    },
+    {
+      title: t('incident Report'),
+      url: '/pages/tabs/getGallery',
+      iosIcon: imageOutline,
+      mdIcon: imageOutline,
+      isManager: false
+    },
+    {
+      title: t('Daily Post Report'),
+      url: '/pages/tabs/getPostReport',
       iosIcon: paperPlaneOutline,
       mdIcon: paperPlaneOutline,
       isManager: false
@@ -114,17 +134,17 @@ const Menu: React.FC = () => {
       isManager: false
     },
     {
-      title: t('Add New Guard'),
-      url: '/pages/AddNewGuard',
+      title: t('New Recruitment'),
+      url: '/pages/tabs/listgaurd',
       iosIcon: personAddOutline,
       mdIcon: personAddOutline,
       isManager: false
     },
     {
       title: t('Your ID Card'),
-      url: '/pages/idCard',
-      iosIcon: personAddOutline,
-      mdIcon: personAddOutline,
+      url: '/pages/tabs/idCard',
+      iosIcon: personCircleOutline,
+      mdIcon: personCircleOutline,
       isManager: false
     },{
       title: t('Manager'),
@@ -134,8 +154,22 @@ const Menu: React.FC = () => {
       isManager: true
     },
     {
+      title: t('Emergency Contacts'),
+      url: '/pages/tabs/emergencyContact',
+      iosIcon: contractOutline,
+      mdIcon: contractOutline,
+      isManager: false
+    },
+    {
+      title: t('Help'),
+      url: '/pages/tabs/helptxt',
+      iosIcon: alertCircleOutline,
+      mdIcon: alertCircleOutline,
+      isManager: false
+    },
+    {
       title: t('Change Language'),
-      url: '/pages/LanguageSelector',
+      url: '/pages/tabs/LanguageSelector',
       iosIcon: languageOutline,
       mdIcon: languageOutline,
       isManager: false

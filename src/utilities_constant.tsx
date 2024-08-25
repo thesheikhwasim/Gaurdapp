@@ -1,0 +1,1 @@
+export const BASEURL='https://guard.ghamasaana.com/guard_new_api/';
