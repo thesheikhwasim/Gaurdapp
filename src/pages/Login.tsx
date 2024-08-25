@@ -45,28 +45,31 @@ import { registerNotifications } from '../utility/pushNotifications';
 import { Sim } from '@jonz94/capacitor-sim';
 import { Device } from '@capacitor/device';
 import CustomHeader from './CustomHeader';
+import { useIonRouter } from '@ionic/react';
 import CustomFooter from './CustomFooter';
 import { close, closeOutline, personCircleOutline } from 'ionicons/icons';
 import { BASEURL } from '../utilities_constant';
-import {Md5} from 'ts-md5';
+import { Md5 } from 'ts-md5';
 const sampleSimCardNumber = [
   {
-  carrierName : "airtel",
-  isoCountryCode:"in",
-  mobileCountryCode: "404",
-  mobileNetworkCode : "10",
-  number : "+91345345345435",
-},
-{
-  carrierName : "jio",
-  isoCountryCode:"in",
-  mobileCountryCode: "404",
-  mobileNetworkCode : "10",
-  number : "91345345345",
-}
+    carrierName: "airtel",
+    isoCountryCode: "in",
+    mobileCountryCode: "404",
+    mobileNetworkCode: "10",
+    number: "+91345345345435",
+  },
+  {
+    carrierName: "jio",
+    isoCountryCode: "in",
+    mobileCountryCode: "404",
+    mobileNetworkCode: "10",
+    number: "91345345345",
+  }
 ]
 
 const Login: React.FC = () => {
+  const router = useIonRouter();
+
   const { t } = useTranslation();
   const { name } = useParams<{ name: string; }>();
   const history = useHistory();
@@ -96,30 +99,30 @@ const Login: React.FC = () => {
 
   const getSimCards = async () => {
     const { simCards } = await Sim.getSimCards();
-    if(simCards){
-      
+    if (simCards) {
+
       setSimCardsFromDevice(simCards);
     }
   }
 
-  function getSimCardsToDisplay(simArr){
+  function getSimCardsToDisplay(simArr) {
     console.log("simArr ---", simArr);
     let tempSim = '';
     // return tempSim;
 
-    if(simArr && simArr.length > 0){
+    if (simArr && simArr.length > 0) {
       simArr.map((e, key) => {
-        if(key == 0){
-        
-         
-         
+        if (key == 0) {
+
+
+
           tempSim = e.number;
-           
-        }else{
-         
-       
-          
-    
+
+        } else {
+
+
+
+
           tempSim = tempSim + ',' + e.number;
         }
       });
@@ -129,7 +132,7 @@ const Login: React.FC = () => {
 
   }
 
-  async function hitCheckPermissionsForGeolocation (){
+  async function hitCheckPermissionsForGeolocation() {
     const checkPermissions = await Geolocation.checkPermissions();
     console.log("Login page checkPermissions 0", checkPermissions);
     if (checkPermissions?.location == "denied") {
@@ -149,24 +152,24 @@ const Login: React.FC = () => {
     // Case to validate permission is denied, if denied error message alert will be shown
     console.log("Login page permissions rendered", permissions);
     Geolocation.getCurrentPosition()
-    .then((position) => {
-      if(position &&( position?.coarseLocation == 'denied' || position?.location == 'denied')){
+      .then((position) => {
+        if (position && (position?.coarseLocation == 'denied' || position?.location == 'denied')) {
+          present({
+            message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
+            duration: 5000,
+            position: 'bottom',
+          });
+        }
+        console.info("There will be no issue dashboard related to location. ", position);
+      })
+      .catch((error) => {
         present({
-          message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
+          message: `Error in fetching location, re-start app by veryfying permissions!`,
           duration: 5000,
           position: 'bottom',
         });
-      }
-      console.info("There will be no issue dashboard related to location. ", position);
-    })
-    .catch((error) => {
-      present({
-        message: `Error in fetching location, re-start app by veryfying permissions!`,
-        duration: 5000,
-        position: 'bottom',
+        console.error("There will be issue on dashboard related to location. ", error);
       });
-      console.error("There will be issue on dashboard related to location. ", error);
-    });
   }
 
   useEffect(() => {
@@ -180,7 +183,7 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     formValidation();
-  }, [empid, mpin,mobileNumber]);
+  }, [empid, mpin, mobileNumber]);
 
   const saveToStorage = () => {
     // Save data to local storage
@@ -192,7 +195,7 @@ const Login: React.FC = () => {
   async function loginApi(formData) {
     try {
       // alert(formData);
-      const response = await axios.post(BASEURL+'login.php', formData);
+      const response = await axios.post(BASEURL + 'login.php', formData);
       return response.data;
     } catch (error) {
       console.error('Error:', error);
@@ -201,7 +204,7 @@ const Login: React.FC = () => {
   }
 
   const formValidation = () => {
-    if (empid != '' && mpin != '' && mobileNumber !='') {
+    if (empid != '' && mpin != '' && mobileNumber != '') {
       setBtnEnabled(true);
     } else if (btnEnabled) {
       setBtnEnabled(false);
@@ -221,109 +224,102 @@ const Login: React.FC = () => {
       formData.append('action', "login");
       formData.append('deviceId', deviceId);
       formData.append('language', storedLang);
-if(simCardsFromDevice && simCardsFromDevice.length> 0)
-{
-  
-  const simdetail =  getSimCardsToDisplay(simCardsFromDevice);
-  const simArray = simdetail.split(",");
-  if(simCardsFromDevice.length==1)
-  {
-    simArray[1]='';
-  }
- 
-if(simArray.length>0 && simArray[0]==='' && simArray[1]==='')
-{
-  const response = await loginApi(formData);
+      if (simCardsFromDevice && simCardsFromDevice.length > 0) {
 
-  if (response) {
+        const simdetail = getSimCardsToDisplay(simCardsFromDevice);
+        const simArray = simdetail.split(",");
+        if (simCardsFromDevice.length == 1) {
+          simArray[1] = '';
+        }
 
-    if (response.success) {
-      saveToStorage();
+        if (simArray.length > 0 && simArray[0] === '' && simArray[1] === '') {
+          const response = await loginApi(formData);
+
+          if (response) {
+
+            if (response.success) {
+              saveToStorage();
 
 
-      localStorage.setItem('loggedInUser', JSON.stringify(response.employee_data));
-      localStorage.setItem('token', response.token);
-      history.push('/pages/tabs/Dashboard');
-    
-    } else {
-      alert(response.message || 'Wrong User Name or Password');
-    }
-  } else {
-    alert('Wrong User Name or Password');
-  }
-   
-}
-else
-{
+              localStorage.setItem('loggedInUser', JSON.stringify(response.employee_data));
+              localStorage.setItem('token', response.token);
+              router.push('/pages/tabs/Dashboard', 'forward', 'replace');
 
- 
-  if ((simArray[0]!='' &&  (simArray[0]===('91'+mobileNumber) || simArray[0]===(mobileNumber))) || (simArray[1]!="" &&  (simArray[1]===('91'+mobileNumber) || simArray[1]===(mobileNumber))))
-  {
-    
-    const response = await loginApi(formData);
+            } else {
+              alert(response.message || 'Wrong User Name or Password');
+            }
+          } else {
+            alert('Wrong User Name or Password');
+          }
 
-  if (response) {
-
-    if (response.success) {
-      saveToStorage();
+        }
+        else {
 
 
-      localStorage.setItem('loggedInUser', JSON.stringify(response.employee_data));
-      localStorage.setItem('token', response.token);
-      history.push('/pages/tabs/Dashboard');
-    
-    } else {
-      alert(response.message || 'Wrong User Name or Password');
-    }
-  } else {
-    alert('Wrong User Name or Password');
-  }
-  }
-  else
-  {
-    alert('Your Mobile Number not Matching with Device Mobile Number. Please use the same device');
-    }
-}
-}
-else
-{
- 
-  const response = await loginApi(formData);
-  if (response) {
+          if ((simArray[0] != '' && (simArray[0] === ('91' + mobileNumber) || simArray[0] === (mobileNumber))) || (simArray[1] != "" && (simArray[1] === ('91' + mobileNumber) || simArray[1] === (mobileNumber)))) {
 
-    if (response.success) {
-      saveToStorage();
+            const response = await loginApi(formData);
+
+            if (response) {
+
+              if (response.success) {
+                saveToStorage();
 
 
-      localStorage.setItem('loggedInUser', JSON.stringify(response.employee_data));
-      localStorage.setItem('token', response.token);
-      history.push('/pages/tabs/Dashboard');
-    
-    } else {
-      alert(response.message || 'Wrong User Name or Password');
-    }
-  } else {
-    alert('Wrong User Name or Password');
-  }
- 
-}
-   
+                localStorage.setItem('loggedInUser', JSON.stringify(response.employee_data));
+                localStorage.setItem('token', response.token);
+                router.push('/pages/tabs/Dashboard', 'forward', 'replace');
+
+              } else {
+                alert(response.message || 'Wrong User Name or Password');
+              }
+            } else {
+              alert('Wrong User Name or Password');
+            }
+          }
+          else {
+            alert('Your Mobile Number not Matching with Device Mobile Number. Please use the same device');
+          }
+        }
+      }
+      else {
+
+        const response = await loginApi(formData);
+        if (response) {
+
+          if (response.success) {
+            saveToStorage();
+
+
+            localStorage.setItem('loggedInUser', JSON.stringify(response.employee_data));
+            localStorage.setItem('token', response.token);
+            router.push('/pages/tabs/Dashboard', 'forward', 'replace');
+
+          } else {
+            alert(response.message || 'Wrong User Name or Password');
+          }
+        } else {
+          alert('Wrong User Name or Password');
+        }
+
+      }
+
     } catch (error) {
       console.error('Error:', error);
     }
   };
 
-//+response.data.employee_data.New_MPIN
+  //+response.data.employee_data.New_MPIN
 
   const handleForgotPassword = () => {
     const formData = new FormData();
     formData.append('action', 'forgot_password');
     formData.append('reqforgotmobile', reqforgotmobile);
-      axios
-      .post(BASEURL+'forgotpassword.php', formData)
+    axios
+      .post(BASEURL + 'forgotpassword.php', formData)
       .then((response) => {
         if (response.data && response.data.success) {
-        
+
           present({
             message: `Your New MPIN request has been created successfully!  `,
             duration: 1000,
@@ -331,7 +327,7 @@ else
           });
           setShowRequestModal(false);
           setreqforgotmobile('');
-         
+
         } else {
           present({
             message: `Failed to Generate New MPIN request. Please try again.`,
@@ -355,7 +351,7 @@ else
     <IonPage>
       <IonHeader>
         <IonToolbar>
-        <CustomHeader />
+          <CustomHeader />
           <IonTitle>{name}</IonTitle>
         </IonToolbar>
       </IonHeader>
@@ -377,7 +373,7 @@ else
                   type="tel"
                   value={empid}
                   placeholder={t('Employee ID')}
-                  
+
                   onIonInput={(e) => {
                     setUsername(e.detail.value!);
                   }}
@@ -387,7 +383,7 @@ else
                 <IonInput
                   type="password"
                   value={mpin}
-                
+
                   placeholder={t('Employee Password')}
                   onIonInput={(e) => {
                     setPassword(e.detail.value!);
@@ -399,14 +395,14 @@ else
                 <IonInput
                   type="number"
                   value={mobileNumber}
-              
+
                   placeholder={t('Mobile Number')}
                   onIonInput={(e) => {
                     setMobileNumber(e.detail.value!);
                   }}
                 />
-              </IonItem> 
-             {/*  {simCardsFromDevice && simCardsFromDevice.length> 0 && <IonItem className='ion-margin-bottom'>
+              </IonItem>
+              {/*  {simCardsFromDevice && simCardsFromDevice.length> 0 && <IonItem className='ion-margin-bottom'>
                 <label>{getSimCardsToDisplay(simCardsFromDevice)}</label>
                 <IonInput
                   type="number"
@@ -429,9 +425,9 @@ else
               </IonItem>
 
               <IonItem className='ion-margin-bottom'>
-              <IonButton expand="block" color="danger" onClick={() => { setReqType('sos'); setShowRequestModal(true); }}>{t('Forgot Password?')}
+                <IonButton expand="block" color="danger" onClick={() => { setReqType('sos'); setShowRequestModal(true); }}>{t('Forgot Password?')}
                 </IonButton>
-              
+
               </IonItem>
 
             </IonList>
@@ -454,19 +450,19 @@ else
               <IonItem>
                 <IonLabel position="floating">Enter Your Registered Mobile No</IonLabel>
                 <IonInput type='number' value={reqforgotmobile} onIonChange={e => setreqforgotmobile(e.detail.value!)}
-                      onIonInput={(e) => {
-                        setreqforgotmobile(e.detail.value!);
-                      }}
-                  ></IonInput>
+                  onIonInput={(e) => {
+                    setreqforgotmobile(e.detail.value!);
+                  }}
+                ></IonInput>
               </IonItem>
-           
-                  </IonList>
+
+            </IonList>
             <IonButton expand="full" onClick={handleForgotPassword}>{'Submit'}</IonButton>
           </IonContent>
         </IonModal>
 
         <div className='footer'>
-        <CustomFooter />
+          <CustomFooter />
         </div>
       </IonContent>
     </IonPage>
