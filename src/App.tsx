@@ -53,6 +53,7 @@ import Logout from './pages/Logout';
 import MainTabs from './components/MainTabs.js';
 import { Geolocation } from '@capacitor/geolocation';
 import { registerNotifications } from './utility/pushNotifications.js';
+
 // import Logout from './pages/Logout';
 setupIonicReact();
 
