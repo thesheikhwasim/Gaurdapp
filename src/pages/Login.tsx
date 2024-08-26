@@ -31,6 +31,7 @@ import {
   IonRefresher,
   IonRefresherContent,
   RefresherEventDetail,
+  useIonRouter,
 } from '@ionic/react';
 import { useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -67,6 +68,7 @@ const sampleSimCardNumber = [
 ]
 
 const Login: React.FC = () => {
+  const router = useIonRouter();
   const { t } = useTranslation();
   const { name } = useParams<{ name: string; }>();
   const history = useHistory();
@@ -174,7 +176,7 @@ const Login: React.FC = () => {
     const storedData = localStorage.getItem('isLoggedIn');
     if (storedData === "true") {
       setIsLoggedIn(storedData);
-      history.push('pages/tabs/Dashboard');
+      router.push('/pages/tabs/Dashboard', 'forward', 'replace');
     }
   }, [history]);
 
@@ -243,7 +245,7 @@ if(simArray.length>0 && simArray[0]==='' && simArray[1]==='')
 
       localStorage.setItem('loggedInUser', JSON.stringify(response.employee_data));
       localStorage.setItem('token', response.token);
-      history.push('/pages/tabs/Dashboard');
+      router.push('/pages/tabs/Dashboard', 'forward', 'replace');
     
     } else {
       alert(response.message || 'Wrong User Name or Password');
@@ -270,7 +272,7 @@ else
 
       localStorage.setItem('loggedInUser', JSON.stringify(response.employee_data));
       localStorage.setItem('token', response.token);
-      history.push('/pages/tabs/Dashboard');
+      router.push('/pages/tabs/Dashboard', 'forward', 'replace');
     
     } else {
       alert(response.message || 'Wrong User Name or Password');
@@ -297,7 +299,7 @@ else
 
       localStorage.setItem('loggedInUser', JSON.stringify(response.employee_data));
       localStorage.setItem('token', response.token);
-      history.push('/pages/tabs/Dashboard');
+      router.push('/pages/tabs/Dashboard', 'forward', 'replace');
     
     } else {
       alert(response.message || 'Wrong User Name or Password');
