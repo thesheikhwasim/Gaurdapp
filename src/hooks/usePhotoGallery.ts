@@ -75,6 +75,67 @@ export function usePhotoGallery() {
   };
 }
 
+export function usePhotoGalleryWithPrompt() {
+
+  const [photos, setPhotos] = useState({
+    filepath: null,
+    webviewPath: null,
+  });
+
+  useEffect(() => {
+    // Load data from local storage when the component mounts
+    const storedData = localStorage.getItem('photosData');
+    if (storedData) {
+      setPhotos(JSON.parse(storedData));
+    }
+  }, []);
+
+  const saveToStorage = (newPhotosParam:any) => {
+    // Save data to local storage
+    localStorage.setItem('photosData', JSON.stringify(newPhotosParam));
+  };
+
+  const takePhotoWithPrompt = async () => {
+    const photo = await Camera.getPhoto({
+      resultType: CameraResultType.Base64,
+      source: CameraSource.Prompt, // Camera, Photos or Prompt!
+      quality: 90,
+    });
+
+    const fileName = "myPhotoGuard" + '.jpeg';
+
+    const newPhotosPrompted = {
+      filepath: fileName,
+      webviewPath: photo,
+    };
+    setPhotos(newPhotosPrompted);
+    saveToStorage(newPhotosPrompted);
+    return photo;
+  };
+
+  const savePicture = async (photo: Photo, fileName: string): Promise<UserPhoto> => {
+    const base64Data = await base64FromPath(photo.webPath!);
+    const savedFile = await Filesystem.writeFile({
+      path: fileName,
+      data: base64Data,
+      directory: Directory.Data,
+    });
+
+    // Use webPath to display the new image instead of base64 since it's
+    // already loaded into memory
+    return {
+      filepath: fileName,
+      webviewPath: photo.webPath,
+    };
+  };
+
+
+  return {
+    photos,
+    takePhotoWithPrompt,
+  };
+}
+
 export interface UserPhoto {
   filepath: string;
   webviewPath?: string;
