@@ -3,7 +3,7 @@ import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, Io
 import axios from 'axios';
 import './Page.css';
 import useAuth from '../hooks/useAuth'; // Import the custom hook
-import { usePhotoGallery } from '../../src/hooks/usePhotoGallery';
+import { usePhotoGallery, usePhotoGalleryWithPrompt } from '../../src/hooks/usePhotoGallery';
 import { useHistory } from 'react-router-dom';
 import CustomHeader from './CustomHeader';
 import CustomFooter from './CustomFooter';
@@ -44,6 +44,8 @@ const AddNewGuard: React.FC = () => {
   const [saveSelectedpolice, setsaveSelectedpolice] = useState('');
   const [saveSelectedmedical, setsaveSelectedmedical] = useState('');
   const { takePhoto } = usePhotoGallery();
+  const { takePhotoWithPrompt } = usePhotoGalleryWithPrompt();
+
   useEffect(()=>{
     let checkMandatoryFlag = mandatoryPass();
     if(checkMandatoryFlag){
@@ -85,8 +87,8 @@ const handlemedicalcameraStart = async () => {
 };
 
 const handlepiccameraStart = async () => {
-  takePhoto().then(async (photoData) => {
-  setsaveSelectedpic(JSON.stringify(photoData));
+  takePhotoWithPrompt().then(async (photoData:any) => {
+    setsaveSelectedpic(JSON.stringify(photoData));
 
 });
 };
