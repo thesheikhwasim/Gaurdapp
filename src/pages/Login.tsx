@@ -127,7 +127,7 @@ const Login: React.FC = () => {
     const storedData = localStorage.getItem('isLoggedIn');
     if (storedData === "true") {
       setIsLoggedIn(storedData);
-      history.push('pages/tabs/Dashboard');
+      router.push('/pages/tabs/Dashboard', 'forward', 'replace');
     }
   }, [history]);
 

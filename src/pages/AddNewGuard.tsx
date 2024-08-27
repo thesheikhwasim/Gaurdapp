@@ -3,6 +3,7 @@ import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, Io
 import axios from 'axios';
 import './Page.css';
 import useAuth from '../hooks/useAuth'; // Import the custom hook
+import { usePhotoGalleryWithPrompt } from '../hooks/usePhotoGallery';
 
 const AddNewGuard: React.FC = () => {
   // useAuth(); // Enforce login requirement
@@ -30,6 +31,7 @@ const AddNewGuard: React.FC = () => {
 
   const [present] = useIonToast();
   const [buttonDisabled, setButtonDisabled] = useState(true);
+  const { takePhotoWithPrompt } = usePhotoGalleryWithPrompt();
 
   useEffect(()=>{
     let checkMandatoryFlag = mandatoryPass();
@@ -53,6 +55,12 @@ const AddNewGuard: React.FC = () => {
     }
     return true;
   }
+
+  const handlepiccameraStart = async () => { //copied funtion from develop
+    takePhotoWithPrompt().then(async (photoData:any) => {
+      // JSON.stringify(photoData)
+    });
+  };
 
   const handleAddGuard = async () => {
     
