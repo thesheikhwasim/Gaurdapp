@@ -7,6 +7,7 @@ import { useHistory } from 'react-router-dom';
 import './Page.css';
 import { registerNotifications } from '../utility/pushNotifications';
 import CustomHeader from './CustomHeader';
+import { t } from 'i18next';
 
 const LanguageSelector: React.FC = () => {
 
@@ -79,7 +80,7 @@ const LanguageSelector: React.FC = () => {
         <IonCard className='ion-text-center shadowCard'>
           <IonCardHeader>
             <IonCardTitle className='title' color={'dark'}>Select Language / भाषा चुने</IonCardTitle>
-            <IonCardSubtitle className='subtitle' color={'dark'}>Welcome to Gurad Commander</IonCardSubtitle>
+            <IonCardSubtitle className='subtitle' color={'dark'}>{t('Welcome to Gurad Commander')}</IonCardSubtitle>
           </IonCardHeader>
 
           <IonCardContent>
@@ -100,9 +101,9 @@ const LanguageSelector: React.FC = () => {
             </IonList>
           </IonCardContent>
         </IonCard>
-        <div className='footer'>
+       {/* <div className='footer'>
           <IonTitle className='footer ion-text-center'>Helpline | +91 90999 XXXXX</IonTitle>
-        </div>
+        </div> */}
       </IonContent>
     </IonPage>
   );

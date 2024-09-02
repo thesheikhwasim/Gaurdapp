@@ -27,6 +27,9 @@ import {
   IonDatetimeButton,
   IonDatetime,
   IonIcon,
+  IonRefresher,
+  IonRefresherContent,
+  RefresherEventDetail,
   IonTextarea,
 } from '@ionic/react';
 import { useParams, useHistory } from 'react-router';
@@ -34,6 +37,9 @@ import './Page.css';
 import axios from 'axios';
 import { arrowForwardCircleOutline, calendarOutline } from 'ionicons/icons';
 import CustomHeader from './CustomHeader';
+import CustomFooter from './CustomFooter';
+import { BASEURL } from '../utilities_constant';
+import { t } from 'i18next';
 
 const DutyInfo: React.FC = () => {
   const [dutyData, setDutyData] = useState<any>([]);
@@ -59,7 +65,7 @@ const DutyInfo: React.FC = () => {
   const [dateModalOpen, setDateModalOpen] = useState(false);
   const [totalRecordCount, setTotalRecordCount] = useState(0);
   const [isOperations, setIsOperations] = useState(false)
-
+  const [reloader, setReloader] = useState(false);
   const modalFrom = useRef<HTMLIonModalElement>(null);
   const modalTo = useRef<HTMLIonModalElement>(null);
 
@@ -100,7 +106,7 @@ const DutyInfo: React.FC = () => {
 
   const GetDutyListFromAPI = () => {
     const tokenVal = localStorage.getItem('token');
-    let URL = "https://guard.ghamasaana.com/guard_new_api/dutyinfo.php";
+    let URL = BASEURL+"dutyinfo.php";
     let formData = new FormData();
     formData.append('action', "duty_info");
     formData.append('token', tokenVal);
@@ -137,7 +143,7 @@ const DutyInfo: React.FC = () => {
 
   const GetOperationsDutyListFromAPI = () => {
     const tokenVal = localStorage.getItem('token');
-    let URL = "https://guard.ghamasaana.com/guard_new_api/opdutyinfo.php";
+    let URL = BASEURL+"opdutyinfo.php";
     let formData = new FormData();
     formData.append('action', "op_duty_info");
     formData.append('token', tokenVal);
@@ -188,7 +194,7 @@ const DutyInfo: React.FC = () => {
     formData.append('reqotherdetail', reqOtherDetail);
 
     axios
-      .post('https://guard.ghamasaana.com/guard_new_api/add_new_request.php', formData)
+      .post(BASEURL+'add_new_request.php', formData)
       .then((response) => {
         if (response.data && response.data.success) {
           present({
@@ -225,7 +231,14 @@ const DutyInfo: React.FC = () => {
     }
     return rows;
   }
-
+  function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
+    //Function that hits when ion pull to refresh is called
+    setTimeout(() => {
+      GetDutyListFromAPI();
+      setReloader(!reloader);
+      event.detail.complete();
+    }, 500);
+  }
   return (
     <IonPage>
       <IonHeader>
@@ -239,40 +252,46 @@ const DutyInfo: React.FC = () => {
       </IonHeader>
 
       <IonContent fullscreen>
+      <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+            <IonRefresherContent></IonRefresherContent>
+          </IonRefresher>
         {loading ? (
           <IonLoading isOpen={loading} message={'Loading...'} />
         ) : (
           <>
             <div className="header_title">
-              <IonTitle className="header_title ion-text-center">Your Duty Info</IonTitle>
+              <IonTitle className="header_title ion-text-center">{t('Your Duty Info')}</IonTitle>
             </div>
             <>
               <div style={{ padding: '0px 20px', fontWeight: 'bold', fontSize: '15px', marginTop: '5px' }}
-              >Filter by Date:</div>
+              >{t('Filter by Date')}:</div>
               <div className='dateTimeFilterParent'>
                 <div className='dateFromParent'>
-                  <span className='dateTileSpan'>Date From:</span>
+                  <span className='dateTileSpan'>{t('Date From')}:</span>
                   <>
-                    <IonDatetimeButton datetime="datetimeFrom" className='btnDateTimeClass'></IonDatetimeButton>
-                    <IonModal keepContentsMounted={true} ref={modalFrom}>
+                  <IonDatetimeButton datetime="datetime"></IonDatetimeButton>
+                  <IonModal keepContentsMounted={true} ref={modalTo}>
                       <IonDatetime
-                        id="datetimeFrom"
+                        id="datetime"
                         presentation='date'
-                        onIonChange={(dataFrom) => {
-                          let dateFormat = dataFrom?.detail?.value.split('T')[0];
-                          setRangeFrom(dateFormat);
-                          modalFrom.current?.dismiss()
+                        onIonChange={(datetime) => {
+                          let dateFormat = datetime?.detail?.value.split('T')[0];
+                          setRangeTo(dateFormat);
+                          modalTo.current?.dismiss()
                         }}></IonDatetime>
                     </IonModal>
+<IonModal keepContentsMounted={true}>
+  <IonDatetime id="datetime"></IonDatetime>
+</IonModal>
                   </>
                 </div>
                 <div className='dateToParent'>
-                  <span className='dateTileSpan'>Date To:</span>
+                  <span className='dateTileSpan'>{t('Date To')}:</span>
                   <>
-                    <IonDatetimeButton datetime="datetimeTo"></IonDatetimeButton>
+                    <IonDatetimeButton datetime="dateTo"></IonDatetimeButton>
                     <IonModal keepContentsMounted={true} ref={modalTo}>
                       <IonDatetime
-                        id="datetimeTo"
+                        id="dateTo"
                         presentation='date'
                         onIonChange={(dataTo) => {
                           let dateFormat = dataTo?.detail?.value.split('T')[0];
@@ -288,32 +307,59 @@ const DutyInfo: React.FC = () => {
               </div>
             </>
 
-            <IonCard className='shift-details-card-content'>
-
+    
+ 
 
               {dutyData.length > 0 ? (
                 dutyData.map((duty: any, index: number) => (
-                  <IonCard className="card" key={index} style={{ width: '100%' }}>
-                    <div className="shift-details-column">
-                      <p><strong>Duty Started On:</strong> {getDisplayValue(duty.duty_start_date)}</p>
-                      <p><strong>Duty Ended On:</strong> {getDisplayValue(duty.duty_end_date)}</p>
-                      <p><strong>Duty Start Verified?:</strong> {getDisplayValue(duty.start_verification_status)}</p>
-                      <p><strong>Duty End Verified?:</strong> {getDisplayValue(duty.end_verification_status)}</p>
-                     {!isOperations && <IonButton style={{ width: '100%' }} expand="block" color="primary" onClick={() => {
+            
+                             <div className="content"   key={index} style={{ width: '100%' }}>
+        <IonCard className="shift-details-card">
+<IonCardHeader  class="ion-text-center">
+  <IonCardTitle >{t('Your Duty Detail')}  <strong>{getDisplayValue(duty.duty_start_date).split(' ')[0]}</strong></IonCardTitle>
+</IonCardHeader>
+
+<IonCardContent className="shift-details-card-content">
+  <div className="shift-details-column">
+  <p className='duty-start-pic-guard'><strong>{t('Your Duty Pic')}:</strong> <IonImg
+        src={BASEURL+`dutyverificationimg/${duty?.duty_start_pic}`}
+      ></IonImg></p>
+    <p><strong>{t('Site ID')}:</strong> {getDisplayValue(duty.site_id)}</p>
+    <p><strong>{t('Authorized Shift')}:</strong> {getDisplayValue(duty.shift)}</p>
+    <p><strong>{t('Duty Start Verified')}?:</strong> {getDisplayValue(duty.start_verification_status)}</p>
+    <p><strong>{t('Shift Start Time')}:</strong> {getDisplayValue(duty.duty_start_date)}</p>
+    <p><strong>{t('Shift End Time')}:</strong> {getDisplayValue(duty.duty_end_date)}</p>
+      </div>
+  <div className="shift-details-column">
+    <p><strong>{t('Duty End Verified')}?:</strong> {getDisplayValue(duty.end_verification_status)}</p>
+    <p><strong>{t('Total Time On Duty')}:</strong>{getDisplayValue(duty.totalhours)}</p>
+    <p > {!isOperations && <IonButton  style={{ width: '100%' }} expand="block" color="primary" onClick={() => {
                         setDutyid(duty.duty_id);
                         setDutyEndDate(duty.duty_end_date);
                         setDutySubject(`Request Raised for ${duty?.duty_id} on ${duty?.duty_end_date.split(' ')[0]}`);
                         setReqType('ticket');
                         setShowRequestModal(true);
-                      }}>Raise Concern</IonButton>}
-                    </div>
-                  </IonCard>
+                      }}>{t('Raise Concern')}</IonButton>}</p>
+
+  </div>
+</IonCardContent>
+
+
+</IonCard> 
+
+               
+                 
+                    
+                  
+                  </div>
+                 
+                 
                 ))
               ) : (
                 <IonLabel className='noRunningDutyEmptyBlock'>No current duty running</IonLabel>
               )}
 
-            </IonCard>
+    
 
             {totalRecordCount && <div className='pagination'>
               <ul id="border-pagination">
@@ -335,7 +381,7 @@ const DutyInfo: React.FC = () => {
             <IonModal isOpen={showRequestModal} onDidDismiss={() => setShowRequestModal(false)}>
               <IonHeader>
                 <IonToolbar>
-                  <IonTitle>{reqType === 'sos' ? 'Create SOS Request' : reqType === 'leaveapplication' ? 'Create Leave Request' : 'Create Ticket'}</IonTitle>
+                  <IonTitle>{t('Create Ticket')}</IonTitle>
                   <IonButtons slot="end">
                     <IonButton onClick={() => setShowRequestModal(false)}>X</IonButton>
                   </IonButtons>
@@ -344,7 +390,7 @@ const DutyInfo: React.FC = () => {
               <IonContent>
                 <IonList>
                   <IonItem>
-                    <IonLabel position="floating">Subject</IonLabel>
+                    <IonLabel position="floating">{t('Subject')}</IonLabel>
                     <IonInput disabled={true} value={`Request Raised for ${Dutyid} on ${DutyEndDate.split(' ')[0]}`} onIonChange={e => setReqSubject(e.detail.value!)}></IonInput>
                   </IonItem>
                   <IonItem>
@@ -368,7 +414,7 @@ const DutyInfo: React.FC = () => {
 
                   ) : null}
                 </IonList>
-                <IonButton expand="full" onClick={handleCreateRequest}>Create {reqType === 'ticket' ? 'Ticket' : reqType === 'leaveapplication' ? 'Leave Request' : 'SOS Request'}</IonButton>
+                <IonButton expand="full" onClick={handleCreateRequest}>{t('Create Ticket')}</IonButton>
               </IonContent>
             </IonModal>
           </>
@@ -383,7 +429,7 @@ const DutyInfo: React.FC = () => {
 
       </IonContent>
       <div className="footer">
-        <IonTitle className="footer ion-text-center">Helpline | +91 90999 XXXXX</IonTitle>
+      <CustomFooter />
       </div>
     </IonPage>
 
