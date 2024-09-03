@@ -204,7 +204,7 @@ const Login: React.FC = () => {
   }
 
   const formValidation = () => {
-    if (empid != '' && mpin != '' && mobileNumber != '') {
+    if (empid != '' && (mpin != '' && mpin.length == 4) && (mobileNumber != '' && mobileNumber.length == 10)) {
       setBtnEnabled(true);
     } else if (btnEnabled) {
       setBtnEnabled(false);
@@ -383,7 +383,8 @@ const Login: React.FC = () => {
                 <IonInput
                   type="password"
                   value={mpin}
-
+                  minlength={4}
+                  maxlength={4}
                   placeholder={t('Employee Password')}
                   onIonInput={(e) => {
                     setPassword(e.detail.value!);
@@ -395,6 +396,7 @@ const Login: React.FC = () => {
                 <IonInput
                   type="number"
                   value={mobileNumber}
+                  minlength={10}
                   maxlength={10}
                   placeholder={t('Mobile Number')}
                   onIonInput={(e) => {
