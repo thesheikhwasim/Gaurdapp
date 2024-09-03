@@ -11,7 +11,7 @@ import { BASEURL } from '../utilities_constant';
 import { t } from 'i18next';
 
 const AddNewGuardDoc: React.FC = () => {
- 
+
   // useAuth(); // Enforce login requirement
 
   const [formData, setFormData] = useState({
@@ -46,13 +46,13 @@ const AddNewGuardDoc: React.FC = () => {
   const [saveSelectedmedical, setsaveSelectedmedical] = useState('');
   const { takePhoto } = usePhotoGallery();
   const { takePhotoWithPrompt } = usePhotoGalleryWithPrompt();
-  
-  useEffect(()=>{
+
+  useEffect(() => {
     let checkMandatoryFlag = mandatoryPass();
-    if(checkMandatoryFlag){
+    if (checkMandatoryFlag) {
       setButtonDisabled(false);
     }
-  },[formData])
+  }, [formData])
 
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
@@ -61,7 +61,7 @@ const AddNewGuardDoc: React.FC = () => {
 
 
 
-  function mandatoryPass(){
+  function mandatoryPass() {
     const mandatoryFields = ['fullname', 'mobileno', 'father_name', 'mother_name', 'full_address', 'state'];
     for (const field of mandatoryFields) {
       if (!formData[field]) {
@@ -72,30 +72,30 @@ const AddNewGuardDoc: React.FC = () => {
   }
 
 
-  
-const handlepolicecameraStart = async () => {
-  takePhotoWithPrompt().then(async (photoData:any) => {
-  setsaveSelectedpolice(JSON.stringify(photoData));
 
-});
-};
+  const handlepolicecameraStart = async () => {
+    takePhotoWithPrompt().then(async (photoData: any) => {
+      setsaveSelectedpolice(JSON.stringify(photoData));
 
-const handlemedicalcameraStart = async () => {
-  takePhotoWithPrompt().then(async (photoData:any) => {
-  setsaveSelectedmedical(JSON.stringify(photoData));
+    });
+  };
 
-});
-};
+  const handlemedicalcameraStart = async () => {
+    takePhotoWithPrompt().then(async (photoData: any) => {
+      setsaveSelectedmedical(JSON.stringify(photoData));
 
-const handlepiccameraStart = async () => {
-  takePhotoWithPrompt().then(async (photoData:any) => {
-  setsaveSelectedpic(JSON.stringify(photoData));
+    });
+  };
 
-});
-};
+  const handlepiccameraStart = async () => {
+    takePhotoWithPrompt().then(async (photoData: any) => {
+      setsaveSelectedpic(JSON.stringify(photoData));
+
+    });
+  };
 
   const handleAddGuard = async () => {
-    
+
     const storedToken = localStorage.getItem('token');
     const token = storedToken; // Replace with your actual token
     // Validate mandatory fields
@@ -112,7 +112,7 @@ const handlepiccameraStart = async () => {
     }
 
 
-  
+
 
 
 
@@ -127,7 +127,7 @@ const handlepiccameraStart = async () => {
     console.log("formData ----> ", formData);
 
     try {
-      const response = await axios.post(BASEURL+'add_new_gaurd.php', data);
+      const response = await axios.post(BASEURL + 'add_new_gaurd.php', data);
       if (response.data.success) {
         present({
           message: 'Guard added successfully!',
@@ -183,28 +183,39 @@ const handlepiccameraStart = async () => {
             <IonMenuButton />
           </IonButtons>
           <CustomHeader />
-          
+
         </IonToolbar>
       </IonHeader>
 
       <IonContent fullscreen>
         <IonCard className='shift-details-card'>
           <IonCardHeader>
-            <IonCardTitle>{t('Add New Recruitment')} 
-                  </IonCardTitle>
-         
+            <IonCardTitle>{t('Add New Recruitment')}
+            </IonCardTitle>
+
           </IonCardHeader>
           <IonItem>
-          <IonButtons slot="end">
-                    <IonButton color={'primary'} className="md button button-full"  href='pages/tabs/listgaurd'>BACK</IonButton>
-                  </IonButtons>
-                  </IonItem>
-      
-     
-          <IonItem>
-          <IonButton expand="full" onClick={handlepiccameraStart}> {t('Add Profile Pic')}</IonButton>
+            <IonButtons slot="end">
+              <IonButton color={'primary'} className="md button button-full" href='pages/tabs/listgaurd'>BACK</IonButton>
+            </IonButtons>
           </IonItem>
-      
+
+
+          <IonItem>
+            <div>
+              <IonButton expand="full" onClick={handlepiccameraStart}> {t('Add Profile Pic')}</IonButton>
+            </div>
+          </IonItem>
+          {saveSelectedpic && <>
+            <span className='paddingLeftRight16'>Profile Image Preview</span>
+            <IonItem>
+              <img
+                src={`data:image/jpeg;base64,${JSON.parse(saveSelectedpic).base64String}`}
+                alt="Preview Image"
+                style={{ width: 'auto', height: '100px' }}
+              />
+            </IonItem>
+          </>}
           <IonItem>
             <IonLabel position="floating">{t('Aadhar No')}</IonLabel>
             <IonInput name="aadhar_no" value={formData.aadhar_no} onIonChange={handleInputChange}></IonInput>
@@ -217,12 +228,12 @@ const handlepiccameraStart = async () => {
             <IonLabel position="floating">{t('Blood Group')}</IonLabel>
             <IonInput name="blood_group" value={formData.blood_group} onIonChange={handleInputChange}></IonInput>
           </IonItem>
-         
+
           <IonItem>
-          <IonButton expand="full" onClick={handlepolicecameraStart}> {t('Attach Police verification Report')}</IonButton>
+            <IonButton expand="full" onClick={handlepolicecameraStart}> {t('Attach Police verification Report')}</IonButton>
           </IonItem>
           <IonItem>
-          <IonButton expand="full" onClick={handlemedicalcameraStart}> {t('Attach Medical Report')}</IonButton>
+            <IonButton expand="full" onClick={handlemedicalcameraStart}> {t('Attach Medical Report')}</IonButton>
           </IonItem>
           <IonItem>
             <IonLabel position="floating">{t('Bank A/C No')}</IonLabel>
@@ -232,13 +243,13 @@ const handlepiccameraStart = async () => {
             <IonLabel position="floating">{t('Bank IFSC')}</IonLabel>
             <IonInput name="bankifsc" value={formData.bankifsc} onIonChange={handleInputChange}></IonInput>
           </IonItem>
-          <IonButton expand="block" color="primary" size="default" 
-          disabled={buttonDisabled} 
-          onClick={handleAddGuard}>{t('Add Guard Document')}</IonButton>
+          <IonButton expand="block" color="primary" size="default"
+            disabled={buttonDisabled}
+            onClick={handleAddGuard}>{t('Add Guard Document')}</IonButton>
         </IonCard>
       </IonContent>
       <div className="footer">
-      <CustomFooter />
+        <CustomFooter />
       </div>
     </IonPage>
   );

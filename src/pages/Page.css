@@ -464,3 +464,7 @@ div.guardDetails{
   display: flex;
   margin-left: 20px;
 }
+
+.paddingLeftRight16 {
+  padding: 0px 16px;
+}
