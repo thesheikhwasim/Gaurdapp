@@ -16,7 +16,7 @@ const GetRequests: React.FC = () => {
 
   const [requestData, setRequestData] = useState<any>(null);
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [ProfileData, setProfileData] = useState<any>({});
 
   const token = localStorage.getItem('token');
