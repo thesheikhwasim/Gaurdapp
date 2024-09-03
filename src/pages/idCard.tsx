@@ -34,11 +34,11 @@ const GetRequests: React.FC = () => {
   }, []);
 
   const fetchProfileData = async (token: string, includeDownload: boolean) => {
-    const url = BASEURL+'profile.php';
+    const url = BASEURL + 'profile.php';
     const formData = new FormData();
     formData.append('action', 'profile_data');
     formData.append('token', token);
-    if(includeDownload){
+    if (includeDownload) {
       formData.append('downloaded_now', includeDownload);
     }
 
@@ -60,35 +60,35 @@ const GetRequests: React.FC = () => {
 
   const { name } = useParams<{ name: string; }>();
 
-  async function triggerDownload(fileParam:any){
+  async function triggerDownload(fileParam: any) {
     // 'downloaded_now'
     console.log("PROFILE DATA::: ", fileParam);
     console.log("PROFILE DATA ID CARD URL :: ", fileParam?.id_card);
-      let imageUrl = BASEURL+`emp_idcard/${fileParam.id_card}`;
-      try {
-        // Fetch the image as a blob using Axios
-        const response = await axios.get(imageUrl, { responseType: 'blob' });
-        const blob = response.data;
-        
-        // Read the blob as a data URL
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          const base64data = reader.result.split(',')[1]; // Extract base64 part after comma
-  
-          // Save the base64 string as a file
-          await Filesystem.writeFile({
-            path: 'idCard.jpg',
-            data: base64data,
-            directory: Directory.Documents,
-          });
-  
-          alert('Image downloaded successfully, view image in gallery!');
-          const tokenParam = localStorage.getItem('token');
-          fetchProfileData(tokenParam, true);
-        };
-  
-        reader.readAsDataURL(blob);
-      } catch (error) {
+    let imageUrl = BASEURL + `emp_idcard/${fileParam.id_card}`;
+    try {
+      // Fetch the image as a blob using Axios
+      const response = await axios.get(imageUrl, { responseType: 'blob' });
+      const blob = response.data;
+
+      // Read the blob as a data URL
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64data = reader.result.split(',')[1]; // Extract base64 part after comma
+
+        // Save the base64 string as a file
+        await Filesystem.writeFile({
+          path: 'idCard.jpg',
+          data: base64data,
+          directory: Directory.Documents,
+        });
+
+        alert('Image downloaded successfully, view image in gallery!');
+        const tokenParam = localStorage.getItem('token');
+        fetchProfileData(tokenParam, true);
+      };
+
+      reader.readAsDataURL(blob);
+    } catch (error) {
       console.error('Error downloading the image:', error);
     }
     // try {
@@ -127,16 +127,21 @@ const GetRequests: React.FC = () => {
 
               <IonLabel><div className='notFoundIdCard'>
                 <div className='mainIdCardContainer'>
-                  {ProfileData?.id_card && 
-                  <>
+                  {ProfileData?.id_card &&
+                    <>
+                      <IonCard className='shift-details-card-content'>
+                        <IonLabel>
+                          <div className='notFoundIdCard'>
+                            <iframe
+                              src={`https://docs.google.com/gview?url=${BASEURL}emp_idcard/${ProfileData?.id_card}&embedded=true`}
 
-<IonCard className='shift-details-card-content'>
-
-<IonLabel><div className='notFoundIdCard'>
-<iframe id="inlineFrameExample" title="GI HELP TEXT" frameBorder="0" width="100%" height="100%" src="{BASEURL+`emp_idcard/${ProfileData?.id_card}`}"> </iframe>
-</div></IonLabel>
-</IonCard>
- {/*
+                              style={{ width: '100%', height: '300px', border: 'none' }}
+                              title="PDF Viewer"
+                            ></iframe>
+                          </div>
+                        </IonLabel>
+                      </IonCard>
+                      {/*
 <IonCard className='shift-details-card-content'>
 
 <IonLabel><div className='notFoundIdCard'>
@@ -153,22 +158,22 @@ const GetRequests: React.FC = () => {
                       </div>
                     </div>
                      */}
-                    <div>
-                    {ProfileData?.can_download && <IonButton 
-                      disabled={false} 
-                      expand="block" 
-                      onClick={()=> triggerDownload(ProfileData)} 
-                      color="primary">
-                      {t('Download')}
-                    </IonButton>}
-                    </div>
-                  </>
+                      <div>
+                        {ProfileData?.can_download && <IonButton
+                          disabled={false}
+                          expand="block"
+                          onClick={() => triggerDownload(ProfileData)}
+                          color="primary">
+                          {t('Download')}
+                        </IonButton>}
+                      </div>
+                    </>
                   }
                 </div>
               </div></IonLabel>
             </IonCard>
             <div className='footer'>
-            <CustomFooter />
+              <CustomFooter />
             </div>
           </>
         )}
