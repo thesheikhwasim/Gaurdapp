@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
-
+import { BASEURL } from '../utilities_constant';
 const Logout: React.FC = () => {
   const history = useHistory();
 
@@ -14,7 +14,7 @@ const Logout: React.FC = () => {
         formData.append('action', 'logout');
         formData.append('token', token);
 
-        await axios.post('https://guard.ghamasaana.com/guard_new_api/logout.php', formData, {
+        await axios.post(BASEURL+'logout.php', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }

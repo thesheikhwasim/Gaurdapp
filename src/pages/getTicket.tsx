@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { IonButtons, IonLoading, IonContent, IonGrid, IonRow, IonCol, IonHeader, IonLabel, IonMenuButton, IonPage, IonTitle, IonToolbar, IonImg, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonFab, IonFabButton, IonIcon, IonItem, IonList, IonInput, IonSelectOption, IonButton, IonModal, IonSelect, useIonToast, IonTextarea } from '@ionic/react';
+import { IonButtons, IonLoading, IonContent, IonGrid, IonRow, IonCol, IonHeader, IonLabel, 
+  IonMenuButton, IonPage, IonTitle, IonToolbar, IonImg, IonCard, IonCardContent, IonCardHeader, 
+  IonCardSubtitle, IonCardTitle, IonFab, IonFabButton, IonIcon, IonItem, IonList, IonInput,
+   IonSelectOption, IonButton, IonModal, IonSelect, useIonToast, 
+  RefresherEventDetail,IonRefresher,IonRefresherContent,IonTextarea } from '@ionic/react';
 import { useParams } from 'react-router';
 import axios from 'axios';
 import './Page.css';
 import useAuth from '../hooks/useAuth'; // Import the custom hook
 import { add, closeOutline } from 'ionicons/icons';
+import { usePhotoGallery, usePhotoGalleryWithPrompt } from '../../src/hooks/usePhotoGallery';
+import { Geolocation } from '@capacitor/geolocation';
 import CustomHeader from './CustomHeader';
+import CustomFooter from './CustomFooter';
+import { BASEURL } from '../utilities_constant';
+import { t } from 'i18next';
 
 const STATIC_SUBJECT_FAILURE_CASE = [
   {
@@ -36,7 +45,7 @@ const STATIC_SUBJECT_FAILURE_CASE = [
 
 const GetRequests: React.FC = () => {
   // useAuth(); // Enforce login requirement
-
+  const [reloader, setReloader] = useState(false);
   const [requestData, setRequestData] = useState<any>(null);
   const [subjectList, setSubjectList] = useState<any>(STATIC_SUBJECT_FAILURE_CASE);
   const [loading, setLoading] = useState(true);
@@ -45,16 +54,91 @@ const GetRequests: React.FC = () => {
   const [reqSubject, setReqSubject] = useState('');
   const [reqDesc, setReqDesc] = useState('');
   const [reqType, setReqType] = useState('');
+  const [imgdocument, setimgdocument] = useState('');
+  const [Latitude, setLatitude] = useState('');
+  const [Longitude, setLongitude] = useState('');
   const [present, dismiss] = useIonToast();
-
+  const { takePhotoWithPrompt } = usePhotoGalleryWithPrompt();
   const token = localStorage.getItem('token');
+  const [locationPermissionchk, setLocationPermissionchk] = useState(true);
+
+  
   useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    
+ 
+    if (storedToken) {
+      ongoingNewHandlerWithLocation();
+    }
     getSubjectListAPI();
     getTicketListAPI();
   }, []);
 
+
+  function ongoingNewHandlerWithLocation(){
+    captureLocation('fromNewOngoingHandler').then((res) => {
+      // console.log("BEFORE CALLED ONGOING::::", res);
+      if((res && res?.coords && res?.coords?.latitude)){
+        setLatitude(res?.coords?.latitude);
+        setLongitude(res?.coords?.longitude);
+   
+      }else{
+
+      }
+    }).catch((error)=>{
+      // console.error("BEFORE CALLED ONGOING LOCATION ERROR");
+    });
+  }
+
+
+  const captureLocation = (fromParam:string) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const permissions = await Geolocation.checkPermissions();
+        console.log("PERMISSION to show message and send DUMMY", permissions);
+        console.log("ABOVE PERMISSION WAS ASKED FROM--- ", fromParam);
+        // Case to validate permission is denied, if denied error message alert will be shown
+        if (permissions?.location == "denied") {
+          setLocationPermissionchk(false);
+          alert('Your location permission is denied, enable it manually from app settings and re-load application!');
+          present({
+            message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
+            duration: 5000,
+            position: 'bottom',
+          });
+    
+        }
+        else
+        {
+          setLocationPermissionchk(true);
+        }
+
+        const options = {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        };
+        Geolocation.getCurrentPosition(options)
+          .then((position) => {
+            if (position && position.coords.latitude) {
+              // console.log("CAPTURE LOCATION is setting lat long:::: ",position.coords.latitude.toString(), "-- longitude--", position.coords.longitude.toString());
+              setLatitude(position.coords.latitude.toString());
+              setLongitude(position.coords.longitude.toString());
+            }
+            resolve(position);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+
   function getTicketListAPI() {
-    const url = "https://guard.ghamasaana.com/guard_new_api/request.php";
+    const url =  BASEURL+"request.php";
     const formData = new FormData();
     formData.append('action', "request_data");
     formData.append('req_type', "ticket");
@@ -62,7 +146,8 @@ const GetRequests: React.FC = () => {
     formData.append('subject', "");
     formData.append('message', "");
     formData.append('priority', "");
-
+    formData.append('latitude', Latitude);
+    formData.append('longitude', Longitude);
     axios.post(url, formData)
       .then(response => {
         if (response.data && response.data.success) {
@@ -80,7 +165,7 @@ const GetRequests: React.FC = () => {
   }
 
   function getSubjectListAPI() {
-    let URL = "https://guard.ghamasaana.com/guard_new_api/ticket_subject.php";
+    let URL = BASEURL+"ticket_subject.php";
     let formData = new FormData();
     formData.append('action', "ticket_subject");
     formData.append('token', token);
@@ -122,13 +207,15 @@ const GetRequests: React.FC = () => {
     formData.append('reqtype', reqType);
     formData.append('reqsubject', reqSubject);
     formData.append('ReqDesc', reqDesc);
-    formData.append('reqotherdetail', "");
+    formData.append('reqotherdetail', imgdocument);
+    formData.append('latitude', Latitude);
+    formData.append('longitude', Longitude);
     console.log(token);
     console.log("formDATA create----> ", JSON.stringify(formData));
     // return false;
 
     axios
-      .post('https://guard.ghamasaana.com/guard_new_api/add_new_request.php', formData)
+      .post(BASEURL+'add_new_request.php', formData)
       .then((response) => {
         if (response.data && response.data.success) {
           present({
@@ -158,6 +245,21 @@ const GetRequests: React.FC = () => {
       });
   };
 
+
+  function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
+    //Function that hits when ion pull to refresh is called
+    setTimeout(() => {
+      getTicketListAPI();
+      setReloader(!reloader);
+      event.detail.complete();
+    }, 500);
+  }
+  
+  const handlecameraticket = async () => {
+    takePhotoWithPrompt().then(async (photoData) => {
+    setimgdocument(JSON.stringify(photoData));
+  });
+  };
   return (
     <IonPage>
       <IonHeader>
@@ -171,6 +273,9 @@ const GetRequests: React.FC = () => {
       </IonHeader>
 
       <IonContent fullscreen>
+      <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+            <IonRefresherContent></IonRefresherContent>
+          </IonRefresher>
         <IonFab horizontal="end" vertical="bottom" slot="fixed">
           <IonFabButton onClick={() => newTicketNav()}>
             <IonIcon icon={add}></IonIcon>
@@ -181,22 +286,32 @@ const GetRequests: React.FC = () => {
         ) : (
           <>
             <div className="header_title">
-              <IonTitle className="header_title ion-text-center">Your Ticket Information</IonTitle>
+              <IonTitle className="header_title ion-text-center">{t('Your Ticket Information')}</IonTitle>
             </div>
             <IonCard className='shift-details-card-content'>
               {(requestData && requestData.length > 0) ? (
                 <IonGrid>
                   {requestData.map((ticket, index) => (
-                    <IonCard className='card' key={index}>
+                   <div className="content"   key={index} style={{ width: '100%' }}>
+                     <IonCard className="shift-details-card">
+                     <IonCardHeader  class="ion-text-center">
+  <IonCardTitle >{t('Ticket ID')} <strong>{ticket.ReqID || 'N/A'}</strong></IonCardTitle>
+</IonCardHeader>
+<IonCardContent className="shift-details-card-content">
                       <div className="shift-details-column">
-                        <p><strong>Request Type: </strong>{ticket.ReqType || 'N/A'}</p>
-                        <p><strong>Request Date : </strong>{ticket.ReqDatetime || 'N/A'}</p>
-                        <p><strong>Request Description : </strong>{ticket.ReqDesc || 'N/A'}</p>
-                        <p><strong>Request ID : </strong>{ticket.ReqID || 'N/A'}</p>
-                        <p><strong>Request Status : </strong>{ticket.ReqStatus || 'N/A'}</p>
-                        <p><strong>Request Action : </strong>{ticket.ReqAction || 'N/A'}</p>
+                      <p><strong>{t('Ticket Subject')}: </strong>{ticket.reqsubject || 'N/A'}</p>
+                      <p><strong>{t('Ticket Date')}: </strong>{ticket.ReqDatetime || 'N/A'}</p>
+                        <p><strong>{t('Ticket Description')}: </strong>{ticket.ReqDesc || 'N/A'}</p>
+                      {ticket?.ReqOtherDes && <p><strong>{t('Ticket Document')}: </strong>
+                    <IonImg className='ticketimag'
+                          src={BASEURL+`ticketattachment/${ticket.ReqOtherDes}`}
+                        ></IonImg></p>}
+                        <p><strong>{t('Ticket Status')}: </strong>{ticket.ReqStatus || 'N/A'}</p>
+                        <p><strong>{t('Ticket Action')}: </strong>{ticket.ReqAction || 'N/A'}</p>
                       </div>
-                    </IonCard>
+                      </IonCardContent>
+                      </IonCard>
+                    </div>
                   ))}
                 </IonGrid>
               ) : (
@@ -207,15 +322,15 @@ const GetRequests: React.FC = () => {
             </IonCard>
 
             <div className='footer'>
-              <IonTitle className='footer ion-text-center'>Helpline | +91 90999 XXXXX</IonTitle>
+            <CustomFooter />
             </div>
           </>
         )}
         {/* Moal code goes below */}
-        <IonModal isOpen={showRequestModal} onDidDismiss={() => setShowRequestModal(false)}>
+        <IonModal isOpen={showRequestModal} onDidDismiss={() => setShowRequestModal(false)}  >
           <IonHeader>
             <IonToolbar>
-              <IonTitle>{'Create Ticket'}</IonTitle>
+              <IonTitle>{t('Create Ticket')}</IonTitle>
               <IonButtons slot="end">
                 <IonButton onClick={() => setShowRequestModal(false)}>
                   <IonIcon icon={closeOutline} size="large"></IonIcon>
@@ -231,8 +346,8 @@ const GetRequests: React.FC = () => {
               {/* <div>{JSON.stringify(subjectList)}</div> */}
               <IonItem>
                 <IonSelect
-                  label="Subject"
-                  placeholder="Select Subject"
+                  label={t('Subject')}
+                  placeholder={t('Select Subject')}
                   onIonChange={(e) => {
                     console.log(`ionChange fired with value: ${e.detail.value}`);
                     setReqSubject(e.detail.value);
@@ -242,19 +357,40 @@ const GetRequests: React.FC = () => {
                   )}
                 </IonSelect>
               </IonItem>
-              {/* </IonItem> */}
+            
               <IonItem>
-                <IonLabel position="floating">Description</IonLabel>
-                <IonTextarea value={reqDesc} onIonInput={e => setReqDesc(e.detail.value!)}></IonTextarea>
+                <IonLabel position="floating">{t('Description')}</IonLabel>
+                <IonTextarea autoGrow={true} rows={10} value={reqDesc} placeholder='Enter your ticket detail here' onIonInput={e => setReqDesc(e.detail.value!)}></IonTextarea>
               </IonItem>
-              {/* <IonItem>
-                <IonLabel>Priority</IonLabel>
-                <IonSelect value={priority} onIonChange={e => setPriority(e.detail.value)}>
-                  <IonSelectOption value="LOW">Low</IonSelectOption>
-                  <IonSelectOption value="MEDIUM">Medium</IonSelectOption>
-                  <IonSelectOption value="HIGH">High</IonSelectOption>
-                </IonSelect>
-              </IonItem> */}
+              <IonItem>
+                
+              <IonLabel>{t('Upload Ticket Attachment')} </IonLabel>
+          {imgdocument ? (   <IonButton expand="full"   onClick={() => {setimgdocument('');}}> {t('Clear Image')}</IonButton>
+        ):('')}
+        </IonItem>
+  
+
+  {imgdocument ? ( 
+              <IonItem>
+      
+               <img  onClick={handlecameraticket}
+                src={`data:image/jpeg;base64,${JSON.parse(imgdocument).base64String}`}
+                alt="Preview Image"
+                style={{ width: 'auto', height: '60px' }}
+              />
+                
+            </IonItem>
+        
+            ):(   
+            <IonItem>  <img   onClick={handlecameraticket}
+                src='./assets/imgs/image-preview.jpg'
+                alt="Preview Image"
+                style={{ width: 'auto', height: '60px' }}
+              />
+           
+            </IonItem>
+          )}
+  
             </IonList>
             <IonButton expand="full" onClick={handleCreateRequest}>Create {'Ticket'}</IonButton>
           </IonContent>

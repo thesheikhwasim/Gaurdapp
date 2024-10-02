@@ -29,6 +29,8 @@ import {
   IonRefresher,
   IonRefresherContent,
   RefresherEventDetail,
+  useIonLoading,
+  IonLoading,
   IonSpinner,
 } from '@ionic/react';
 
@@ -50,6 +52,10 @@ import useAuth from '../hooks/useAuth';
 import { close, closeOutline, personCircleOutline } from 'ionicons/icons';
 import MyStopwatch from './DashboardMyTimer';
 import CustomHeader from './CustomHeader';
+import CustomFooter from './CustomFooter';
+import { useHistory } from 'react-router-dom';
+import '../utilities_constant';
+import { BASEURL } from '../utilities_constant';
 
 const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   const [duty, setDuty] = useState(false);
@@ -68,25 +74,37 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   const [priority, setPriority] = useState('LOW');
   const [present, dismiss] = useIonToast();
   const [showRequestModal, setShowRequestModal] = useState(false);
+  const [showfullModal, setshowfullModal] = useState(false);
+  const [showimagepath, setshowimagepath] = useState('');
+  
   const [reqType, setReqType] = useState('sos');
   const [reqSubject, setReqSubject] = useState('');
+  const [currentsiteid, setcurrentsiteid] = useState('');
   const [reqDesc, setReqDesc] = useState('');
   const [reqOtherDetail, setReqOtherDetail] = useState('');
+  const [dutyAssigned, setDutyAssigned] = useState(true);
+  const [locationPermissionchk, setLocationPermissionchk] = useState(true);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [dutystartinfo, setdutystartinfo] = useState<any>(null);
   const [dutyDetailsFromOngoingDuty, setDutyDetailsFromOngoingDuty] = useState<any>({});
+  const [otherdutyDetails, setotherdutyDetails] = useState<any>({});
   const [inRange, SetInRange] = useState<boolean>(true);
   const [inAlert, SetInAlert] = useState<boolean>(false);
-  const [movementAlertMessage, SetMovementAlertMessage] = useState<string>('');
+  const [movementAlertMessage, SetMovementAlertMessage] = useState<string>('asdasdasda');
   const [elapsedState, setElapsedState] = useState<number>(0);
   const [alertModal, setAlertModal] = useState(false);
   const [alertReplyInput, setAlertReplyInput] = useState('');
-
+  const [Otherdutyinfo, setOtherdutyinfo] = useState<boolean>(false);
+  const [simonenumber, setsimonenumber] = useState('');
+  const [simtwonumber, setsimtwonumber] = useState('');
+  const [upcomingtitle, setupcomingtitle] = useState<boolean>(false);
+  const [showspinner, setshowspinner] = useState<boolean>(false);
   useEffect(() => {
     const storedData = localStorage.getItem('loggedInUser');
     const storedToken = localStorage.getItem('token');
-
+    const sellanguage = localStorage.getItem('language');
+    
     if (storedData) {
       setLoggedInUser(JSON.parse(storedData));
     }
@@ -150,13 +168,17 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
       }
       
       // console.log("Ongoing Duty formdata:: ", formData);
-      const response = await axios.post('https://guard.ghamasaana.com/guard_new_api/ongoing_duty.php', formData);
+      const response = await axios.post(BASEURL+'ongoing_duty.php', formData);
       const data = response.data;
 
       // Case to validate API was success and employee data is available
       if (data?.success && data?.employee_data) {
         setDutyDetailsFromOngoingDuty(data.employee_data);
-
+        setcurrentsiteid(data.employee_data.site_id);
+     setOtherdutyinfo(data.employee_data.other_duty_info);
+     setotherdutyDetails(data.employee_data.other_duty_detail);
+     setupcomingtitle(data.employee_data.upcomming_duty);
+     setDutyAssigned(true);
         // Case to validate start date is available which is responsible to show Duty timer
         if (data?.employee_data && data?.employee_data?.duty_ongoing_info && data?.employee_data?.duty_ongoing_info?.duty_start_date) {
           let past = new Date(data?.employee_data?.duty_ongoing_info?.duty_start_date);
@@ -166,6 +188,15 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
           setElapsedState(elapsed / 1000);
         }
       }
+      else{
+        if(data?.message=='You Have not assigned any duty.')
+        {
+        
+          setDutyAssigned(false);
+     
+        }
+        
+      }
 
       //Case to validate if page was refreshed/reloaded and ongoing duty is mapped
       if (data.success && data.employee_data.duty_ongoing_info && data.employee_data.duty_ongoing_info.duty_end_date === null) {
@@ -173,6 +204,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
         setIsRunning(true);
         setElapsedTime(convertRemainingTime(data.employee_data.remaining_time));
         setdutystartinfo(data.employee_data.duty_ongoing_info);
+   
         if (intervalRef.current == null) {
           intervalRef.current = setInterval(() => {
             setElapsedTime((prevTime) => prevTime + 1);
@@ -201,12 +233,18 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
         console.log("ABOVE PERMISSION WAS ASKED FROM--- ", fromParam);
         // Case to validate permission is denied, if denied error message alert will be shown
         if (permissions?.location == "denied") {
+          setLocationPermissionchk(false);
+          alert('Your location permission is denied, enable it manually from app settings and re-load application!');
           present({
             message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
             duration: 5000,
             position: 'bottom',
           });
           dummyExplicitMovementApi();
+        }
+        else
+        {
+          setLocationPermissionchk(true);
         }
 
         const options = {
@@ -235,8 +273,8 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
   async function dutyApi(formData, dutyEnd) {
     try {
       const response = dutyEnd
-        ? await axios.post('https://guard.ghamasaana.com/guard_new_api/dutystop.php', formData)
-        : await axios.post('https://guard.ghamasaana.com/guard_new_api/dutystart.php', formData, {
+        ? await axios.post(BASEURL+'dutystop.php', formData)
+        : await axios.post(BASEURL+'dutystart.php', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -256,7 +294,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
       formData.append('token', token);
       formData.append('latitude', 'latitude disabled');
       formData.append('longitude', 'longitude disabled');
-      let DUMMY_MOVEMENT_URL = 'https://guard.ghamasaana.com/guard_new_api/dutystartmovement.php';
+      let DUMMY_MOVEMENT_URL = BASEURL+'dutystartmovement.php';
       const response = await axios.post(DUMMY_MOVEMENT_URL, formData);
       console.log("response DUMMY -- -", response);
     }catch (error) {
@@ -274,8 +312,8 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
         formData.append('token', token);
         formData.append('latitude', Latitude);
         formData.append('longitude', Longitude);
-
-        const response = await axios.post('https://guard.ghamasaana.com/guard_new_api/dutystartmovement.php', formData);
+        formData.append('siteid', currentsiteid);
+        const response = await axios.post(BASEURL+'dutystartmovement.php', formData);
         // present({
         //   message: `Duty Movement Called!`,
         //   duration: 2000,
@@ -300,6 +338,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
           onLocalStorageChange(obj);
           SetInAlert(response.data[0]?.display_alert);
           // }
+          alert(response.data[0]?.display_message);
           if (movementAlertMessage != response.data[0]?.display_message) {
             SetMovementAlertMessage(response.data[0]?.display_message);
           }
@@ -318,14 +357,18 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
       if (Latitude !== '') {
         takePhoto().then(async (photoData) => {
           // console.log("Photo Data Returned From Camera Base64 format---", photoData);
+          setshowspinner(true);
+          
           const formData = new FormData();
           const token = localStorage.getItem('token');
           formData.append('action', 'punch_in');
           formData.append('token', token);
           formData.append('latitude', Latitude);
           formData.append('longitude', Longitude);
+          formData.append('cursiteid', currentsiteid);
           formData.append('duty_start_verification', 'Face_Recognition');
           formData.append('duty_start_pic', JSON.stringify(photoData));
+        
           dutyApi(formData, false)
             .then((response) => {
               if (response && response.success) {
@@ -336,6 +379,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
                 }, 5000);
                 setIsRunning(true);
                 dutyMovementHandler();
+                setshowspinner(false);
               } else if (response.success === false) {
                 setAlertMessage(response.message);
                 setShowAlert(true);
@@ -386,6 +430,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
           .then((response) => {
             if (response && response.success) {
               setIsRunning(false);
+              fetchOngoingDuty();
             } else if (response.success === false) {
               setAlertMessage(response.message);
               setShowAlert(true);
@@ -415,7 +460,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
     // return false;
 
     axios
-      .post('https://guard.ghamasaana.com/guard_new_api/add_new_request.php', formData)
+      .post(BASEURL+'add_new_request.php', formData)
       .then((response) => {
         if (response.data && response.data.success) {
           present({
@@ -463,7 +508,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
     formData.append('alertreply', alertReplyInput);
     formData.append('alertmsg', movementAlertMessage);
 
-    axios.post('https://guard.ghamasaana.com/guard_new_api/alert_message_status.php', formData).then((response) => {
+    axios.post(BASEURL+'alert_message_status.php', formData).then((response) => {
       if (response.data && response.data.success) {
         present({
           message: `Your alert reply has been submitted successfully!`,
@@ -502,19 +547,25 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
 <IonCardContent className="shift-details-card-content">
   <div className="shift-details-column">
     {dutyDetailsFromOngoingDuty && dutyDetailsFromOngoingDuty?.duty_ongoing_info &&
-      dutyDetailsFromOngoingDuty?.duty_ongoing_info?.duty_start_pic && <p className='duty-start-pic-guard'><strong>Guard Duty Image:</strong> <IonImg
-        src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${dutyDetailsFromOngoingDuty?.duty_ongoing_info?.duty_start_pic}`}
+      dutyDetailsFromOngoingDuty?.duty_ongoing_info?.duty_start_pic && 
+      <p className='duty-start-pic-guard'><strong>{t('Your Duty Pic')}:</strong> 
+      <IonImg onClick={() => {
+                             setshowimagepath(dutyDetailsFromOngoingDuty?.duty_ongoing_info?.duty_start_pic);
+                       setshowfullModal(true);
+                      }}
+        src={BASEURL+`dutyverificationimg/${dutyDetailsFromOngoingDuty?.duty_ongoing_info?.duty_start_pic}`}
       ></IonImg></p>}
-    <p><strong>Client Name:</strong> {loggedInUser?.client_name}</p>
-    <p><strong>Site Name & Address:</strong> <span className='text-right'>{loggedInUser?.site_name}, {loggedInUser?.site_city}, {loggedInUser?.site_state}</span></p>
-    <p><strong>Site Status:</strong> {loggedInUser?.site_status}</p>
-  </div>
+    <p><strong>{t('Client Name')}:</strong> {dutyDetailsFromOngoingDuty?.client_name}</p>
+    <p><strong>{t('Site Name & Address')}:</strong> <span className='text-right'>{dutyDetailsFromOngoingDuty?.site_name}, {dutyDetailsFromOngoingDuty?.site_city}, {dutyDetailsFromOngoingDuty?.site_state}</span></p>
+    <p><strong>{t('Site ID')}:</strong> {dutyDetailsFromOngoingDuty?.site_id}</p>
+    <p><strong>{t('Sol ID')}:</strong> {dutyDetailsFromOngoingDuty?.sol_id}</p>
+      </div>
   <div className="shift-details-column">
-    <p><strong>Authorized Shift:</strong> {loggedInUser?.auth_shift}</p>
-    <p><strong>Shift Start Time:</strong> {loggedInUser?.shift_start_time}</p>
-    <p><strong>Shift End Time:</strong> {loggedInUser?.shift_end_time}</p>
+    <p><strong>{t('Authorized Shift')}:</strong> {dutyDetailsFromOngoingDuty?.auth_shift}</p>
+    <p><strong>{t('Shift Start Time')}:</strong> {dutyDetailsFromOngoingDuty?.duty_start_datetime}</p>
+    <p><strong>{t('Shift End Time')}:</strong> {dutyDetailsFromOngoingDuty?.duty_end_datetime}</p>
     {isRunning ? (
-      <p><strong>Duty Started On :</strong>{dutystartinfo?.duty_start_date}</p>
+      <p><strong>{t('Duty Started On')}:</strong>{dutystartinfo?.duty_start_date}</p>
     ) : ('')}
   </div>
 </IonCardContent>
@@ -535,6 +586,9 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
 <IonGrid className="ion-text-center">
   <IonRow>
     <IonCol size="12">
+    {showspinner ? (
+          <IonSpinner name="lines"></IonSpinner>
+        ) : ('')}
       {isRunning ? ( //Duty ENd Button
         <IonButton 
           disabled={!dutyDetailsFromOngoingDuty?.dutyendbuttonstatus} 
@@ -544,21 +598,41 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
           {t('punchOut')}
         </IonButton>
       ) : ( //Duty Start BUtton
+        /*{showspinner ? (
+          <IonSpinner name="lines"></IonSpinner>
+        ) : ( */
+        [showspinner ?
         <IonButton 
-          disabled={!dutyDetailsFromOngoingDuty?.dutystartbuttonstatus} 
+          disabled={true}
           expand="block" 
           onClick={handleDutyStart} 
           color="primary">
           {t('punchIn')}
-        </IonButton>
+        </IonButton> 
+        :
+        <IonButton 
+        disabled={!dutyDetailsFromOngoingDuty?.dutystartbuttonstatus} 
+        expand="block" 
+        onClick={handleDutyStart} 
+        color="primary">
+        {t('punchIn')}
+      </IonButton> 
+        ]
+    
       )}
     </IonCol>
   </IonRow>
 </IonGrid>
 </IonCard> 
 : <div className='errorDashboardData'>
-<IonSpinner name="lines"></IonSpinner>
-<i style={{marginLeft:'10px', color: '#000'}}>{`Please wait while loading data.`}</i>
+      <IonSpinner name="lines"></IonSpinner>
+      <i style={{marginLeft:'10px', color: '#000'}}>
+        {!dutyAssigned ? ( <>{`You have not assigned any duty, Please contact Admin`}</>):( <>
+        {!locationPermissionchk ?(<>{`Check device’s GPS Location Service Enable it manually`}</>)
+        :(<>{`Please wait while loading data`}</>)}
+        </>)}
+       
+        </i>
 </div>}
         
 
@@ -577,6 +651,30 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
           message={alertMessage}
           buttons={['OK']}
         />
+
+<IonModal isOpen={showfullModal} onDidDismiss={() => setshowfullModal(false)}>
+          <IonHeader>
+            <IonToolbar>
+               <IonButtons slot="end">
+                <IonButton onClick={() => setshowfullModal(false)}>
+                  <IonIcon icon={closeOutline} size="large"></IonIcon>
+                </IonButton>
+              </IonButtons>
+            </IonToolbar>
+          </IonHeader>
+          <IonContent>
+            <IonList>
+              <IonItem>
+              <IonImg     className='incedentimag'
+                          src={BASEURL+`dutyverificationimg/${showimagepath}`}
+                        ></IonImg>
+              </IonItem>
+           
+
+            </IonList>
+              </IonContent>
+        </IonModal>
+
 
         <IonModal isOpen={showRequestModal} onDidDismiss={() => setShowRequestModal(false)}>
           <IonHeader>
@@ -619,9 +717,48 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
           </IonContent>
         </IonModal>
       </div>
-      {/* </IonContent> */}
+   
+     
+
+      
+        {Otherdutyinfo ? (
+          <div className="content">
+        <IonCard className="shift-details-card">
+{upcomingtitle ? (<IonCardHeader>
+  <IonCardTitle>{t('Next Duty Detail')}</IonCardTitle>
+</IonCardHeader>):(<IonCardHeader>
+  <IonCardTitle>{t('Previous Duty Detail')}</IonCardTitle>
+</IonCardHeader>)}
+
+<IonCardContent className="shift-details-card-content">
+  <div className="shift-details-column">
+  
+    <p><strong>{t('Client Name')}:</strong> {otherdutyDetails?.client_name}</p>
+    <p><strong>{t('Site Name & Address')}:</strong> <span className='text-right'>{otherdutyDetails?.site_name}, {otherdutyDetails?.site_city}, {dutyDetailsFromOngoingDuty?.site_state}</span></p>
+    <p><strong>{t('Site ID')}:</strong> {otherdutyDetails?.site_id}</p>
+    <p><strong>{t('Sol ID')}:</strong> {otherdutyDetails?.sol_id}</p>
+      </div>
+  <div className="shift-details-column">
+    <p><strong>{t('Authorized Shift')}:</strong> {otherdutyDetails?.auth_shift}</p>
+    <p><strong>{t('Shift Start Time')}:</strong> {otherdutyDetails?.duty_start_datetime}</p>
+    <p><strong>{t('Shift End Time')}:</strong> {otherdutyDetails?.duty_end_datetime}</p>
+
+  </div>
+</IonCardContent>
+
+
+</IonCard> 
+</div>
+) : ('')}
+        
+
+  
+
+
+   
+      
       <div className="footer">
-        <IonTitle className="footer ion-text-center">Helpline | +91 90999 XXXXX</IonTitle>
+      <CustomFooter />
       </div>
     </div>
   );
@@ -633,7 +770,7 @@ const Dashboard = () => {
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const [inAlert, SetInAlert] = useState(false);
   const [alertModal, setAlertModal] = useState(false);
-  const [movementAlertMessage, SetMovementAlertMessage] = useState('sheikh test');
+  const [movementAlertMessage, SetMovementAlertMessage] = useState('');
   const [itemFromLocalStorage, setItemFromLocalStorage] = useState(
     localStorage.getItem('guardalertkey') || ''
   );
@@ -661,7 +798,7 @@ const Dashboard = () => {
   function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
     //Function that hits when ion pull to refresh is called
     setTimeout(() => {
-      // console.log("PAGE TO be ReFRESHED");
+      console.log("PAGE TO be ReFRESHED");
       setReloader(!reloader);
       event.detail.complete();
     }, 500);
@@ -760,7 +897,7 @@ function ModalComponent(props) {
     formData.append('alertreply', alertReplyInput);
     formData.append('alertmsg', props.itemFromLocalStorage.movementAlertMessage);
 
-    axios.post('https://guard.ghamasaana.com/guard_new_api/alert_message_status.php', formData).then((response) => {
+    axios.post(BASEURL+'alert_message_status.php', formData).then((response) => {
       if (response.data && response.data.success) {
         present({
           message: `Your alert reply has been submitted successfully!`,

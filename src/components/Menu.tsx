@@ -19,8 +19,13 @@ import {
   personCircleOutline,
   paperPlaneOutline,
   notificationsOutline,
+  imageOutline,
+  informationCircle,
   personAddOutline,
   languageOutline,
+  contractOutline,
+  alertCircleOutline,
+  personCircle,
   logOutOutline,
   logInOutline,
   peopleCircleOutline,
@@ -43,12 +48,9 @@ const Menu: React.FC = () => {
       const loggedInStatus = localStorage.getItem('isLoggedIn') === 'true';
       const loggedUserData = localStorage.getItem('loggedInUser');
 
-      console.log('Login status:', loggedInStatus); // Debugging line
       setLoggedUserData(JSON.parse(loggedUserData));
       setIsLoggedIn(loggedInStatus);
     };
-    // const loggedUserStatus = localStorage.getItem('isLoggedIn');
-    // console.log("SH verify logged Status", loggedUserStatus);
 
     checkLoginStatus(); // Initial check
 
@@ -58,18 +60,18 @@ const Menu: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    console.log("Sessionizes useEffect Called", isLoggedIn);
+  
     if(isLoggedIn){
-      console.log("Inide if ---- ", isLoggedIn);
+      
         const loggedUserData = localStorage.getItem('loggedInUser');
         setLoggedUserData(JSON.parse(loggedUserData));
-        console.log("SH verify logged data inner case", loggedUserData);
+     
     }
   }, [isLoggedIn]);
 
   const menuItems = [
     {
-      title: t('Home'),
+      title: t('dashboard'),
       url: '/pages/tabs/Dashboard',
       iosIcon: calendarClearOutline,
       mdIcon: calendarClearOutline,
@@ -78,7 +80,7 @@ const Menu: React.FC = () => {
     },
     {
       title: t('Duty Info'),
-      url: '/pages/tabs/Dashboard/DutyInfo',
+      url: '/pages/tabs/DutyInfo',
       iosIcon: informationCircleOutline,
       mdIcon: informationCircleOutline,
       isManager: false,
@@ -86,15 +88,31 @@ const Menu: React.FC = () => {
     },
     {
       title: t('Profile'),
-      url: '/pages/Accountupd',
+      url: '/pages/tabs/Accountupd',
       iosIcon: personCircleOutline,
       mdIcon: personCircleOutline,
       isManager: false,
       enabled: true
     },
     {
-      title: t('Requests'),
-      url: '/pages/tabs/getRequest',
+      title: t('SOP'),
+      url: '/pages/tabs/getSop',
+      iosIcon: paperPlaneOutline,
+      mdIcon: paperPlaneOutline,
+      isManager: false,
+      enabled: true
+    },
+    {
+      title: t('incident Report'),
+      url: '/pages/tabs/getGallery',
+      iosIcon: imageOutline,
+      mdIcon: imageOutline,
+      isManager: false,
+      enabled: true
+    },
+    {
+      title: t('Daily Post Report'),
+      url: '/pages/tabs/getPostReport',
       iosIcon: paperPlaneOutline,
       mdIcon: paperPlaneOutline,
       isManager: false,
@@ -117,8 +135,8 @@ const Menu: React.FC = () => {
       enabled: true
     },
     {
-      title: t('Add New Guard'),
-      url: '/pages/AddNewGuard',
+      title: t('New Recruitment'),
+      url: '/pages/tabs/listgaurd',
       iosIcon: personAddOutline,
       mdIcon: personAddOutline,
       isManager: false,
@@ -126,9 +144,9 @@ const Menu: React.FC = () => {
     },
     {
       title: t('Your ID Card'),
-      url: '/pages/idCard',
-      iosIcon: personAddOutline,
-      mdIcon: personAddOutline,
+      url: '/pages/tabs/idCard',
+      iosIcon: personCircleOutline,
+      mdIcon: personCircleOutline,
       isManager: false,
       enabled: true
     },{
@@ -140,8 +158,24 @@ const Menu: React.FC = () => {
       enabled: true
     },
     {
+      title: t('Emergency Contacts'),
+      url: '/pages/tabs/emergencyContact',
+      iosIcon: contractOutline,
+      mdIcon: contractOutline,
+      isManager: false,
+      enabled: true
+    },
+    {
+      title: t('Help'),
+      url: '/pages/tabs/helptxt',
+      iosIcon: alertCircleOutline,
+      mdIcon: alertCircleOutline,
+      isManager: false,
+      enabled: true
+    },
+    {
       title: t('Change Language'),
-      url: '/pages/LanguageSelector',
+      url: '/pages/tabs/LanguageSelector',
       iosIcon: languageOutline,
       mdIcon: languageOutline,
       isManager: false,

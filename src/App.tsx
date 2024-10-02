@@ -53,14 +53,20 @@ import MainTabs from './components/MainTabs.js';
 import { Geolocation } from '@capacitor/geolocation';
 import { registerNotifications } from './utility/pushNotifications.js';
 import { Capacitor } from "@capacitor/core";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { App as MinAppObject } from '@capacitor/app';
+import SplashScreen from './SplashScreen.js';
+
 // import Logout from './pages/Logout';
 setupIonicReact();
 
 const App: React.FC = () => {
 
+
+const [splashLoading,setSplashLoading]=useState(true);
+
   useEffect(() => {
+    SplashHandler();
     if (Capacitor.isNative) {
       MinAppObject.addListener("backButton", (e) => {
         if (window.location.pathname === "/pages/tabs/Dashboard") {
@@ -69,7 +75,12 @@ const App: React.FC = () => {
       });
     }
   }, []);
-
+  function SplashHandler(){
+    setTimeout(() => {
+      console.log("PAGE TO be ReFRESHED");
+      setSplashLoading(false);
+    }, 500);
+  }
   const printCurrentPosition = async () => {
     console.log("PERMISSIONS CHECK");
     const permissions = await Geolocation.requestPermissions();
@@ -91,13 +102,15 @@ const App: React.FC = () => {
             <IonRouterOutlet id="main">
               {/* <Route exact path="/" component={Loader}/> */}
               {/* <Route exact path="/" component={LanguageSelector}/> */}
-              <Route
+             <Route
                 exact
                 path="/"
                 render={(props) => {
-                  return token ? <MainTabs /> : <LanguageSelector />;
+                  
+                  return splashLoading ? <SplashScreen /> : (token  ? <MainTabs /> : <LanguageSelector />);
                 }}
-              />
+              /> 
+            {/*  <Route path="/" render={() => <SplashScreen />} />*/} 
               <Route path="/pages/tabs" render={() => <MainTabs />} />
               <Route exact path="/pages/Login" component={Login}/>
               {/* <Route exact path="/pages/Register" component={Register}/> */}

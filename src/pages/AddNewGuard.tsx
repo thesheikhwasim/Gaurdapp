@@ -1,9 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar, IonInput, IonItem, IonLabel, IonButton, IonCard, IonCardHeader, IonCardTitle, useIonToast } from '@ionic/react';
+import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, 
+  IonTitle, IonToolbar, IonInput, IonItem, IonLabel
+  ,IonDatetimeButton, IonDatetime,IonModal, IonButton, IonCard, IonCardHeader, 
+  IonCardTitle, useIonToast,IonSpinner, } from '@ionic/react';
 import axios from 'axios';
 import './Page.css';
 import useAuth from '../hooks/useAuth'; // Import the custom hook
-import { usePhotoGalleryWithPrompt } from '../hooks/usePhotoGallery';
+import { usePhotoGallery, usePhotoGalleryWithPrompt } from '../../src/hooks/usePhotoGallery';
+import { useHistory } from 'react-router-dom';
+import CustomHeader from './CustomHeader';
+import CustomFooter from './CustomFooter';
+import { BASEURL } from '../utilities_constant';
+import { t } from 'i18next';
+
 
 const AddNewGuard: React.FC = () => {
   // useAuth(); // Enforce login requirement
@@ -12,30 +21,31 @@ const AddNewGuard: React.FC = () => {
     fullname: '',
     mobileno: '',
     enqrank: '',
-    prevrollno: '',
     education: '',
-    height: '',
-    DOJ: '',
-    DOB: '',
     father_name: '',
     mother_name: '',
     full_address: '',
     state: '',
     pincode: '',
-    aadhar_no: '',
-    bankacno: '',
-    bankifsc: '',
-    siteid: '',
+     dep_site_add: '',
+     siteid: '',
     remarks: '',
   });
 
   const [present] = useIonToast();
+  const history = useHistory();
   const [buttonDisabled, setButtonDisabled] = useState(true);
+  const [saveSelectedpic, setsaveSelectedpic] = useState('');
+  const [savedateofbirth, setsavedateofbirth] = useState('');
+  const [savedateofjoin, setsavedateofjoin] = useState('');
+  const [saveSelectedpolice, setsaveSelectedpolice] = useState('');
+  const [showspinner, setshowspinner] = useState(false);
+  const [saveeducationpic, setsaveeducationpic] = useState('');
+  const [saveSelectedmedical, setsaveSelectedmedical] = useState('');
+  const { takePhoto } = usePhotoGallery();
   const { takePhotoWithPrompt } = usePhotoGalleryWithPrompt();
-
   useEffect(()=>{
     let checkMandatoryFlag = mandatoryPass();
-    console.log("Form Data trigger", checkMandatoryFlag);
     if(checkMandatoryFlag){
       setButtonDisabled(false);
     }
@@ -46,8 +56,10 @@ const AddNewGuard: React.FC = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+
+
   function mandatoryPass(){
-    const mandatoryFields = ['fullname', 'mobileno', 'father_name', 'mother_name', 'full_address', 'state'];
+    const mandatoryFields = ['fullname', 'mobileno', 'father_name', 'mother_name', 'full_address', 'state','pincode'];
     for (const field of mandatoryFields) {
       if (!formData[field]) {
         return false;
@@ -56,18 +68,35 @@ const AddNewGuard: React.FC = () => {
     return true;
   }
 
-  const handlepiccameraStart = async () => { //copied funtion from develop
-    takePhotoWithPrompt().then(async (photoData:any) => {
-      // JSON.stringify(photoData)
-    });
-  };
+
+  
+const handlepolicecameraStart = async () => {
+  takePhotoWithPrompt().then(async (photoData:any) => {
+  setsaveSelectedpolice(JSON.stringify(photoData));
+
+});
+};
+
+const handleeducationcameraStart = async () => {
+  takePhotoWithPrompt().then(async (photoData:any) => {
+  setsaveeducationpic(JSON.stringify(photoData));
+
+});
+};
+
+const handlepiccameraStart = async () => {
+  takePhotoWithPrompt().then(async (photoData:any) => {
+  setsaveSelectedpic(JSON.stringify(photoData));
+
+});
+};
 
   const handleAddGuard = async () => {
     
     const storedToken = localStorage.getItem('token');
     const token = storedToken; // Replace with your actual token
     // Validate mandatory fields
-    const mandatoryFields = ['fullname', 'mobileno', 'father_name', 'mother_name', 'full_address', 'state'];
+    const mandatoryFields = ['fullname', 'mobileno', 'father_name', 'mother_name', 'full_address', 'state','pincode'];
     for (const field of mandatoryFields) {
       if (!formData[field]) {
         present({
@@ -79,15 +108,36 @@ const AddNewGuard: React.FC = () => {
       }
     }
 
+
+  
+
+
+
+
     const data = new FormData();
     data.append('action', 'add_new_gaurd');
     data.append('token', token);
+    data.append('profile_pic', saveSelectedpic);
+    data.append('education_pic', saveeducationpic);
+    data.append('DOJ', savedateofjoin);
+    data.append('DOB', savedateofbirth);
     Object.keys(formData).forEach((key) => data.append(key, formData[key]));
-    console.log("formData ----> ", formData);
-
+   
+if(savedateofbirth==='')
+{
+  alert('Please select Date Of Birth');
+}
+else if(saveSelectedpic==='')  
+  {
+alert("Please Add Profile Pic!");
+  }
+else{
+  setshowspinner(true);
+  setButtonDisabled(true);
     try {
-      const response = await axios.post('https://guard.ghamasaana.com/guard_new_api/add_new_gaurd.php', data);
+      const response = await axios.post(BASEURL+'add_new_gaurd.php', data);
       if (response.data.success) {
+          setshowspinner(false);
         present({
           message: 'Guard added successfully!',
           duration: 2000,
@@ -97,22 +147,18 @@ const AddNewGuard: React.FC = () => {
           fullname: '',
           mobileno: '',
           enqrank: '',
-          prevrollno: '',
           education: '',
-          height: '',
-          DOJ: '',
-          DOB: '',
           father_name: '',
           mother_name: '',
           full_address: '',
           state: '',
           pincode: '',
-          aadhar_no: '',
-          bankacno: '',
-          bankifsc: '',
+          dep_site_add: '',
           siteid: '',
           remarks: '',
         });
+        history.push('/pages/tabs/listgaurd');
+      //  history.push('/pages/AddNewGuardDoc', { state: 'sdfsdfdsfd' });
       } else {
         present({
           message: 'Failed to add guard. Please try again.',
@@ -128,6 +174,7 @@ const AddNewGuard: React.FC = () => {
       });
       console.error('Error adding guard:', error);
     }
+  }
   };
 
   return (
@@ -137,94 +184,148 @@ const AddNewGuard: React.FC = () => {
           <IonButtons slot="start">
             <IonMenuButton />
           </IonButtons>
-          <IonTitle>Add New Guard</IonTitle>
+          <CustomHeader />
+          
         </IonToolbar>
       </IonHeader>
 
       <IonContent fullscreen>
         <IonCard className='shift-details-card'>
           <IonCardHeader>
-            <IonCardTitle>Add New Guard 666</IonCardTitle>
+            <IonCardTitle>{t('Add New Recruitment')} 
+                  </IonCardTitle>
+         
           </IonCardHeader>
           <IonItem>
-            <IonLabel position="floating">Full Name *</IonLabel>
+          <IonButtons slot="end">
+                    <IonButton color={'primary'} className="md button button-full"  href='pages/tabs/listgaurd'>BACK</IonButton>
+                  </IonButtons>
+                  </IonItem>
+          <IonItem>
+            <IonLabel position="floating">{t('Full Name')} *:</IonLabel>
             <IonInput name="fullname" value={formData.fullname} onIonChange={handleInputChange}></IonInput>
           </IonItem>
+
           <IonItem>
-            <IonLabel position="floating">Mobile No *</IonLabel>
-            <IonInput name="mobileno" value={formData.mobileno} onIonChange={handleInputChange}></IonInput>
+            <IonLabel position="floating">{t('Mobile Number')} *:</IonLabel>
+            <IonInput name="mobileno" type='tel' value={formData.mobileno} onIonChange={handleInputChange}></IonInput>
           </IonItem>
           <IonItem>
-            <IonLabel position="floating">Rank</IonLabel>
-            <IonInput name="enqrank" value={formData.enqrank} onIonChange={handleInputChange}></IonInput>
+          <IonButton  expand="full" onClick={handlepiccameraStart}> {t('Add Profile Pic')}</IonButton>
           </IonItem>
+          {saveSelectedpic && <>
+            <span className='paddingLeftRight16'>Profile Pic Preview</span>
+           <IonItem>
+              <img
+                src={`data:image/jpeg;base64,${JSON.parse(saveSelectedpic).base64String}`}
+                alt="Preview Image"
+                style={{ width: 'auto', height: '100px' }}
+              />
+            </IonItem>
+          </>}
+         <IonItem>
+          <div className='dateToParent'>
+                  <span className='dateTileSpan'><strong>{t('DOB')} *:</strong></span>
+                  <>
+                    <IonDatetimeButton datetime="datedob"></IonDatetimeButton>
+                    <IonModal keepContentsMounted={true}>
+                      <IonDatetime
+                        id="datedob"
+                        
+                        presentation='date'
+                        onIonChange={(datedob) => {
+                          let dateFormat = datedob?.detail?.value.split('T')[0];
+                          setsavedateofbirth(dateFormat);
+                        
+                        }}></IonDatetime>
+                    </IonModal>
+                  </>
+                </div>
+                </IonItem>
           <IonItem>
-            <IonLabel position="floating">Previous Roll No</IonLabel>
-            <IonInput name="prevrollno" value={formData.prevrollno} onIonChange={handleInputChange}></IonInput>
-          </IonItem>
-          <IonItem>
-            <IonLabel position="floating">Education</IonLabel>
-            <IonInput name="education" value={formData.education} onIonChange={handleInputChange}></IonInput>
-          </IonItem>
-          <IonItem>
-            <IonLabel position="floating">Height</IonLabel>
-            <IonInput name="height" value={formData.height} onIonChange={handleInputChange}></IonInput>
-          </IonItem>
-          <IonItem>
-            <IonLabel position="floating">DOJ</IonLabel>
-            <IonInput name="DOJ" value={formData.DOJ} onIonChange={handleInputChange}></IonInput>
-          </IonItem>
-          <IonItem>
-            <IonLabel position="floating">DOB</IonLabel>
-            <IonInput name="DOB" value={formData.DOB} onIonChange={handleInputChange}></IonInput>
-          </IonItem>
-          <IonItem>
-            <IonLabel position="floating">Father's Name *</IonLabel>
+            <IonLabel position="floating">{t('Father`s Name')} *:</IonLabel>
             <IonInput name="father_name" value={formData.father_name} onIonChange={handleInputChange}></IonInput>
           </IonItem>
           <IonItem>
-            <IonLabel position="floating">Mother's Name *</IonLabel>
+            <IonLabel position="floating">{t('Mother`s Name')} *:</IonLabel>
             <IonInput name="mother_name" value={formData.mother_name} onIonChange={handleInputChange}></IonInput>
           </IonItem>
           <IonItem>
-            <IonLabel position="floating">Full Address *</IonLabel>
+            <IonLabel position="floating">{t('Full Address')} *:</IonLabel>
             <IonInput name="full_address" value={formData.full_address} onIonChange={handleInputChange}></IonInput>
           </IonItem>
           <IonItem>
-            <IonLabel position="floating">State *</IonLabel>
+            <IonLabel position="floating">{t('State')} *:</IonLabel>
             <IonInput name="state" value={formData.state} onIonChange={handleInputChange}></IonInput>
           </IonItem>
           <IonItem>
-            <IonLabel position="floating">Pincode</IonLabel>
+            <IonLabel position="floating">{t('Pincode')} *:</IonLabel>
             <IonInput name="pincode" value={formData.pincode} onIonChange={handleInputChange}></IonInput>
           </IonItem>
           <IonItem>
-            <IonLabel position="floating">Aadhar No</IonLabel>
-            <IonInput name="aadhar_no" value={formData.aadhar_no} onIonChange={handleInputChange}></IonInput>
+            <IonLabel position="floating">{t('Rank')} :</IonLabel>
+            <IonInput name="enqrank" value={formData.enqrank} onIonChange={handleInputChange}></IonInput>
+          </IonItem>
+           <IonItem>
+            <IonLabel position="floating">{t('Education')} :</IonLabel>
+            <IonInput name="education" value={formData.education} onIonChange={handleInputChange}></IonInput>
           </IonItem>
           <IonItem>
-            <IonLabel position="floating">Bank A/C No</IonLabel>
-            <IonInput name="bankacno" value={formData.bankacno} onIonChange={handleInputChange}></IonInput>
+          <IonButton expand="full" onClick={handleeducationcameraStart}> {t('Attach Highest Education Proof Copy')}</IonButton>
           </IonItem>
+          {saveeducationpic && <>
+           <IonItem>
+              <img
+                src={`data:image/jpeg;base64,${JSON.parse(saveeducationpic).base64String}`}
+                alt="Preview Image"
+                style={{ width: 'auto', height: '100px' }}
+              />
+            </IonItem>
+          </>}
+
           <IonItem>
-            <IonLabel position="floating">Bank IFSC</IonLabel>
-            <IonInput name="bankifsc" value={formData.bankifsc} onIonChange={handleInputChange}></IonInput>
+          <div className='dateToParent'>
+                  <span className='dateTileSpan'><strong>{t('DOJ')} :</strong></span>
+                  <>
+                    <IonDatetimeButton datetime="datedoj"></IonDatetimeButton>
+                    <IonModal keepContentsMounted={true}>
+                      <IonDatetime
+                        id="datedoj"
+                       
+                        presentation='date'
+                        onIonChange={(datedoj) => {
+                          let dateFormat = datedoj?.detail?.value.split('T')[0];
+                          setsavedateofjoin(dateFormat);
+                        }}></IonDatetime>
+                    </IonModal>
+                  </>
+                </div>
+              
           </IonItem>
-          <IonItem>
-            <IonLabel position="floating">Site ID</IonLabel>
+           <IonItem>
+            <IonLabel position="floating">{t('Deployed site Address')}</IonLabel>
+            <IonInput name="dep_site_add" value={formData.dep_site_add} onIonChange={handleInputChange}></IonInput>
+          </IonItem>
+         <IonItem>
+            <IonLabel position="floating">{t('Site ID')}</IonLabel>
             <IonInput name="siteid" value={formData.siteid} onIonChange={handleInputChange}></IonInput>
           </IonItem>
           <IonItem>
-            <IonLabel position="floating">Remarks</IonLabel>
+            <IonLabel position="floating">{t('Remarks')}</IonLabel>
             <IonInput name="remarks" value={formData.remarks} onIonChange={handleInputChange}></IonInput>
           </IonItem>
-          <IonButton expand="block" color="primary" size="default" 
+
+          {showspinner ? (
+         <IonItem className='daily-report-submit'> <IonSpinner name="lines"></IonSpinner></IonItem>
+        ) : (<IonButton expand="block" color="primary" size="default" 
           disabled={buttonDisabled} 
-          onClick={handleAddGuard}>Add Guard</IonButton>
+          onClick={handleAddGuard}>{t('Add Guard')}</IonButton>)}
+
+          
         </IonCard>
       </IonContent>
       <div className="footer">
-        <IonTitle className="footer ion-text-center">Helpline | +91 90999 XXXXX</IonTitle>
+      <CustomFooter />
       </div>
     </IonPage>
   );
