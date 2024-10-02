@@ -13,6 +13,13 @@ import CustomFooter from './CustomFooter';
 import { BASEURL } from '../utilities_constant';
 import { t } from 'i18next';
 
+import { usePhotoGallery, usePhotoGalleryWithPrompt } from '../../src/hooks/usePhotoGallery';
+import { useHistory } from 'react-router-dom';
+import CustomHeader from './CustomHeader';
+import CustomFooter from './CustomFooter';
+import { BASEURL } from '../utilities_constant';
+import { t } from 'i18next';
+
 
 const AddNewGuard: React.FC = () => {
   // useAuth(); // Enforce login requirement
@@ -29,10 +36,13 @@ const AddNewGuard: React.FC = () => {
     pincode: '',
      dep_site_add: '',
      siteid: '',
+     dep_site_add: '',
+     siteid: '',
     remarks: '',
   });
 
   const [present] = useIonToast();
+  const history = useHistory();
   const history = useHistory();
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [saveSelectedpic, setsaveSelectedpic] = useState('');
@@ -58,7 +68,10 @@ const AddNewGuard: React.FC = () => {
 
 
 
+
+
   function mandatoryPass(){
+    const mandatoryFields = ['fullname', 'mobileno', 'father_name', 'mother_name', 'full_address', 'state','pincode'];
     const mandatoryFields = ['fullname', 'mobileno', 'father_name', 'mother_name', 'full_address', 'state','pincode'];
     for (const field of mandatoryFields) {
       if (!formData[field]) {
@@ -97,6 +110,7 @@ const handlepiccameraStart = async () => {
     const token = storedToken; // Replace with your actual token
     // Validate mandatory fields
     const mandatoryFields = ['fullname', 'mobileno', 'father_name', 'mother_name', 'full_address', 'state','pincode'];
+    const mandatoryFields = ['fullname', 'mobileno', 'father_name', 'mother_name', 'full_address', 'state','pincode'];
     for (const field of mandatoryFields) {
       if (!formData[field]) {
         present({
@@ -107,6 +121,12 @@ const handlepiccameraStart = async () => {
         return;
       }
     }
+
+
+  
+
+
+
 
 
   
@@ -136,6 +156,7 @@ else{
   setButtonDisabled(true);
     try {
       const response = await axios.post(BASEURL+'add_new_gaurd.php', data);
+      const response = await axios.post(BASEURL+'add_new_gaurd.php', data);
       if (response.data.success) {
           setshowspinner(false);
         present({
@@ -153,6 +174,7 @@ else{
           full_address: '',
           state: '',
           pincode: '',
+          dep_site_add: '',
           dep_site_add: '',
           siteid: '',
           remarks: '',
@@ -175,6 +197,8 @@ else{
       console.error('Error adding guard:', error);
     }
   }
+    }
+  }
   };
 
   return (
@@ -186,12 +210,17 @@ else{
           </IonButtons>
           <CustomHeader />
           
+          <CustomHeader />
+          
         </IonToolbar>
       </IonHeader>
 
       <IonContent fullscreen>
         <IonCard className='shift-details-card'>
           <IonCardHeader>
+            <IonCardTitle>{t('Add New Recruitment')} 
+                  </IonCardTitle>
+         
             <IonCardTitle>{t('Add New Recruitment')} 
                   </IonCardTitle>
          
@@ -203,10 +232,18 @@ else{
                   </IonItem>
           <IonItem>
             <IonLabel position="floating">{t('Full Name')} *:</IonLabel>
+          <IonButtons slot="end">
+                    <IonButton color={'primary'} className="md button button-full"  href='pages/tabs/listgaurd'>BACK</IonButton>
+                  </IonButtons>
+                  </IonItem>
+          <IonItem>
+            <IonLabel position="floating">{t('Full Name')} *:</IonLabel>
             <IonInput name="fullname" value={formData.fullname} onIonChange={handleInputChange}></IonInput>
           </IonItem>
 
           <IonItem>
+            <IonLabel position="floating">{t('Mobile Number')} *:</IonLabel>
+            <IonInput name="mobileno" type='tel' value={formData.mobileno} onIonChange={handleInputChange}></IonInput>
             <IonLabel position="floating">{t('Mobile Number')} *:</IonLabel>
             <IonInput name="mobileno" type='tel' value={formData.mobileno} onIonChange={handleInputChange}></IonInput>
           </IonItem>
@@ -248,21 +285,31 @@ else{
           </IonItem>
           <IonItem>
             <IonLabel position="floating">{t('Mother`s Name')} *:</IonLabel>
+            <IonLabel position="floating">{t('Mother`s Name')} *:</IonLabel>
             <IonInput name="mother_name" value={formData.mother_name} onIonChange={handleInputChange}></IonInput>
           </IonItem>
           <IonItem>
+            <IonLabel position="floating">{t('Full Address')} *:</IonLabel>
             <IonLabel position="floating">{t('Full Address')} *:</IonLabel>
             <IonInput name="full_address" value={formData.full_address} onIonChange={handleInputChange}></IonInput>
           </IonItem>
           <IonItem>
             <IonLabel position="floating">{t('State')} *:</IonLabel>
+            <IonLabel position="floating">{t('State')} *:</IonLabel>
             <IonInput name="state" value={formData.state} onIonChange={handleInputChange}></IonInput>
           </IonItem>
           <IonItem>
             <IonLabel position="floating">{t('Pincode')} *:</IonLabel>
+            <IonLabel position="floating">{t('Pincode')} *:</IonLabel>
             <IonInput name="pincode" value={formData.pincode} onIonChange={handleInputChange}></IonInput>
           </IonItem>
           <IonItem>
+            <IonLabel position="floating">{t('Rank')} :</IonLabel>
+            <IonInput name="enqrank" value={formData.enqrank} onIonChange={handleInputChange}></IonInput>
+          </IonItem>
+           <IonItem>
+            <IonLabel position="floating">{t('Education')} :</IonLabel>
+            <IonInput name="education" value={formData.education} onIonChange={handleInputChange}></IonInput>
             <IonLabel position="floating">{t('Rank')} :</IonLabel>
             <IonInput name="enqrank" value={formData.enqrank} onIonChange={handleInputChange}></IonInput>
           </IonItem>
@@ -308,9 +355,12 @@ else{
           </IonItem>
          <IonItem>
             <IonLabel position="floating">{t('Site ID')}</IonLabel>
+         <IonItem>
+            <IonLabel position="floating">{t('Site ID')}</IonLabel>
             <IonInput name="siteid" value={formData.siteid} onIonChange={handleInputChange}></IonInput>
           </IonItem>
           <IonItem>
+            <IonLabel position="floating">{t('Remarks')}</IonLabel>
             <IonLabel position="floating">{t('Remarks')}</IonLabel>
             <IonInput name="remarks" value={formData.remarks} onIonChange={handleInputChange}></IonInput>
           </IonItem>
@@ -325,6 +375,7 @@ else{
         </IonCard>
       </IonContent>
       <div className="footer">
+      <CustomFooter />
       <CustomFooter />
       </div>
     </IonPage>

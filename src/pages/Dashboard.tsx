@@ -204,7 +204,6 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
         setIsRunning(true);
         setElapsedTime(convertRemainingTime(data.employee_data.remaining_time));
         setdutystartinfo(data.employee_data.duty_ongoing_info);
-   
         if (intervalRef.current == null) {
           intervalRef.current = setInterval(() => {
             setElapsedTime((prevTime) => prevTime + 1);
@@ -368,6 +367,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
           formData.append('cursiteid', currentsiteid);
           formData.append('duty_start_verification', 'Face_Recognition');
           formData.append('duty_start_pic', JSON.stringify(photoData));
+        
         
           dutyApi(formData, false)
             .then((response) => {

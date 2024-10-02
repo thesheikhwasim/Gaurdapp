@@ -266,7 +266,7 @@ const DutyInfo: React.FC = () => {
         ) : (
           <>
             <div className="header_title">
-              <IonTitle className="header_title ion-text-center">{t('Your Duty Info')}</IonTitle>
+              <IonTitle className="header_title ion-text-center">Your Duty Info</IonTitle>
             </div>
             <>
               <div style={{ padding: '0px 20px', fontWeight: 'bold', fontSize: '15px', marginTop: '5px' }}
@@ -275,8 +275,8 @@ const DutyInfo: React.FC = () => {
                 <div className='dateFromParent'>
                   <span className='dateTileSpan'>{t('Date From')}:</span>
                   <>
-                  <IonDatetimeButton datetime="datetime"></IonDatetimeButton>
-                  <IonModal keepContentsMounted={true} ref={modalTo}>
+                    <IonDatetimeButton datetime="datetimeFrom" className='btnDateTimeClass'></IonDatetimeButton>
+                    <IonModal keepContentsMounted={true} ref={modalFrom}>
                       <IonDatetime
                         id="datetime"
                         presentation='date'
@@ -294,10 +294,10 @@ const DutyInfo: React.FC = () => {
                 <div className='dateToParent'>
                   <span className='dateTileSpan'>{t('Date To')}:</span>
                   <>
-                    <IonDatetimeButton datetime="dateTo"></IonDatetimeButton>
+                    <IonDatetimeButton datetime="datetimeTo"></IonDatetimeButton>
                     <IonModal keepContentsMounted={true} ref={modalTo}>
                       <IonDatetime
-                        id="dateTo"
+                        id="datetimeTo"
                         presentation='date'
                         onIonChange={(dataTo) => {
                           let dateFormat = dataTo?.detail?.value.split('T')[0];
@@ -313,8 +313,8 @@ const DutyInfo: React.FC = () => {
               </div>
             </>
 
-    
- 
+            <IonCard className='shift-details-card-content'>
+
 
               {dutyData.length > 0 ? (
                 dutyData.map((duty: any, index: number) => (

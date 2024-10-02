@@ -35,6 +35,7 @@ import Accountupd from './pages/Accountupd';
 import getRequest from './pages/getRequest';
 import getTicket from './pages/getTicket';
 import AddNewGuard from './pages/AddNewGuard';
+import AddNewGuardDoc from './pages/AddNewGuardDoc';
 import idCard from './pages/idCard';
 import MapView from './pages/mapView'
 
@@ -121,6 +122,7 @@ const [splashLoading,setSplashLoading]=useState(true);
               {/* <Route exact path="/pages/getTicket" component={getTicket}/> */}
               <Route exact path="/pages/tabs/Dashboard/DutyInfo" component={DutyInfo}/>
               <Route exact path="/pages/AddNewGuard" component={AddNewGuard}/>
+              <Route exact path="/pages/AddNewGuardDoc" component={AddNewGuardDoc}/>
               <Route exact path="/pages/idCard" component={idCard}/>
               <Route exact path="/pages/MapView" component={MapView}/>
               <Route exact path="/pages/LanguageSelector" component={LanguageSelector}/>

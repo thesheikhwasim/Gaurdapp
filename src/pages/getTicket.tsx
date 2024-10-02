@@ -4,6 +4,11 @@ import { IonButtons, IonLoading, IonContent, IonGrid, IonRow, IonCol, IonHeader,
   IonCardSubtitle, IonCardTitle, IonFab, IonFabButton, IonIcon, IonItem, IonList, IonInput,
    IonSelectOption, IonButton, IonModal, IonSelect, useIonToast, 
   RefresherEventDetail,IonRefresher,IonRefresherContent,IonTextarea } from '@ionic/react';
+import { IonButtons, IonLoading, IonContent, IonGrid, IonRow, IonCol, IonHeader, IonLabel, 
+  IonMenuButton, IonPage, IonTitle, IonToolbar, IonImg, IonCard, IonCardContent, IonCardHeader, 
+  IonCardSubtitle, IonCardTitle, IonFab, IonFabButton, IonIcon, IonItem, IonList, IonInput,
+   IonSelectOption, IonButton, IonModal, IonSelect, useIonToast, 
+  RefresherEventDetail,IonRefresher,IonRefresherContent,IonTextarea } from '@ionic/react';
 import { useParams } from 'react-router';
 import axios from 'axios';
 import './Page.css';
@@ -12,6 +17,9 @@ import { add, closeOutline } from 'ionicons/icons';
 import { usePhotoGallery, usePhotoGalleryWithPrompt } from '../../src/hooks/usePhotoGallery';
 import { Geolocation } from '@capacitor/geolocation';
 import CustomHeader from './CustomHeader';
+import CustomFooter from './CustomFooter';
+import { BASEURL } from '../utilities_constant';
+import { t } from 'i18next';
 import CustomFooter from './CustomFooter';
 import { BASEURL } from '../utilities_constant';
 import { t } from 'i18next';
@@ -45,6 +53,7 @@ const STATIC_SUBJECT_FAILURE_CASE = [
 
 const GetRequests: React.FC = () => {
   // useAuth(); // Enforce login requirement
+  const [reloader, setReloader] = useState(false);
   const [reloader, setReloader] = useState(false);
   const [requestData, setRequestData] = useState<any>(null);
   const [subjectList, setSubjectList] = useState<any>(STATIC_SUBJECT_FAILURE_CASE);
@@ -166,6 +175,7 @@ const GetRequests: React.FC = () => {
 
   function getSubjectListAPI() {
     let URL = BASEURL+"ticket_subject.php";
+    let URL = BASEURL+"ticket_subject.php";
     let formData = new FormData();
     formData.append('action', "ticket_subject");
     formData.append('token', token);
@@ -215,6 +225,7 @@ const GetRequests: React.FC = () => {
     // return false;
 
     axios
+      .post(BASEURL+'add_new_request.php', formData)
       .post(BASEURL+'add_new_request.php', formData)
       .then((response) => {
         if (response.data && response.data.success) {
@@ -276,6 +287,9 @@ const GetRequests: React.FC = () => {
       <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
             <IonRefresherContent></IonRefresherContent>
           </IonRefresher>
+      <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+            <IonRefresherContent></IonRefresherContent>
+          </IonRefresher>
         <IonFab horizontal="end" vertical="bottom" slot="fixed">
           <IonFabButton onClick={() => newTicketNav()}>
             <IonIcon icon={add}></IonIcon>
@@ -287,11 +301,18 @@ const GetRequests: React.FC = () => {
           <>
             <div className="header_title">
               <IonTitle className="header_title ion-text-center">{t('Your Ticket Information')}</IonTitle>
+              <IonTitle className="header_title ion-text-center">{t('Your Ticket Information')}</IonTitle>
             </div>
             <IonCard className='shift-details-card-content'>
               {(requestData && requestData.length > 0) ? (
                 <IonGrid>
                   {requestData.map((ticket, index) => (
+                   <div className="content"   key={index} style={{ width: '100%' }}>
+                     <IonCard className="shift-details-card">
+                     <IonCardHeader  class="ion-text-center">
+  <IonCardTitle >{t('Ticket ID')} <strong>{ticket.ReqID || 'N/A'}</strong></IonCardTitle>
+</IonCardHeader>
+<IonCardContent className="shift-details-card-content">
                    <div className="content"   key={index} style={{ width: '100%' }}>
                      <IonCard className="shift-details-card">
                      <IonCardHeader  class="ion-text-center">
@@ -312,6 +333,9 @@ const GetRequests: React.FC = () => {
                       </IonCardContent>
                       </IonCard>
                     </div>
+                      </IonCardContent>
+                      </IonCard>
+                    </div>
                   ))}
                 </IonGrid>
               ) : (
@@ -323,13 +347,16 @@ const GetRequests: React.FC = () => {
 
             <div className='footer'>
             <CustomFooter />
+            <CustomFooter />
             </div>
           </>
         )}
         {/* Moal code goes below */}
         <IonModal isOpen={showRequestModal} onDidDismiss={() => setShowRequestModal(false)}  >
+        <IonModal isOpen={showRequestModal} onDidDismiss={() => setShowRequestModal(false)}  >
           <IonHeader>
             <IonToolbar>
+              <IonTitle>{t('Create Ticket')}</IonTitle>
               <IonTitle>{t('Create Ticket')}</IonTitle>
               <IonButtons slot="end">
                 <IonButton onClick={() => setShowRequestModal(false)}>
@@ -348,6 +375,8 @@ const GetRequests: React.FC = () => {
                 <IonSelect
                   label={t('Subject')}
                   placeholder={t('Select Subject')}
+                  label={t('Subject')}
+                  placeholder={t('Select Subject')}
                   onIonChange={(e) => {
                     console.log(`ionChange fired with value: ${e.detail.value}`);
                     setReqSubject(e.detail.value);
@@ -359,6 +388,8 @@ const GetRequests: React.FC = () => {
               </IonItem>
             
               <IonItem>
+                <IonLabel position="floating">{t('Description')}</IonLabel>
+                <IonTextarea autoGrow={true} rows={10} value={reqDesc} placeholder='Enter your ticket detail here' onIonInput={e => setReqDesc(e.detail.value!)}></IonTextarea>
                 <IonLabel position="floating">{t('Description')}</IonLabel>
                 <IonTextarea autoGrow={true} rows={10} value={reqDesc} placeholder='Enter your ticket detail here' onIonInput={e => setReqDesc(e.detail.value!)}></IonTextarea>
               </IonItem>
