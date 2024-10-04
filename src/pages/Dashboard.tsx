@@ -319,7 +319,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
           // }
           if (movementAlertMessage != response.data[0]?.display_message) {
             SetMovementAlertMessage(response.data[0]?.display_message);
-          }
+          }        
         }
         return response.data;
       // }
@@ -704,7 +704,7 @@ const Dashboard = () => {
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const [inAlert, SetInAlert] = useState(false);
   const [alertModal, setAlertModal] = useState(false);
-  const [movementAlertMessage, SetMovementAlertMessage] = useState('sheikh test');
+  const [movementAlertMessage, SetMovementAlertMessage] = useState('');
   const [itemFromLocalStorage, setItemFromLocalStorage] = useState(
     localStorage.getItem('guardalertkey') || ''
   );
@@ -791,11 +791,45 @@ export default Dashboard;
 function AlertComponent(props) {
 
   return (
-    <div className='alertClassForMessage not-range-parent' style={{
-      marginTop: "5px", marginBottom: '5px',
-      padding: '15px', border: '2px solid red', position: 'relative'
-    }}>
-      <div>
+    <div>
+      {/* MODAL CODE STARTS */}
+      {/* <IonPage> */}
+      <IonContent class="ion-padding">
+        <IonModal 
+        isOpen={true} 
+        backdropDismiss={false}
+        id="example-modal-alert"
+        onDidDismiss={() => props.setAlertModal()}
+        >
+          <div className="wrapper">
+            {/* <IonList lines="none"> */}
+              <div className='alertClassForMessage not-range-parent' style={{
+                marginTop: "5px", marginBottom: '5px',
+                padding: '15px', border: '2px solid red', position: 'relative'
+              }}>
+                <div>
+                  ALERT!
+                </div>
+                <div style={{ fontSize: '12px' }}>
+                  Please answer below alert question!
+                </div>
+                <div className='blink_me' style={{ color: '#000', marginTop: '5px' }}>
+                  {`Alert Question: ${JSON.stringify(props.movementAlertMessage)}`}
+                </div>
+                <div>
+                  <IonButton expand="block" onClick={() => props.setAlertModal()} color="danger">
+                    {'REPLY ALERT'}
+                  </IonButton>
+                </div>
+              </div>
+            {/* </IonList> */}
+          </div>
+        </IonModal>
+      </IonContent>
+    {/* </IonPage> */}
+      {/* MODAL CODE ENDS */}
+      {/* OLD CODE BELOW */}
+      {/* <div>
         ALERT!
       </div>
       <div style={{ fontSize: '12px' }}>
@@ -808,7 +842,7 @@ function AlertComponent(props) {
         <IonButton expand="block" onClick={() => props.setAlertModal()} color="danger">
           {'REPLY ALERT'}
         </IonButton>
-      </div>
+      </div> */}
     </div>
   )
 }
