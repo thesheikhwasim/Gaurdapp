@@ -138,6 +138,8 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
         setPrevLatitude(res?.coords?.latitude);
         setPrevLongitude(res?.coords?.longitude);
         dutyMovementHandler();
+      }else{
+        console.info("movement elapsed time else case");
       }
     }).catch((error)=>{
       console.error("ELAPSEDTIME LOCATION ERROR");
@@ -298,7 +300,7 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
         //   duration: 2000,
         //   position: 'bottom',
         // });
-        if (response && response?.data && 'range_status' in response.data[0]) {
+        if (response && response?.data && 'range_status' in response?.data[0]) {
           if (inRange != response.data[0]?.range_status) {
             SetInRange(response.data[0]?.range_status);
           }
@@ -314,12 +316,12 @@ const DashboardComp: React.FC = ({ onLocalStorageChange, reloadPage }:any) => {
 
           //Setting in local storage, base on which localstorage listner is triggered to validate 
           localStorage.setItem('guardalertkey', JSON.stringify(obj));
-          onLocalStorageChange(obj);
           SetInAlert(response.data[0]?.display_alert);
           // }
           if (movementAlertMessage != response.data[0]?.display_message) {
             SetMovementAlertMessage(response.data[0]?.display_message);
           }
+          onLocalStorageChange(obj); 
         }
         return response.data;
       // }
@@ -704,7 +706,7 @@ const Dashboard = () => {
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const [inAlert, SetInAlert] = useState(false);
   const [alertModal, setAlertModal] = useState(false);
-  const [movementAlertMessage, SetMovementAlertMessage] = useState('sheikh test');
+  const [movementAlertMessage, SetMovementAlertMessage] = useState('');
   const [itemFromLocalStorage, setItemFromLocalStorage] = useState(
     localStorage.getItem('guardalertkey') || ''
   );
@@ -763,7 +765,7 @@ const Dashboard = () => {
             </div>
             {itemFromLocalStorage && itemFromLocalStorage?.alertKey && <div
               style={{ paddingRight: '10px', paddingLeft: '10px' }}
-            ><AlertComponent movementAlertMessage={movementAlertMessage} inAlert={inAlert}
+            ><AlertComponent movementAlertMessage={movementAlertMessage} inAlert={inAlert} itemFromLocalStorage={itemFromLocalStorage}
               setAlertModal={() => {
                 setAlertModal(true);
               }} /></div>}
@@ -772,6 +774,7 @@ const Dashboard = () => {
           {/* ALERT MODAL GOES BELOW */}
 
           {<ModalComponent alertModal={alertModal} movementAlertMessage={movementAlertMessage} inAlert={inAlert}
+            onLocalStorageChange={handleLocalStorageChange}
             setAlertModal={() => {
               // console.log("setAlertModal(false) called", alertModal);
               setAlertModal(false);
@@ -791,11 +794,45 @@ export default Dashboard;
 function AlertComponent(props) {
 
   return (
-    <div className='alertClassForMessage not-range-parent' style={{
-      marginTop: "5px", marginBottom: '5px',
-      padding: '15px', border: '2px solid red', position: 'relative'
-    }}>
-      <div>
+    <div>
+      {/* MODAL CODE STARTS */}
+      {/* <IonPage> */}
+      <IonContent class="ion-padding">
+        <IonModal 
+        isOpen={true} 
+        backdropDismiss={false}
+        id="example-modal-alert"
+        onDidDismiss={() => props.setAlertModal()}
+        >
+          <div className="wrapper">
+            {/* <IonList lines="none"> */}
+              <div className='alertClassForMessage not-range-parent' style={{
+                marginTop: "5px", marginBottom: '5px',
+                padding: '15px', border: '2px solid red', position: 'relative'
+              }}>
+                <div>
+                  ALERT!
+                </div>
+                <div style={{ fontSize: '12px' }}>
+                  Please answer below alert question!
+                </div>
+                <div className='blink_me' style={{ color: '#000', marginTop: '5px' }}>
+                  {`Alert Question: ${JSON.stringify(props?.itemFromLocalStorage?.movementAlertMessage)}`}
+                </div>
+                <div>
+                  <IonButton expand="block" onClick={() => props.setAlertModal()} color="danger">
+                    {'REPLY ALERT'}
+                  </IonButton>
+                </div>
+              </div>
+            {/* </IonList> */}
+          </div>
+        </IonModal>
+      </IonContent>
+    {/* </IonPage> */}
+      {/* MODAL CODE ENDS */}
+      {/* OLD CODE BELOW */}
+      {/* <div>
         ALERT!
       </div>
       <div style={{ fontSize: '12px' }}>
@@ -808,7 +845,7 @@ function AlertComponent(props) {
         <IonButton expand="block" onClick={() => props.setAlertModal()} color="danger">
           {'REPLY ALERT'}
         </IonButton>
-      </div>
+      </div> */}
     </div>
   )
 }
@@ -819,6 +856,22 @@ function ModalComponent(props) {
   const [alertModal, setAlertModal] = useState(false);
   const [alertReplyInput, setAlertReplyInput] = useState('');
   // const [reqSubjectModal, setreqSubjectModal] = useState('');
+
+  function explicitFalseForNewAlertModal(){
+    let timeSTT = new Date().getTime();
+    let obj: object = {
+      lat: "",
+      long: "",
+      movementAlertMessage: "",
+      alertKey: false,
+      token: "",
+      timeStamp: timeSTT
+    }
+
+    //Setting in local storage, base on which localstorage listner is triggered to validate 
+    localStorage.setItem('guardalertkey', JSON.stringify(obj));
+    props.onLocalStorageChange(obj);
+  }
 
 
   function handleAlertReply() {
@@ -840,6 +893,7 @@ function ModalComponent(props) {
         });
         props.setAlertModal();
         setAlertReplyInput('');
+        explicitFalseForNewAlertModal();
       } else {
         present({
           message: `Failed to submit alery reply. Please try again.`,
