@@ -10,6 +10,8 @@ import { saveAs } from 'file-saver';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { BASEURL } from '../utilities_constant';
 import { t } from 'i18next';
+import { Browser } from '@capacitor/browser';
+
 
 const GetRequests: React.FC = () => {
   // useAuth(); // Enforce login requirement
@@ -59,6 +61,15 @@ const GetRequests: React.FC = () => {
   };
 
   const { name } = useParams<{ name: string; }>();
+
+  function OpenIdCardInAppBrowser(){
+    openPdfWithBrowser('https://www.orimi.com/pdf-test.pdf');
+    return false;
+  }
+  
+  const openPdfWithBrowser = async (url:any) => {
+    await Browser.open({ url });
+  };
 
   async function triggerDownload(fileParam: any) {
     // 'downloaded_now'
@@ -127,6 +138,20 @@ const GetRequests: React.FC = () => {
 
               <IonLabel><div className='notFoundIdCard'>
                 <div className='mainIdCardContainer'>
+                  <>               
+                    <div>
+                       <IonButton
+                        disabled={false}
+                        expand="block"
+                        onClick={() => OpenIdCardInAppBrowser()}
+                        color="primary">
+                        {t('Open ID Card - Sample Button')}
+                      </IonButton>
+                    </div>
+                    <AudioPlayer />
+                    <VideoPlayer />
+                    <DownloadPdf />
+                  </>
                   {ProfileData?.id_card &&
                     <>
                       <IonCard className='shift-details-card-content'>
@@ -183,3 +208,30 @@ const GetRequests: React.FC = () => {
 };
 
 export default GetRequests;
+
+
+const AudioPlayer = () => (
+  <div>
+      <audio controls>
+        <source src="https://www.w3schools.com/html/horse.ogg" type="audio/mp3" />
+        Your window does not support the audio element.
+      </audio>
+  </div>
+);
+
+const VideoPlayer = () => (
+  <div>
+      <video width="100%" height="auto" controls>
+        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
+        Your window does not support the video tag.
+      </video>
+  </div>
+);
+
+const DownloadPdf = () => (
+  <div>
+    <a href="https://www.orimi.com/pdf-test.pdf" download="userIdCard" target="__blank">
+      ANY DOWNLOAD TEXT - PDF
+    </a>
+  </div>
+)
