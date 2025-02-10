@@ -19,7 +19,8 @@ const GetRequests: React.FC = () => {
   const [reqType, setReqType] = useState('');
   const [present, dismiss] = useIonToast();
   const [reqOtherDetail, setReqOtherDetail] = useState('');
-
+  const [saveselecteddocument, setSaveSelectedDocument] = useState('');
+  
 
   const token = localStorage.getItem('token');
   useEffect(() => {
@@ -99,6 +100,13 @@ const GetRequests: React.FC = () => {
       });
   };
 
+  const handledocumentcameraStart = async () => {
+    takePhotoWithPrompt().then(async (photoData:any) => {
+    setsaveSelectededucation(JSON.stringify(photoData));
+  
+  });
+  };
+
   return (
     <IonPage>
       <IonHeader>
@@ -176,6 +184,35 @@ const GetRequests: React.FC = () => {
                 <IonLabel position="floating">Other Details (From - To Date)</IonLabel>
                 <IonInput value={reqOtherDetail} onIonChange={e => setReqOtherDetail(e.detail.value!)}></IonInput>
               </IonItem>
+              <IonItem>
+                <IonLabel position="floating">Other Details (From - To Date)</IonLabel>
+                <IonInput value={reqOtherDetail} onIonChange={e => setReqOtherDetail(e.detail.value!)}></IonInput>
+              </IonItem>
+              <IonItem>
+         <IonLabel>{t('Attach Document')} </IonLabel> 
+         {saveselecteddocument ? (   <IonButton expand="full"   onClick={() => {setSaveSelectedDocument('');}}> {t('Clear Image')}</IonButton>
+        ):('')}
+ </IonItem>
+ {saveselecteddocument && <>
+          
+          <IonItem>
+             <img onClick={handleeducationcameraStart}
+               src={`data:image/jpeg;base64,${JSON.parse(saveselecteddocument).base64String}`}
+               alt="Preview Image"
+               style={{ width: 'auto', height: '100px' }}
+             />
+           </IonItem>
+         </>}
+
+         {!saveselecteddocument &&<>   
+ <IonItem>     <img onClick={handleeducationcameraStart}
+  src='./assets/imgs/image-preview.jpg'
+  alt="Preview Image"
+  style={{ width: 'auto', height: '60px' }}
+/>
+
+
+</IonItem></>}
             </IonList>
             <IonButton expand="full" onClick={handleCreateRequest}>Create {'Leave Request'}</IonButton>
           </IonContent>

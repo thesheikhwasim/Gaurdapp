@@ -42,6 +42,8 @@ import CustomFooter from './CustomFooter';
 import { BASEURL } from '../utilities_constant';
 import { t } from 'i18next';
 import { add, closeOutline } from 'ionicons/icons';
+import { Geolocation } from '@capacitor/geolocation';
+import { Checkvalidtoken, DutyMovementGlobalApi, GlobalLogout, ValidateSimcardnumber } from '../utility/Globalapis';
 const DutyInfo: React.FC = () => {
   const [dutyData, setDutyData] = useState<any>([]);
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
@@ -67,24 +69,26 @@ const DutyInfo: React.FC = () => {
   const [totalRecordCount, setTotalRecordCount] = useState(0);
   const [isOperations, setIsOperations] = useState(false)
   const [reloader, setReloader] = useState(false);
+  const [dutyDatapermission, setDutyDatapermission] = useState(false);
   const modalFrom = useRef<HTMLIonModalElement>(null);
   const modalTo = useRef<HTMLIonModalElement>(null);
   const [showspinner, setshowspinner] = useState<boolean>(false);
   const [showfullModal, setshowfullModal] = useState(false);
   const [showimagepath, setshowimagepath] = useState('');
-
-
+  const [Latitude, setLatitude] = useState('');
+  const [Longitude, setLongitude] = useState('');
+  const [locationPermissionchk, setLocationPermissionchk] = useState(true);
   useEffect(() => {
     const storedData = localStorage.getItem('loggedInUser');
     if (storedData) {
+     
       setLoggedInUser(JSON.parse(storedData));
-      let tempSTdata = JSON.parse(storedData);
-      if (tempSTdata && tempSTdata?.designation_catagory && tempSTdata?.designation_catagory == "Operation") {
-        setIsOperations(true);
-        GetDutyListFromAPIhandler(true);
-      }else{
-        GetDutyListFromAPIhandler(false);
-      }
+      ongoingNewHandlerWithLocation();
+     
+    }
+    else
+    {
+      logoutvalidate();
     }
   }, [history]);
 
@@ -100,16 +104,105 @@ const DutyInfo: React.FC = () => {
     GetDutyListFromAPIhandler();
   }
 
-  const GetDutyListFromAPIhandler = (isOperationsParameter:any) => {
-    // alert(isOperationsParameter)
-    if (isOperations || isOperationsParameter) {
-      GetOperationsDutyListFromAPI();
-    } else {
-      GetDutyListFromAPI()
-    }
+  async function logoutvalidate()
+  {
+  
+  const checklogin= await Checkvalidtoken();
+ 
+  if(checklogin){
+    history.push('/pages/login');
+    window.location.reload();
+    return false;
+}
+
+}
+
+  function ongoingNewHandlerWithLocation(){
+    captureLocation('fromNewOngoingHandler').then((res) => {
+      // console.log("BEFORE CALLED ONGOING::::", res);
+      
+      if((res && res?.coords && res?.coords?.latitude)){
+         setLatitude(res?.coords?.latitude);
+        setLongitude(res?.coords?.longitude);
+        setLocationPermissionchk(true);
+        const storedData11 = localStorage.getItem('loggedInUser');
+        let tempSTdata = JSON.parse(storedData11);
+
+   
+
+
+        if (tempSTdata && tempSTdata?.designation_catagory && tempSTdata?.designation_catagory == "Operation") {
+          setIsOperations(true);
+          GetOperationsDutyListFromAPI(res);
+        }else{
+          GetDutyListFromAPI(res)
+        }
+
+      }else{
+        setLocationPermissionchk(false);
+
+
+        setTimeout(async() => {
+        
+          window.location.reload();
+        }, 500);
+      
+      }
+    }).catch((error)=>{
+      
+  
+    });
   }
 
-  const GetDutyListFromAPI = () => {
+
+  const captureLocation = (fromParam:string) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const permissions = await Geolocation.checkPermissions();
+        console.log("PERMISSION to show message and send DUMMY", permissions);
+        console.log("ABOVE PERMISSION WAS ASKED FROM--- ", fromParam);
+        // Case to validate permission is denied, if denied error message alert will be shown
+        if (permissions?.location == "denied") {
+          setLocationPermissionchk(false);
+           present({
+            message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
+            duration: 500,
+            position: 'bottom',
+          });
+      
+        }
+        else
+        {
+          setLocationPermissionchk(true);
+        }
+
+        const options = {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        };
+        Geolocation.getCurrentPosition(options)
+          .then((position) => {
+            if (position && position.coords.latitude) {
+              // console.log("CAPTURE LOCATION is setting lat long:::: ",position.coords.latitude.toString(), "-- longitude--", position.coords.longitude.toString());
+              setLatitude(position.coords.latitude.toString());
+              setLongitude(position.coords.longitude.toString());
+            }
+            resolve(position);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+
+
+
+  const GetDutyListFromAPI = (dataParam) => {
     const tokenVal = localStorage.getItem('token');
     let URL = BASEURL+"dutyinfo.php";
     let formData = new FormData();
@@ -121,20 +214,32 @@ const DutyInfo: React.FC = () => {
     if (perPageRecord != '') {
       formData.append('perpagerecords', perPageRecord);
     }
-    if (rangeFrom != '') {
-      formData.append('rangeFrom', rangeFrom);
+    if(dataParam && dataParam?.coords && dataParam?.coords?.latitude){
+      formData.append('latitude', dataParam?.coords?.latitude);
+      formData.append('longitude', dataParam?.coords?.longitude);
     }
-    if (rangeTo != '') {
-      formData.append('rangeTo', rangeTo);
-    }
+    setLoading(true);
     axios.post(URL, formData)
       .then(response => {
         if (response.data && response.data.success) {
+          setDutyDatapermission(true);
           if (response?.data?.employee_data?.duty_info?.length > 0) { //condition to update count of record
             setTotalRecordCount(response.data.employee_data.duty_info.length);
           }
           setDutyData(response.data.employee_data.duty_info);
         } else {
+          if(response.data.message==='Invalid token. Please login again!')
+          {
+            logoutvalidate();
+          }
+          if(dutyDatapermission)
+          {
+            setTimeout(async() => {
+              setDutyDatapermission(false);
+              window.location.reload();
+            }, 500);
+          }
+        
           console.error('Failed to fetch duty info:', response.data);
         }
         setLoading(false);
@@ -146,7 +251,7 @@ const DutyInfo: React.FC = () => {
 
   }
 
-  const GetOperationsDutyListFromAPI = () => {
+  const GetOperationsDutyListFromAPI = (dataParam) => {
     const tokenVal = localStorage.getItem('token');
     let URL = BASEURL+"opdutyinfo.php";
     let formData = new FormData();
@@ -158,11 +263,9 @@ const DutyInfo: React.FC = () => {
     if (perPageRecord != '') {
       formData.append('perpagerecords', perPageRecord);
     }
-    if (rangeFrom != '') {
-      formData.append('rangeFrom', rangeFrom);
-    }
-    if (rangeTo != '') {
-      formData.append('rangeTo', rangeTo);
+    if(dataParam && dataParam?.coords && dataParam?.coords?.latitude){
+      formData.append('latitude', dataParam?.coords?.latitude);
+      formData.append('longitude', dataParam?.coords?.longitude);
     }
     axios.post(URL, formData)
       .then(response => {
@@ -261,60 +364,26 @@ const DutyInfo: React.FC = () => {
       <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
             <IonRefresherContent></IonRefresherContent>
           </IonRefresher>
-        {loading ? (
-          <IonLoading isOpen={loading} message={'Loading...'} />
+        {loading && !locationPermissionchk ? (
+
+          <><div className='errorDashboardData'>
+            <IonSpinner name="lines"></IonSpinner>
+            <i style={{ marginLeft: '10px', color: '#000' }}>
+              {!locationPermissionchk ? (<>{`Check device’s GPS Location Service Enable it manually`}</>) : (<>
+               
+              </>)}
+
+            </i>
+          </div></>
         ) : (
           <>
             <div className="header_title">
-              <IonTitle className="header_title ion-text-center">Your Duty Info</IonTitle>
+              <IonTitle className="header_title ion-text-center">{t('Your Duty Info')}</IonTitle>
             </div>
-            <>
-              <div style={{ padding: '0px 20px', fontWeight: 'bold', fontSize: '15px', marginTop: '5px' }}
-              >{t('Filter by Date')}:</div>
-              <div className='dateTimeFilterParent'>
-                <div className='dateFromParent'>
-                  <span className='dateTileSpan'>{t('Date From')}:</span>
-                  <>
-                    <IonDatetimeButton datetime="datetimeFrom" className='btnDateTimeClass'></IonDatetimeButton>
-                    <IonModal keepContentsMounted={true} ref={modalFrom}>
-                      <IonDatetime
-                        id="datetime"
-                        presentation='date'
-                        onIonChange={(datetime) => {
-                          let dateFormat = datetime?.detail?.value.split('T')[0];
-                          setRangeTo(dateFormat);
-                          modalTo.current?.dismiss()
-                        }}></IonDatetime>
-                    </IonModal>
-<IonModal keepContentsMounted={true}>
-  <IonDatetime id="datetime"></IonDatetime>
-</IonModal>
-                  </>
-                </div>
-                <div className='dateToParent'>
-                  <span className='dateTileSpan'>{t('Date To')}:</span>
-                  <>
-                    <IonDatetimeButton datetime="datetimeTo"></IonDatetimeButton>
-                    <IonModal keepContentsMounted={true} ref={modalTo}>
-                      <IonDatetime
-                        id="datetimeTo"
-                        presentation='date'
-                        onIonChange={(dataTo) => {
-                          let dateFormat = dataTo?.detail?.value.split('T')[0];
-                          setRangeTo(dateFormat);
-                          modalTo.current?.dismiss()
-                        }}></IonDatetime>
-                    </IonModal>
-                  </>
-                </div>
-                <div style={{ alignContent: 'end', marginTop: '15px', color: '#3F51B5', fontSize: '35px' }}>
-                  <IonIcon icon={arrowForwardCircleOutline} onClick={() => callDateFilter()} />
-                </div>
-              </div>
-            </>
+        
 
-            <IonCard className='shift-details-card-content'>
-
+    
+            
 
               {dutyData.length > 0 ? (
                 dutyData.map((duty: any, index: number) => (
@@ -327,17 +396,25 @@ const DutyInfo: React.FC = () => {
 
 <IonCardContent className="shift-details-card-content">
   <div className="shift-details-column">
-  <p className='duty-start-pic-guard'><strong>{t('Your Duty Pic')}:</strong> <IonImg
+  <p className='duty-start-pic-guard'><strong>{t('Your Start Duty Image')}:</strong> <IonImg
       onClick={() => {
         setshowimagepath(duty?.duty_start_pic);
   setshowfullModal(true);
  }}  src={BASEURL+`dutyverificationimg/${duty?.duty_start_pic}`}
       ></IonImg></p>
+{duty.end_verification_status!='SYSTEM GENERATED' &&
+<p className='duty-start-pic-guard'><strong>{t('Your End Duty Image')}:</strong> <IonImg
+      onClick={() => {
+        setshowimagepath(duty?.duty_end_pic);
+  setshowfullModal(true);
+ }}  src={BASEURL+`dutyverificationimg/${duty?.duty_end_pic}`}
+      ></IonImg></p>
+} 
     <p><strong>{t('Site ID')}:</strong> {getDisplayValue(duty.site_id)}</p>
     <p><strong>{t('Authorized Shift')}:</strong> {getDisplayValue(duty.shift)}</p>
     <p><strong>{t('Duty Start Verified')}?:</strong> {getDisplayValue(duty.start_verification_status)}</p>
-    <p><strong>{t('Shift Start Time')}:</strong> {getDisplayValue(duty.duty_start_date)}</p>
-    <p><strong>{t('Shift End Time')}:</strong> {getDisplayValue(duty.duty_end_date)}</p>
+    <p><strong>{t('Duty Start Time')}:</strong> {getDisplayValue(duty.duty_start_date)}</p>
+    <p><strong>{t('Duty End Time')}:</strong> {getDisplayValue(duty.duty_end_date)}</p>
       </div>
   <div className="shift-details-column">
     <p><strong>{t('Duty End Verified')}?:</strong> {getDisplayValue(duty.end_verification_status)}</p>
@@ -364,13 +441,18 @@ const DutyInfo: React.FC = () => {
                  
                  
                 ))
-              ) : (
-                <IonLabel className='noRunningDutyEmptyBlock'>No current duty running</IonLabel>
-              )}
+              ) : (<><div className='errorDashboardData'>
+                <IonSpinner name="lines"></IonSpinner>
+                <i style={{ marginLeft: '10px', color: '#000' }}>
+                  <>{`You don't have permission, Please contact Admin`}
+                  </>
+                  </i>
+          </div>
+                  </>)}
 
     
 
-            {totalRecordCount && <div className='pagination'>
+            {totalRecordCount!==0 && <div className='pagination'>
               <ul id="border-pagination">
                 <li><a onClick={() => {
                   if (pageNumber > 1) {

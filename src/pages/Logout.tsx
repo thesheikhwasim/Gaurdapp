@@ -26,7 +26,7 @@ const Logout: React.FC = () => {
         localStorage.removeItem('loggedInUser');
         localStorage.removeItem('photosData');
         localStorage.removeItem('guardalertkey');
-
+        localStorage.removeItem('mobileno');
         // Redirect to login page
         history.push('/pages/login');
         window.location.reload()

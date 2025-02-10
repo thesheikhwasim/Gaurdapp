@@ -11,7 +11,6 @@ import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { BASEURL } from '../utilities_constant';
 import { t } from 'i18next';
 import { Browser } from '@capacitor/browser';
-import { Geolocation } from '@capacitor/geolocation';
 
 
 const GetRequests: React.FC = () => {
@@ -21,9 +20,6 @@ const GetRequests: React.FC = () => {
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [ProfileData, setProfileData] = useState<any>({});
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
-  const [locationPermissionchk, setLocationPermissionchk] = useState(true);
 
   const token = localStorage.getItem('token');
   useEffect(() => {
@@ -38,78 +34,6 @@ const GetRequests: React.FC = () => {
       fetchProfileData(storedToken, false);
     }
   }, []);
-
-  function ongoingNewHandlerWithLocation(){
-    captureLocation('fromNewOngoingHandler').then((res) => {
-      // console.log("BEFORE CALLED ONGOING::::", res);
-      
-      if((res && res?.coords && res?.coords?.latitude)){
-        setLocationPermissionchk(true);
-         setLatitude(res?.coords?.latitude);
-        setLongitude(res?.coords?.longitude);
-      
-      }else{
-        setLocationPermissionchk(false);
-
-
-        setTimeout(async() => {
-        
-          window.location.reload();
-        }, 500);
-      
-      }
-    }).catch((error)=>{
-    
-    });
-  }
-
-
-
-  const captureLocation = (fromParam:string) => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const permissions = await Geolocation.checkPermissions();
-     
-        // Case to validate permission is denied, if denied error message alert will be shown
-        if (permissions?.location == "denied") {
-          setLocationPermissionchk(false);
-           present({
-            message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
-            duration: 5000,
-            position: 'bottom',
-          });
-      
-        }
-        else
-        {
-         
-          setLocationPermissionchk(true);
-        }
-
-        const options = {
-          enableHighAccuracy: true,
-          timeout: 100,
-          maximumAge: 0,
-        };
-        Geolocation.getCurrentPosition(options)
-          .then((position) => {
-            if (position && position.coords.latitude) {
-              // console.log("CAPTURE LOCATION is setting lat long:::: ",position.coords.latitude.toString(), "-- longitude--", position.coords.longitude.toString());
-              setLatitude(position.coords.latitude.toString());
-              setLongitude(position.coords.longitude.toString());
-             
-            }
-            resolve(position);
-          })
-          .catch((error) => {
-            reject(error);
-          });
-      } catch (error) {
-        reject(error);
-      }
-    });
-  };
- 
 
   const fetchProfileData = async (token: string, includeDownload: boolean) => {
     const url = BASEURL + 'profile.php';
@@ -138,39 +62,9 @@ const GetRequests: React.FC = () => {
 
   const { name } = useParams<{ name: string; }>();
 
-  function OpenIdCardInAppBrowser(fileParam: any){
-    openPdfWithBrowser({fileParam});
+  function OpenIdCardInAppBrowser(){
+    openPdfWithBrowser('https://www.orimi.com/pdf-test.pdf');
     return false;
-  }
-
-
-
-
-  async function recorddownload(){
-    ongoingNewHandlerWithLocation();
-    const url = BASEURL + 'profile.php';
-    const formData = new FormData();
-    formData.append('action', 'id_card_dwonload');
-    formData.append('token', localStorage.getItem('token'));
-    formData.append('latitude', latitude);
-    formData.append('longitude', longitude);
-
- 
-
-    try {
-      const response = await axios.post(url, formData);
-      if (response.data && response.data.employee_data) {
-        setProfileData(response.data.employee_data);
-      }
-      // else {
-      //   history.push('/pages/login');
-      // }
-    } catch (error) {
-      console.error('Error fetching profile data:', error);
-      // history.push('/pages/login');
-    } finally {
-      setLoading(false);
-    }
   }
   
   const openPdfWithBrowser = async (url:any) => {
@@ -237,7 +131,7 @@ const GetRequests: React.FC = () => {
           <IonLoading isOpen={loading} message={'Loading...'} />
         ) : (
           <>
-           <div className="header_title">
+            <div className="header_title">
               <IonTitle className="header_title ion-text-center">{t('Your ID Card')}</IonTitle>
             </div>
             <IonCard className='shift-details-card-content'>
@@ -245,7 +139,7 @@ const GetRequests: React.FC = () => {
               <IonLabel><div className='notFoundIdCard'>
                 <div className='mainIdCardContainer'>
                   <>               
-                 {/*    <div>
+                    <div>
                        <IonButton
                         disabled={false}
                         expand="block"
@@ -253,23 +147,12 @@ const GetRequests: React.FC = () => {
                         color="primary">
                         {t('Download your ID Card')}
                       </IonButton>
-                    </div>  <DownloadPdf />*/}
-           
+                    </div>
                   
+                    <DownloadPdf />
                   </>
                   {ProfileData?.id_card &&
                     <>
-                          {ProfileData?.can_download ?  (<div >
-                  <a href={BASEURL+`emp_idcard/${ProfileData?.id_card}`} onClick={recorddownload} download="userIdCard" target="__blank">
-     Download your ID Card
-    </a>
-
-                  </div>):(<a href="javascript: void(0);"  download="userIdCard" >
-     You have already downloaded
-    </a>
-           
-                    )}
-                    <br></br><br></br><br></br>
                       <IonCard className='shift-details-card-content'>
                         <IonLabel>
                           <div className='notFoundIdCard'>
@@ -280,10 +163,25 @@ const GetRequests: React.FC = () => {
                               title="PDF Viewer"
                             ></iframe>
                           </div>
-
                         </IonLabel>
                       </IonCard>
-       
+                      {/*
+<IonCard className='shift-details-card-content'>
+
+<IonLabel><div className='notFoundIdCard'>
+<iframe id="inlineFrameExample" title="GI HELP TEXT" frameBorder="0"  width="100%" height="100%" src={BASEURL+`your_pdf_doc.php?idcard_file=${ProfileData?.id_card}`}> </iframe>
+</div></IonLabel>
+</IonCard>
+
+                   <div className='profileImageParentShIdCard'>
+                      <div>
+                        <IonImg
+                          className='imageionclassIdCard'
+                          src={BASEURL+`emp_idcard/${ProfileData.id_card}`}
+                        ></IonImg>
+                      </div>
+                    </div>
+                     */}
                       <div>
                         {ProfileData?.can_download && <IonButton
                           disabled={false}
@@ -298,8 +196,8 @@ const GetRequests: React.FC = () => {
                 </div>
               </div></IonLabel>
             </IonCard>
-          {/*  <AudioPlayer />
-            <VideoPlayer />*/}
+            <AudioPlayer />
+            <VideoPlayer />
             <div className='footer'>
               <CustomFooter />
             </div>

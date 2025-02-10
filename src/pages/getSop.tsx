@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { IonButtons, IonLoading, IonContent, IonGrid, IonRow, IonCol, 
   IonHeader, IonLabel, IonMenuButton, IonPage, IonTitle, IonToolbar, IonImg, IonCard, IonCardContent, 
   IonCardHeader, IonCardSubtitle, IonCardTitle, IonFab, IonFabButton, IonIcon, IonModal, IonButton, IonList, 
-  IonItem, IonInput, IonSelect, IonSelectOption,
+  IonItem, IonInput, IonSelect, IonSelectOption,IonSpinner,
   IonRefresher,
   IonRefresherContent,
   RefresherEventDetail, useIonToast } from '@ionic/react';
@@ -15,6 +15,8 @@ import CustomHeader from './CustomHeader';
 import CustomFooter from './CustomFooter';
 import { BASEURL } from '../utilities_constant';
 import { t } from 'i18next';
+import { Geolocation } from '@capacitor/geolocation';
+import { Checkvalidtoken, DutyMovementGlobalApi, GlobalLogout, ValidateSimcardnumber } from '../utility/Globalapis';
 
 const GetRequests: React.FC = () => {
   // useAuth(); // Enforce login requirement
@@ -30,42 +32,46 @@ const GetRequests: React.FC = () => {
   const [present, dismiss] = useIonToast();
   const [reqOtherDetail, setReqOtherDetail] = useState('');
   const [reloader, setReloader] = useState(false);
-
+  const [locationPermissionchk, setLocationPermissionchk] = useState(true);
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
   const token = localStorage.getItem('token');
   const lang = localStorage.getItem('language');
  
   useEffect(() => {
-    const url = BASEURL+"sop.php";
-    const formData = new FormData();
-    formData.append('action', "sop_data");
-   
-    formData.append('token', token);
-    formData.append('lang', lang);
     
-
-    axios.post(url, formData)
-      .then(response => {
-        if (response.data && response.data.success) {
-         
-          setSopData(response.data.employee_data.sop_data);
-         
-          setSopGalData(response.data.employee_data.sop_gallery);
-        } else {
-          console.error('Failed to fetch requests:', response.data);
-        }
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching requests:', error);
-        setLoading(false);
-      });
+    
+    if(token)
+    {
+      ongoingNewHandlerWithLocation(token);
+    }
+ 
+    
+    
   }, []);
+  
 
-  const fetchsopData = async (token: string) => {
+  async function logoutvalidate()
+  {
+  
+  const checklogin= await Checkvalidtoken();
+ 
+  if(checklogin){
+    history.push('/pages/login');
+    window.location.reload();
+    return false;
+}
+
+}
+
+  const fetchsopData = async (dataParam) => {
     const url = BASEURL+"sop.php";
     const formData = new FormData();
     formData.append('action', "sop_data");
-   
+    if(dataParam && dataParam?.coords && dataParam?.coords?.latitude){
+      formData.append('latitude', dataParam?.coords?.latitude);
+      formData.append('longitude', dataParam?.coords?.longitude);
+    }
     formData.append('token', token);
     formData.append('lang', lang);
     
@@ -140,11 +146,87 @@ const GetRequests: React.FC = () => {
       });
   };
 
+
+  function ongoingNewHandlerWithLocation(token:any){
+    captureLocation('fromNewOngoingHandler').then((res) => {
+      // console.log("BEFORE CALLED ONGOING::::", res);
+      
+      if((res && res?.coords && res?.coords?.latitude)){
+        setLocationPermissionchk(true);
+         setLatitude(res?.coords?.latitude);
+        setLongitude(res?.coords?.longitude);
+       
+ 
+        fetchsopData(res);
+
+      }else{
+        setLocationPermissionchk(false);
+
+
+        setTimeout(async() => {
+        
+          window.location.reload();
+        }, 5000);
+      
+      }
+    }).catch((error)=>{
+   
+    });
+  }
+
+
+
+  const captureLocation = (fromParam:string) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const permissions = await Geolocation.checkPermissions();
+     
+        // Case to validate permission is denied, if denied error message alert will be shown
+        if (permissions?.location == "denied") {
+          setLocationPermissionchk(false);
+           present({
+            message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
+            duration: 500,
+            position: 'bottom',
+          });
+      
+        }
+        else
+        {
+         
+          setLocationPermissionchk(true);
+        }
+
+        const options = {
+          enableHighAccuracy: true,
+          timeout: 100,
+          maximumAge: 0,
+        };
+        Geolocation.getCurrentPosition(options)
+          .then((position) => {
+            if (position && position.coords.latitude) {
+              // console.log("CAPTURE LOCATION is setting lat long:::: ",position.coords.latitude.toString(), "-- longitude--", position.coords.longitude.toString());
+              setLatitude(position.coords.latitude.toString());
+              setLongitude(position.coords.longitude.toString());
+             
+            }
+            resolve(position);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+
   function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
     //Function that hits when ion pull to refresh is called
    
     setTimeout(() => {
-      fetchsopData(localStorage.getItem('token'));
+      ongoingNewHandlerWithLocation(token);
       setReloader(!reloader);
       event.detail.complete();
     }, 500);
@@ -171,10 +253,17 @@ const GetRequests: React.FC = () => {
           <IonIcon icon={add}></IonIcon>
         </IonFabButton>
       </IonFab> */}
-        {loading ? (
-          <IonLoading isOpen={loading} message={'Loading...'} />
-        ) : (
-          <>
+           {!locationPermissionchk ? (
+             <><div className='errorDashboardData'>
+             <IonSpinner name="lines"></IonSpinner>
+             <i style={{ marginLeft: '10px', color: '#000' }}>
+               {!locationPermissionchk ? (<>{`Check device’s GPS Location Service Enable it manually`}</>) : (<>
+                
+               </>)}
+ 
+             </i>
+           </div></>
+         ) :(<>
             <div className="header_title">
               <IonTitle className="header_title ion-text-center">{t('SOP / Training Guideline')}</IonTitle>
             </div>
@@ -184,8 +273,43 @@ const GetRequests: React.FC = () => {
                   {SopData.map((ticket, index) => ( 
                      <div className="content"   key={index} style={{ width: '100%' }}>
                         <p >({index+1}) <strong> {ticket.guide_heading || 'N/A'}</strong></p>
-                        <p className='sopimag-submit'><IonImg className='sopimag' src={BASEURL+`sop/${ticket.sop_img}`} 
-      ></IonImg></p>
+                     {ticket.sop_type==='IMAGE' ?( <><p className='sopimag-submit'><IonImg className='sopimag' src={BASEURL+`sop/${ticket.sop_name}`} 
+      ></IonImg></p></>):('')
+    
+    }
+     {ticket.sop_type==='AUDIO' ?( <>
+   
+     
+     <p className='sopimag-submit'>   <audio controls>
+        <source src={BASEURL+`sop/${ticket.sop_name}`} type="audio/mp3" />
+        Your window does not support the audio element.
+      </audio>
+   
+      </p></>):('')
+    
+    }
+         {ticket.sop_type==='VIDEO' ?( <>
+   
+     
+   <p className='sopimag-submit'>    <video width="100%" height="auto" controls>
+        <source src={BASEURL+`sop/${ticket.sop_name}`} type="video/mp4" />
+        Your window does not support the video tag.
+      </video>
+    </p></>):('')
+  
+  }
+     {ticket.sop_type==='PDF' ?( <>
+   
+     
+   <p className='sopimag-submit'>  <a href={BASEURL+`sop/${ticket.sop_name}`}  download="userIdCard" target="__blank">
+     Download File
+    </a>
+    </p></>):('')
+  
+  }
+    
+                     
+                       
                         <p>{ticket.guideline || 'N/A'} </p>
                       
                   
@@ -239,3 +363,21 @@ const GetRequests: React.FC = () => {
 };
 
 export default GetRequests;
+const AudioPlayer = (filename:any) => (
+  <div>
+      <audio controls>
+        <source src="https://www.w3schools.com/html/horse.ogg" type="audio/mp3" />
+        Your window does not support the audio element.
+      </audio>
+  </div>
+);
+
+
+const VideoPlayer = (filename:any) => (
+  <div>
+      <video width="100%" height="auto" controls>
+        <source src={BASEURL+`sop/${filename}`} type="video/mp4" />
+        Your window does not support the video tag.
+      </video>
+  </div>
+);

@@ -127,7 +127,7 @@ const Menu: React.FC = () => {
       enabled: true
     },
     {
-      title: t('Notification'),
+      title: t('Notice Board'),
       url: '/pages/tabs/Notice',
       iosIcon: notificationsOutline,
       mdIcon: notificationsOutline,

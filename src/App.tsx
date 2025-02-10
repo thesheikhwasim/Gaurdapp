@@ -80,8 +80,11 @@ const [splashLoading,setSplashLoading]=useState(true);
     setTimeout(() => {
       console.log("PAGE TO be ReFRESHED");
       setSplashLoading(false);
-    }, 500);
+    }, 1000);
   }
+
+
+  
   const printCurrentPosition = async () => {
     console.log("PERMISSIONS CHECK");
     const permissions = await Geolocation.requestPermissions();

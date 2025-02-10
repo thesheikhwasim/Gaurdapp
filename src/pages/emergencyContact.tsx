@@ -19,6 +19,7 @@ const GetRequests: React.FC = () => {
 
   const [requestData, setRequestData] = useState<any>(null);
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
+  const [emergenceydata, setEmergenceyData] = useState<any>([]);
   const [supername, setsupername] = useState<any>(null);
   const [supernumber, setsupernumber] = useState<any>(null);
   const [designation, setdesignation] = useState<any>(null);
@@ -51,11 +52,7 @@ const GetRequests: React.FC = () => {
     try {
       const response = await axios.post(url, formData);
       if (response.data && response.data.employee_data) {
-        setsupername(response.data.employee_data.Supervisor_name);
-        setsupernumber(response.data.employee_data.Supervisor_mobile);
-        setdesignation(response.data.employee_data.designation);
-        setadmincontact(response.data.employee_data.ADMIN_CONTACT);
-        setHELPLINENUMBERS(response.data.employee_data.HELP_LINE_NUMBERS);
+        setEmergenceyData(response.data.employee_data);
       }
       // else {
       //   history.push('/pages/login');
@@ -100,15 +97,30 @@ const GetRequests: React.FC = () => {
             <div className="header_title">
               <IonTitle className="header_title ion-text-center">{t('Emergency Contacts')}</IonTitle>
             </div>
-            <IonCard className="card"  style={{ width: '100%' }}>
-                      <div className="shift-details-column">
-                        <p><strong>{supername}</strong><strong>{designation}</strong><strong>{supernumber}</strong></p>
-                        <p><strong>Admin</strong> <strong>{admincontact}</strong></p>
-                        <p><strong>Control Room Numbers</strong>  <strong>{HELPLINENUMBERS}</strong></p>
-                        
-          
-                      </div>
-                    </IonCard>
+            <IonGrid>
+  <IonRow  className="shift-details-column">
+    <IonCol className='texthead'><strong>RANK</strong></IonCol>
+    <IonCol className='texthead'><strong>NAME</strong></IonCol>
+    <IonCol className='texthead'><strong>Mobile</strong></IonCol>
+  </IonRow>
+  {emergenceydata.length > 0 ? (
+                emergenceydata.map((duty: any, index: number) => (
+  <IonRow   key={index} >
+    <IonCol >{duty.rank}</IonCol>
+    <IonCol  >{duty.name}</IonCol>
+    <IonCol > {duty.mobile}</IonCol>
+  </IonRow>
+))
+              ) : (
+                <IonLabel className='noRunningDutyEmptyBlock'>No Contact Available.</IonLabel>
+              )}
+</IonGrid>
+
+<br></br>
+
+
+
+
             <div className='footer'>
             <CustomFooter />
             </div>

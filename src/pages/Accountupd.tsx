@@ -25,6 +25,7 @@ import {
   useIonToast,
   IonAlert,
   IonRefresher,
+  IonSpinner,
   IonRefresherContent,
   RefresherEventDetail,
 } from '@ionic/react';
@@ -52,7 +53,7 @@ const Dashboard: React.FC = () => {
   const [duty, setDuty] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const token = localStorage.getItem('token');
-  const [Latitude, setLatitude] = useState('');
+  const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [prevLatitude, setPrevLatitude] = useState('');
   const [prevLongitude, setPrevLongitude] = useState('');
@@ -75,6 +76,7 @@ const Dashboard: React.FC = () => {
   const [dutystartinfo, setdutystartinfo] = useState<any>(null);
   const [ProfileData, setProfileData] = useState<any>({});
   const [reloader, setReloader] = useState(false);
+  const [locationPermissionchk, setLocationPermissionchk] = useState(true);
   useEffect(() => {
     const storedData = localStorage.getItem('loggedInUser');
     const storedToken = localStorage.getItem('token');
@@ -83,7 +85,8 @@ const Dashboard: React.FC = () => {
       setLoggedInUser(JSON.parse(storedData));
     }
     if (storedToken) {
-      fetchProfileData(storedToken);
+      ongoingNewHandlerWithLocation();
+     
     }
   }, []);
 
@@ -92,12 +95,15 @@ const Dashboard: React.FC = () => {
   const { takePhoto } = usePhotoGallery();
 
 
-  const fetchProfileData = async (token: string) => {
+  const fetchProfileData = async (dataParam) => {
     const url = BASEURL+'profile.php';
     const formData = new FormData();
     formData.append('action', 'profile_data');
-    formData.append('token', token);
-
+    formData.append('token', localStorage.getItem('token'));
+    if(dataParam && dataParam?.coords && dataParam?.coords?.latitude){
+      formData.append('latitude', dataParam?.coords?.latitude);
+      formData.append('longitude', dataParam?.coords?.longitude);
+    }
     try {
       const response = await axios.post(url, formData);
       if (response.data && response.data.employee_data) {
@@ -114,14 +120,85 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  function ongoingNewHandlerWithLocation(){
+    captureLocation('fromNewOngoingHandler').then((res) => {
+      // console.log("BEFORE CALLED ONGOING::::", res);
+      
+      if((res && res?.coords && res?.coords?.latitude)){
+         setLatitude(res?.coords?.latitude);
+        setLongitude(res?.coords?.longitude);
+        setLocationPermissionchk(true);
+ 
+       
+        fetchProfileData(res);
+
+      }else{
+        setLocationPermissionchk(false);
 
 
+        setTimeout(async() => {
+        
+          window.location.reload();
+        }, 500);
+      
+      }
+    }).catch((error)=>{
+     
+  
+    });
+  }
+
+
+
+  const captureLocation = (fromParam:string) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const permissions = await Geolocation.checkPermissions();
+        console.log("PERMISSION to show message and send DUMMY", permissions);
+        console.log("ABOVE PERMISSION WAS ASKED FROM--- ", fromParam);
+        // Case to validate permission is denied, if denied error message alert will be shown
+        if (permissions?.location == "denied") {
+          setLocationPermissionchk(false);
+           present({
+            message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
+            duration: 500,
+            position: 'bottom',
+          });
+      
+        }
+        else
+        {
+          setLocationPermissionchk(true);
+        }
+
+        const options = {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        };
+        Geolocation.getCurrentPosition(options)
+          .then((position) => {
+            if (position && position.coords.latitude) {
+              // console.log("CAPTURE LOCATION is setting lat long:::: ",position.coords.latitude.toString(), "-- longitude--", position.coords.longitude.toString());
+              setLatitude(position.coords.latitude.toString());
+              setLongitude(position.coords.longitude.toString());
+            }
+            resolve(position);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
 
   function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
     //Function that hits when ion pull to refresh is called
    
     setTimeout(() => {
-     fetchProfileData(localStorage.getItem('token'));
+      ongoingNewHandlerWithLocation();
       setReloader(!reloader);
       event.detail.complete();
     }, 500);
@@ -152,7 +229,17 @@ const Dashboard: React.FC = () => {
             <IonTitle className="header_title ion-text-center">{t('Welcome')} {loggedInUser?.full_name}</IonTitle>
           </div>
           <IonCard className="shift-details-card profilepage">
-
+          {!locationPermissionchk ? (
+             <><div className='errorDashboardData'>
+             <IonSpinner name="lines"></IonSpinner>
+             <i style={{ marginLeft: '10px', color: '#000' }}>
+               {!locationPermissionchk ? (<>{`Check device’s GPS Location Service Enable it manually`}</>) : (<>
+                
+               </>)}
+ 
+             </i>
+           </div></>
+         ) :(<>
             <IonCardHeader>
               <IonCardTitle>{t('Your Profile Detail')}</IonCardTitle>
             </IonCardHeader>
@@ -185,6 +272,7 @@ const Dashboard: React.FC = () => {
                 <p><strong>Aadhar No:</strong> {ProfileData?.aadhar_no}</p>*/}
               </div>
             </IonCardContent>
+            </>)}
           </IonCard>
         </div>
       </IonContent>

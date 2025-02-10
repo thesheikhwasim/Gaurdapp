@@ -15,7 +15,7 @@ const LanguageSelector: React.FC = () => {
   const { i18n } = useTranslation();
   const history = useHistory();
 
-  const [lang, setLang] = useState<string>(localStorage.getItem('language') || ''); // Read language from localStorage
+  const [lang, setLang] = useState<string>(localStorage.getItem('language') || 'ENGLISH'); // Read language from localStorage
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -47,7 +47,9 @@ const LanguageSelector: React.FC = () => {
   const handleLanguageUpdate = async () => {
     try {
       
-      if (lang === 'en' || lang === 'hi') {
+      if (lang === 'ENGLISH' || lang === 'HINDI' || lang === 'PUNJABI' || lang === 'TELUGU'
+         || lang === 'TAMIL'  || lang ==='KANNADA'  || lang ==='ODIA'
+      ) {
         changeLanguage(lang);
         const token = localStorage.getItem('token'); // Assuming token is stored in localStorage
         if (token) {
@@ -80,7 +82,7 @@ const LanguageSelector: React.FC = () => {
         <IonCard className='ion-text-center shadowCard'>
           <IonCardHeader>
             <IonCardTitle className='title' color={'dark'}>Select Language / भाषा चुने</IonCardTitle>
-            <IonCardSubtitle className='subtitle' color={'dark'}>{t('Welcome to Gurad Commander')}</IonCardSubtitle>
+            <IonCardSubtitle className='subtitle' color={'dark'}>{t('Welcome to Guard Commander')}</IonCardSubtitle>
           </IonCardHeader>
 
           <IonCardContent>
@@ -91,8 +93,14 @@ const LanguageSelector: React.FC = () => {
                   placeholder="Select Language / भाषा चुने"
                   onIonChange={(e) => setLang(e.detail.value)}
                 >
-                  <IonSelectOption value="en">English</IonSelectOption>
-                  <IonSelectOption value="hi">हिंदी</IonSelectOption>
+                  <IonSelectOption value="ENGLISH">English</IonSelectOption>
+                  <IonSelectOption value="HINDI">हिंदी / Hindi</IonSelectOption>
+                  <IonSelectOption value="PUNJABI">ਪੰਜਾਬੀ / Punjabi</IonSelectOption>
+                  <IonSelectOption value="TELUGU">తెలుగు / Telugu</IonSelectOption>
+                  <IonSelectOption value="TAMIL">தமிழ் / Tamil</IonSelectOption>
+                  <IonSelectOption value="KANNADA">ಕನ್ನಡ / Kannada</IonSelectOption>
+                  <IonSelectOption value="ODIA">ଓଡିଆ / Odia</IonSelectOption>
+                  
                 </IonSelect>
               </IonItem>
               <IonItem className='ion-margin-bottom'>
@@ -101,9 +109,7 @@ const LanguageSelector: React.FC = () => {
             </IonList>
           </IonCardContent>
         </IonCard>
-       {/* <div className='footer'>
-          <IonTitle className='footer ion-text-center'>Helpline | +91 90999 XXXXX</IonTitle>
-        </div> */}
+ 
       </IonContent>
     </IonPage>
   );

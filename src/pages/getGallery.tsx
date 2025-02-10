@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { IonButtons, IonLoading, IonContent, IonGrid, IonRow, IonCol, IonHeader, IonLabel, IonMenuButton, IonPage, 
+import { IonButtons,IonTextarea, IonLoading, IonContent, IonGrid, IonRow, IonCol, IonHeader, IonLabel, IonMenuButton, IonPage, 
   IonTitle, IonToolbar, IonImg, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonFab, 
   IonFabButton, IonIcon, IonModal, IonButton, IonList, IonItem, IonInput, IonSelect, IonSelectOption,
   IonRefresher,
   IonRefresherContent,
   RefresherEventDetail,
   useIonToast,  IonSpinner, } from '@ionic/react';
-import { useParams } from 'react-router';
+import { useHistory, useParams } from 'react-router';
 import axios from 'axios';
 import './Page.css';
 import useAuth from '../hooks/useAuth'; // Import the custom hook
@@ -17,10 +17,11 @@ import CustomHeader from './CustomHeader';
 import CustomFooter from './CustomFooter';
 import { BASEURL } from '../utilities_constant';
 import { t } from 'i18next';
+import { Checkvalidtoken } from '../utility/Globalapis';
 
 const GetRequests: React.FC = () => {
   // useAuth(); // Enforce login requirement
-
+  const history = useHistory();
   const [IncidentData, setIncidentData] = useState<any>(null);
   const [SopGalData, setSopGalData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +31,7 @@ const GetRequests: React.FC = () => {
   const [showimagepath, setshowimagepath] = useState('');
   const [Latitude, setLatitude] = useState('');
   const [Longitude, setLongitude] = useState('');
-  const [priority, setPriority] = useState('Selfie');
+  const [priority, setPriority] = useState('Incident Image');
   const [reqSubject, setReqSubject] = useState('');
   const [saveSelectedImg, setsaveSelectedImg] = useState('');
   const [saveSelectedImg2, setsaveSelectedImg2] = useState('');
@@ -53,31 +54,10 @@ const GetRequests: React.FC = () => {
   const [imgfour, setimgfour] = useState('');
   const [imgfive, setimgfive] = useState('');
   const [reloader, setReloader] = useState(false);
-  const [showspinner, setshowspinner] = useState<boolean>(false);
+  const [showspinner, setShowspinner] = useState<boolean>(false);
   const [locationPermissionchk, setLocationPermissionchk] = useState(true);
-  useEffect(() => {
-    const url = BASEURL+"incedent_report.php";
-    const formData = new FormData();
-    formData.append('action', "incident_report_data");
-    formData.append('token', token);
-    
-    axios.post(url, formData)
-      .then(response => {
-        if (response.data && response.data.success) {
-  
-          
-          setIncidentData(response.data.employeeData.incident_report);
-         
-        } else {
-          console.error('Failed to fetch requests:', response.data);
-        }
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching requests:', error);
-        setLoading(false);
-      });
-  }, []);
+
+
 
   useEffect(() => {
     const storedData = localStorage.getItem('loggedInUser');
@@ -90,28 +70,70 @@ const GetRequests: React.FC = () => {
     }
   }, []);
 
+
+  async function logoutvalidate()
+  {
+  const checklogin= await Checkvalidtoken();
+  alert(checklogin);
+  if(checklogin){
+    history.push('/pages/login');
+    window.location.reload();
+    return false;
+}
+
+}
+
   function ongoingNewHandlerWithLocation(){
     captureLocation('fromNewOngoingHandler').then((res) => {
       // console.log("BEFORE CALLED ONGOING::::", res);
+      
       if((res && res?.coords && res?.coords?.latitude)){
-        setLatitude(res?.coords?.latitude);
+         setLatitude(res?.coords?.latitude);
         setLongitude(res?.coords?.longitude);
-   
-      }else{
+        setLocationPermissionchk(true);
+ 
+       
+        fetchincidentData(res);
 
+      }else{
+        setLocationPermissionchk(false);
+
+
+        present({
+          message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
+          duration: 5000,
+          position: 'bottom',
+        });
+        setTimeout(async() => {
+      
+          window.location.reload();
+        }, 5000);
+      
       }
     }).catch((error)=>{
-      // console.error("BEFORE CALLED ONGOING LOCATION ERROR");
+      present({
+        message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
+        duration: 5000,
+        position: 'bottom',
+      });
+      setTimeout(async() => {
+    
+        window.location.reload();
+      }, 5000);
+  
     });
   }
 
 
-  const fetchincidentData = async (token: string) => {
+  const fetchincidentData = async (dataParam: string) => {
     const url = BASEURL+"incedent_report.php";
     const formData = new FormData();
     formData.append('action', "incident_report_data");
     formData.append('token', token);
-   
+    if(dataParam && dataParam?.coords && dataParam?.coords?.latitude){
+      formData.append('latitude', dataParam?.coords?.latitude);
+      formData.append('longitude', dataParam?.coords?.longitude);
+    }
     
     axios.post(url, formData)
       .then(response => {
@@ -161,10 +183,9 @@ const GetRequests: React.FC = () => {
         // Case to validate permission is denied, if denied error message alert will be shown
         if (permissions?.location == "denied") {
           setLocationPermissionchk(false);
-          alert('Your location permission is denied, enable it manually from app settings and re-load application!');
           present({
             message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
-            duration: 5000,
+            duration: 500,
             position: 'bottom',
           });
     
@@ -199,6 +220,31 @@ const GetRequests: React.FC = () => {
 
   const handleCreateRequest = async() => {
     captureLocation('fromDutyStart').then((res) => {
+      if(reqDesc==='')
+      {
+
+        present({
+          message: `Please Add Incedent detail.`,
+          duration: 2000,
+          position: 'top',
+        });
+        setShowspinner(false);
+        return false;
+      }
+      else if(imgone==='' && imgtwo==='' && imgthree==='' && imgfour==='' && imgfive==='')
+      {
+        present({
+          message: `Please attach atleast one incedent image.`,
+          duration: 2000,
+          position: 'top',
+        });
+        setShowspinner(false);
+        return false;
+
+      }
+      else
+      {
+      setShowspinner(true);
     const formData = new FormData();
     formData.append('action', 'add_new_incident_report');
     formData.append('token', token);
@@ -212,13 +258,14 @@ const GetRequests: React.FC = () => {
     formData.append('latitude', Latitude);
     formData.append('longitude', Longitude);
 
-    setshowspinner(true);
+
     // return false;
 
     axios
       .post(BASEURL+'add_new_incident_report.php', formData)
       .then((response) => {
         if (response.data && response.data.success) {
+          
           present({
             message: `Your ${reqType} request has been created successfully!`,
             duration: 2000,
@@ -228,23 +275,27 @@ const GetRequests: React.FC = () => {
           setReqSubject('');
           setReqDesc('');
           setReqOtherDetail('');
-          setshowspinner(false);
+          setShowspinner(false);
           setShowRequestModal(false);
           setimgone('');
           setimgtwo('');
           setimgthree('');
           setimgfour('');
           setimgfive('');
+          window.location.reload();
           
         } else {
+          setShowspinner(false);
           present({
             message: `Failed to create ${reqType} request. Please try again.`,
             duration: 2000,
             position: 'bottom',
           });
         }
+        
       })
       .catch((error) => {
+        setShowspinner(false);
         console.error(`Error creating ${reqType} request:`, error);
         present({
           message: `An error occurred. Please try again.`,
@@ -252,24 +303,13 @@ const GetRequests: React.FC = () => {
           position: 'bottom',
         });
       });
+    }
     });
+  
+
   };
 
-  async function galleryApi(formData, dutyEnd) {
-    try {
-      const response = dutyEnd
-        ? await axios.post(BASEURL+'dutystop.php', formData)
-        : await axios.post(BASEURL+'dutystart.php', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-      return response.data;
-    } catch (error) {
-      console.error('Error:', error);
-      return null;
-    }
-  }
+
   const handlecameraStart = async () => {
           takePhoto().then(async (photoData) => {
           setimgone(JSON.stringify(photoData));
@@ -323,7 +363,7 @@ const handlecameraStartfive = async () => {
   function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
     //Function that hits when ion pull to refresh is called
     setTimeout(() => {
-      fetchincidentData(localStorage.getItem('token'));
+      ongoingNewHandlerWithLocation();
       setReloader(!reloader);
       event.detail.complete();
     }, 500);
@@ -349,9 +389,16 @@ const handlecameraStartfive = async () => {
           <IonIcon icon={add}></IonIcon>
         </IonFabButton>
       </IonFab> 
-        {loading ? (
-          <IonLoading isOpen={loading} message={'Loading...'} />
-        ) : (
+      {!locationPermissionchk ? (
+             <><div className='errorDashboardData'>
+             <IonSpinner name="lines"></IonSpinner>
+             <i style={{ marginLeft: '10px', color: '#000' }}>
+               {!locationPermissionchk ? (<>{`Check device’s GPS Location Service Enable it manually`}</>) : (<>
+                
+               </>)}
+              </i>
+           </div></>
+         ) : (
           <>
             <div className="header_title">
               <IonTitle className="header_title ion-text-center">{t('Incident Photos ')}</IonTitle>
@@ -371,13 +418,13 @@ const handlecameraStartfive = async () => {
                         <p><strong>{t('Added ON')}: </strong>{ticket.incident_date || 'N/A'}</p>
                         <p >{ticket.incident_description || 'N/A'}</p>
                         <p>
-                          
+                        {ticket?.incident_file_name1 && 
                           <IonImg     onClick={() => {
                              setshowimagepath(ticket?.incident_file_name1);
                        setshowfullModal(true);
                       }} className='incedentimagprev'
                           src={BASEURL+`incidentreport/${ticket?.incident_file_name1}`}
-                        ></IonImg>
+                        ></IonImg>}
                         {ticket?.incident_file_name2 &&
 <IonImg  className='incedentimagprev'
   onClick={() => {
@@ -457,15 +504,21 @@ setshowfullModal(true);
               </IonContent>
         </IonModal>
 
-
-
-
         <IonModal isOpen={showRequestModal} onDidDismiss={() => setShowRequestModal(false)}>
           <IonHeader>
             <IonToolbar>
-              <IonTitle>{t('Incident Photo/Videos Upload')}</IonTitle>
+              <IonTitle>{t('Incident Photo Upload')}</IonTitle>
               <IonButtons slot="end">
-                <IonButton onClick={() => setShowRequestModal(false)}>
+                <IonButton 
+                 onClick={() => {
+                  setimgone('');
+                  setimgtwo('');
+                  setimgthree('');
+                  setimgfour('');
+                  setimgfive('');
+                  setShowRequestModal(false);
+          
+              }} >
                   <IonIcon icon={closeOutline} size="large"></IonIcon>
                 </IonButton>
               </IonButtons>
@@ -478,69 +531,51 @@ setshowfullModal(true);
 
 
                 <IonSelect value={priority} onIonChange={e => getoption(e.detail.value)}>
-                    <IonSelectOption value="Selfie">Selfie</IonSelectOption>
+                  {/* <IonSelectOption value="Selfie">Selfie</IonSelectOption>*/}
                     <IonSelectOption value="Incident Image">Incident Image</IonSelectOption>
                   {/*  <IonSelectOption value="Incident Video">Incident Video</IonSelectOption>*/}
                   </IonSelect>
               </IonItem>
               <IonItem>
                 <IonLabel position="floating">{t('Incident Detail')}</IonLabel>
-                <IonInput value={reqDesc} onIonInput={e => setReqDesc(e.detail.value!)}></IonInput>
+                <IonTextarea value={reqDesc} onIonInput={e => setReqDesc(e.detail.value!)}></IonTextarea>
               </IonItem> 
 
-            {showselfie ? ( 
- <IonItem>
-        <IonLabel>{t('Add Your Selfie')} </IonLabel>       
-
-  </IonItem>
-      ) : ( 
+ 
         <IonItem>
-          <IonLabel>{t('Upload Incedent Image 1')} </IonLabel>
+          <IonLabel>{t('Upload Incident Image 1')} </IonLabel>
           {imgone ? (   <IonButton expand="full"   onClick={() => {setimgone('');}}> {t('Clear Image')}</IonButton>
         ):('')}
         </IonItem>
-      )}
+     
               {imgone ? ( <>
               <IonItem>
-              {showselfie ? (<>  
-              <img  onClick={handlecameraStart}
-                src={`data:image/jpeg;base64,${JSON.parse(imgone).base64String}`}
-                alt="Preview Image"
-                style={{ width: 'auto', height: '60px' }}
-              />
-                </>
-            ) : ( <> 
+      
                <img  onClick={handlecameraStartone}
                 src={`data:image/jpeg;base64,${JSON.parse(imgone).base64String}`}
                 alt="Preview Image"
                 style={{ width: 'auto', height: '60px' }}
               />
-                </> )}
+               
             </IonItem>
           </>
             ):(   
-            <IonItem>  {showselfie ? (<>       <img   onClick={handlecameraStart}
-                src='./assets/imgs/image-preview.jpg'
-                alt="Preview Image"
-                style={{ width: 'auto', height: '60px' }}
-              />
-              </>
-            ) : ( <> 
+            <IonItem>  
             <img   onClick={handlecameraStartone}
                 src='./assets/imgs/image-preview.jpg'
                 alt="Preview Image"
                 style={{ width: 'auto', height: '60px' }}
               />
-            </> )}
+           
             </IonItem>
           )}
- {!showselfie ? ( 
+
   <IonItem>
-       <IonLabel>{t('Upload Incedent Image 2')} </IonLabel>
+       <IonLabel>{t('Upload Incident Image 2')} </IonLabel>
        {imgtwo ? (   <IonButton expand="full"   onClick={() => {setimgtwo('');}}> {t('Clear Image')}</IonButton>
         ):('')}
  </IonItem>
-  ) : ( '' )}
+ 
         {imgtwo ? (<>
         
            <IonItem>
@@ -551,7 +586,7 @@ setshowfullModal(true);
               />
             </IonItem>
           </>) : ('' )}
- {!imgtwo && !showselfie &&<>   
+ {!imgtwo  &&<>   
  <IonItem>     <img    onClick={handlecameraStarttwo}
   src='./assets/imgs/image-preview.jpg'
   alt="Preview Image"
@@ -562,13 +597,13 @@ setshowfullModal(true);
 </IonItem></>}
 
 
-   {!showselfie ? ( 
+
   <IonItem>
-      <IonLabel>{t('Upload Incedent Image 3')} </IonLabel>  
+      <IonLabel>{t('Upload Incident Image 3')} </IonLabel>  
       {imgthree ? (   <IonButton expand="full"   onClick={() => {setimgthree('');}}> {t('Clear Image')}</IonButton>
         ):('')}
  </IonItem>
-  ) : ( '' )}
+
 
 
   
@@ -583,7 +618,7 @@ setshowfullModal(true);
             </IonItem>
           </>):(   '')}
 
-          {!imgthree && !showselfie &&<>   
+          {!imgthree &&<>   
  <IonItem>     <img    onClick={handlecameraStartthree}
   src='./assets/imgs/image-preview.jpg'
   alt="Preview Image"
@@ -592,13 +627,13 @@ setshowfullModal(true);
 
 
 </IonItem></>}
-   {!showselfie ? ( 
+ 
   <IonItem>
-     <IonLabel>{t('Upload Incedent Image 4')} </IonLabel>  
+     <IonLabel>{t('Upload Incident Image 4')} </IonLabel>  
      {imgfour ? (   <IonButton expand="full"   onClick={() => {setimgfour('');}}> {t('Clear Image')}</IonButton>
         ):('')}
   </IonItem>
-  ) : ( '' )}
+
             {imgfour && <>
       
            <IonItem>
@@ -610,7 +645,7 @@ setshowfullModal(true);
             </IonItem>
           </>}
 
-          {!imgfour && !showselfie &&<>   
+          {!imgfour  &&<>   
  <IonItem>     <img    onClick={handlecameraStartfour}
   src='./assets/imgs/image-preview.jpg'
   alt="Preview Image"
@@ -620,13 +655,13 @@ setshowfullModal(true);
 
 </IonItem></>}
 
-   {!showselfie ? ( 
+
   <IonItem>
-         <IonLabel>{t('Upload Incedent Image 5')} </IonLabel> 
+         <IonLabel>{t('Upload Incident Image 5')} </IonLabel> 
          {imgfive ? (   <IonButton expand="full"   onClick={() => {setimgfive('');}}> {t('Clear Image')}</IonButton>
         ):('')}
  </IonItem>
-  ) : ( '' )}
+
                     {imgfive && <>
           
            <IonItem>
@@ -638,7 +673,7 @@ setshowfullModal(true);
             </IonItem>
           </>}
        
-          {!imgfive && !showselfie &&<>   
+          {!imgfive  &&<>   
  <IonItem>     <img    onClick={handlecameraStartfive}
   src='./assets/imgs/image-preview.jpg'
   alt="Preview Image"
@@ -652,7 +687,14 @@ setshowfullModal(true);
             {showspinner ? (
          <IonItem className='spinner_loc'> <IonSpinner name="lines"></IonSpinner></IonItem>
         ) : ('')}
-            <IonButton disabled={showspinner} expand="full" onClick={handleCreateRequest}> {t('Save Photo/Video')}</IonButton>
+            <IonButton disabled={showspinner} expand="full"
+              onClick={() => {
+                
+               handleCreateRequest();
+               setShowspinner(true);
+        
+            }}
+          > {t('Save Photo')}</IonButton>
           </IonContent>
         </IonModal>
       </IonContent>

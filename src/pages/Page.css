@@ -63,14 +63,19 @@ ion-progress-bar::part(track) {
   font-weight: 600;
 }
 
+:host.fab-vertical-bottom
+{
+  bottom: 30px;
+}
 
 .footer {
   background-color: #041d8e !important;
   color: #f5f6f9;
-  font-size: small;
-  line-height: 30px;
+  font-size: 10px;
+  line-height: 17px;
   text-align: center;
   width: 100%;
+  position: fixed;
   bottom: 0;
   left: 0;
 }
@@ -107,6 +112,31 @@ ion-progress-bar::part(track) {
   text-align: left;
 }
 
+
+.shift-details-card_notice {
+  margin: 10px;
+  padding: 0px;
+  border: 1px solid rgb(0 0 0 / 8%);
+  box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+    -webkit-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+    -moz-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+    -ms-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.shift-details-card_notice  ion-card-header {
+  background-color: #3F51B5;
+  padding: 5px 14px;
+  
+}
+
+.shift-details-card_notice  ion-card-title {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .shadowCard {
   border: 1px solid rgb(0 0 0 / 8%);
   box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
@@ -115,6 +145,18 @@ ion-progress-bar::part(track) {
     -ms-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
   border-radius: 10px;
 }
+
+.iconcircle{
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  
+  margin-left: -73px;
+    position: absolute;
+    margin-top: -23px;
+  background-color: red;
+color: #fff;
+ }
 
 .shift-details-card  ion-card-header {
   background-color: #3F51B5;
@@ -127,6 +169,54 @@ ion-progress-bar::part(track) {
   font-size: 12px;
   font-weight: 600;
 }
+
+.notice_listing {
+  font-size: 12px;
+  font-weight:100;
+}
+.notice_listing divdate {
+  font-size: 12px;
+  font-weight:100;
+  width: 30%;
+  text-align: left;
+}
+.notice_listing divmain {
+  font-size: 12px;
+  font-weight:100;
+  width: 70%;
+  text-align: left;
+}
+
+.notice_listing_unread divdate {
+  font-size: 12px;
+  font-weight:100;
+  width: 30%;
+  text-align: left;
+}
+.notice_listing_unread divmain {
+  font-size: 12px;
+  font-weight:100;
+  width: 60%;
+  text-align: left;
+}
+
+.notice_listing_unread {
+  font-size: 12px;
+  font-weight:bold;
+}
+.notice_listing_unread a {
+  color: #f90e0e;
+
+}
+
+.notice_listing a {
+  color: #0f0e0efc;
+
+}
+
+
+
+
 
 .card {
   box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
@@ -275,7 +365,7 @@ padding: 16px 0px;
 
 .sopimag {
   text-align: center;
-  width:200px;
+  width:100%;
   mask-image: none;
 }
 .sopimag-submit{
@@ -359,6 +449,13 @@ span.dateTileSpan {
 
 .imageionclass{
   width: 150px;
+  margin: 0 auto;
+  margin-top: 10px;
+
+}
+
+.imageionclasssel{
+  width: 50px;
   margin: 0 auto;
   margin-top: 10px;
 }
@@ -507,4 +604,54 @@ div.guardDetails{
 .customHeaderParent{
   display: flex;
   margin-left: 20px;
+}
+
+
+
+.paddingLeftRight16 {
+
+  padding: 0px 16px;
+
+}
+
+
+
+/* NEW CSS MODAL ALERT */
+
+ion-modal#example-modal-alert {
+
+  --width: fit-content;
+
+  --min-width: 250px;
+
+  --height: fit-content;
+
+  --border-radius: 6px;
+
+  --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+
+}
+
+
+
+ion-modal#example-modal-alert .wrapper {
+
+  padding: 20px;
+
+}
+
+ ion-col {
+ 
+  border: solid 1px #fff;
+  color: #000;
+  text-align: left;
+  font-size: small;
+}
+
+.texthead {
+  background-color: #3f51b5;
+ /* border: solid 1px #fff;*/
+  color: #fff;
+  text-align: left;
+   font-size: small;
 }

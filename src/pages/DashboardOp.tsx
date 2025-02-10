@@ -9,7 +9,9 @@ import { useTranslation } from 'react-i18next';
 import { Geolocation } from '@capacitor/geolocation';
 import { usePhotoGallery } from '../hooks/usePhotoGallery';
 import CustomHeader from './CustomHeader';
-
+import '../utilities_constant';
+import { BASEURL } from '../utilities_constant';
+import CustomFooter from './CustomFooter';
 const DashboardOp: React.FC = () => {
   const { t } = useTranslation();
   const { name } = useParams<{ name: string }>();
@@ -39,7 +41,7 @@ const DashboardOp: React.FC = () => {
 
   function getOPdashboard(dataParam = 0) {
     const tokenData = localStorage.getItem('token');
-    let URL = "https://guard.ghamasaana.com/guard_new_api/op_ongoing_duty.php";
+    let URL = BASEURL+"op_ongoing_duty.php";
     let formData = new FormData();
     formData.append('action', "op_duty_ongoing");
     formData.append('token', tokenData);
@@ -188,7 +190,9 @@ const DashboardOp: React.FC = () => {
             }
           </IonCard>
 
-          
+          <div className="footer">
+      <CustomFooter />
+      </div>
         </div>
 
         {<ModalComponent
@@ -275,7 +279,7 @@ function ModalComponent(props) { //Modal Component, so that side effect does not
     formData.append('latitude', dataParam?.latitude);
     formData.append('longitude', dataParam?.longitude);
 
-    axios.post('https://guard.ghamasaana.com/guard_new_api/gaurd_site_info.php', formData).then((response) => {
+    axios.post(BASEURL+'gaurd_site_info.php', formData).then((response) => {
       if (response.data && response.data.success) {
         // console.log(response.data);
         setGuardSiteInfoDetailsFetched(response?.data?.employee_data);
@@ -304,7 +308,7 @@ function ModalComponent(props) { //Modal Component, so that side effect does not
   }
 
   function handleSubmitSiteInfo(){ //Submit guard site info by manager (click photo add comment and submit)
-    let SITE_SUBMIT_URL = 'https://guard.ghamasaana.com/guard_new_api/opsitevisitInfo.php';
+    let SITE_SUBMIT_URL = BASEURL+'opsitevisitInfo.php';
     let formData = new FormData();
     const token = localStorage.getItem('token');
     formData.append('action', 'op_site_visit_info');
@@ -392,7 +396,7 @@ function ModalComponent(props) { //Modal Component, so that side effect does not
             {guardSiteInfoDetailsFetched && guardSiteInfoDetailsFetched?.photo &&
               <p className='duty-start-pic-guard'><strong>Guard Image:</strong> 
                 <IonImg
-                  src={`https://guard.ghamasaana.com/guard_new_api/emp_image/${guardSiteInfoDetailsFetched?.photo}`}
+                  src={BASEURL+`emp_image/${guardSiteInfoDetailsFetched?.photo}`}
                 ></IonImg>
               </p>
             }
@@ -485,7 +489,7 @@ const DutyStartStopAndMovement = (props: any) => {
 
   async function handleDutyEnd(dataParam = 0) {
     clearInterval(intervalRef?.current);
-    let STOP_URL = 'https://guard.ghamasaana.com/guard_new_api/opdutystop.php';
+    let STOP_URL = BASEURL+'opdutystop.php';
     let formData = new FormData();
     const token = localStorage.getItem('token');
     formData.append('action', 'op_punch_out');
@@ -510,7 +514,7 @@ const DutyStartStopAndMovement = (props: any) => {
   }
 
   async function handleDutyStart(dataParam = 0) {
-    let START_URL = 'https://guard.ghamasaana.com/guard_new_api/opdutystart.php';
+    let START_URL = BASEURL+'opdutystart.php';
     let formData = new FormData();
     const token = localStorage.getItem('token');
     formData.append('action', 'op_punch_in');
@@ -564,7 +568,7 @@ const DutyStartStopAndMovement = (props: any) => {
   async function dutyMovementApi(dataParam = 0) {
     try {
         console.error(dataParam, "LAT LONG IS DIFFERENT MOVEMENT RECORDED", Latitude, "!==", prevLatitude);
-        let MOVEMENT_URL = 'https://guard.ghamasaana.com/guard_new_api/optripmovement.php';
+        let MOVEMENT_URL = BASEURL+'optripmovement.php';
         let formData = new FormData();
         const token = localStorage.getItem('token');
         formData.append('action', 'op_trip_movement');

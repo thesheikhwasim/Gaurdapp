@@ -45,6 +45,8 @@ import { BASEURL } from '../utilities_constant';
 import CustomHeader from './CustomHeader';
 import CustomFooter from './CustomFooter';
 import { t } from 'i18next';
+import { Geolocation } from '@capacitor/geolocation';
+import { Checkvalidtoken, DutyMovementGlobalApi, GlobalLogout, ValidateSimcardnumber } from '../utility/Globalapis';
 
 const Listgaurd: React.FC = () => {
   const [GaurdData, setGaurdData] = useState<any>([]);
@@ -67,7 +69,7 @@ const Listgaurd: React.FC = () => {
   const modalFrom = useRef<HTMLIonModalElement>(null);
   const modalTo = useRef<HTMLIonModalElement>(null);
   const [buttonDisabled, setButtonDisabled] = useState(true);
-  const [saveaadharpic, setsaveaadharpic] = useState('');
+  const [saveSelectededucation, setsaveSelectededucation] = useState('');
   const [savepanpic, setsavepanpic] = useState('');
   const [savebankpic, setsavebankpic] = useState('');
    const [savegunpic, setsavegunpic] = useState('');
@@ -78,34 +80,137 @@ const Listgaurd: React.FC = () => {
   const [showspinner, setshowspinner] = useState(false);
   const [text1value, settext1value] = useState('');
   const [text2value, settext2value] = useState('');
- 
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+  const [locationPermissionchk, setLocationPermissionchk] = useState(true);
+  const token = localStorage.getItem('token');
   useEffect(() => {
     const storedData = localStorage.getItem('loggedInUser');
+  
     if (storedData) {
       setLoggedInUser(JSON.parse(storedData));
+      ongoingNewHandlerWithLocation(token);
     }
-    GetGaurdListFromAPI();
+    else
+    {
+      logoutvalidate();
+    }
+
   }, [history]);
 
   useEffect(() => {
     if (totalRecordCount > 0) {
       if (pageNumber > 0) {
-        GetGaurdListFromAPI();
+        ongoingNewHandlerWithLocation(token);
       }
     }
   }, [pageNumber]);
 
   const callDateFilter = () =>{
-    GetGaurdListFromAPI();
+    ongoingNewHandlerWithLocation(token);
   }
 
-  const GetGaurdListFromAPI = () => {
+  async function logoutvalidate()
+  {
+  
+  const checklogin= await Checkvalidtoken();
+ 
+  if(checklogin){
+    history.push('/pages/login');
+    window.location.reload();
+    return false;
+}
+
+}
+
+  function ongoingNewHandlerWithLocation(token:any){
+    captureLocation('fromNewOngoingHandler').then((res) => {
+      // console.log("BEFORE CALLED ONGOING::::", res);
+      
+      if((res && res?.coords && res?.coords?.latitude)){
+        setLocationPermissionchk(true);
+         setLatitude(res?.coords?.latitude);
+        setLongitude(res?.coords?.longitude);
+       
+ 
+        GetGaurdListFromAPI(res);
+
+      }else{
+        setLocationPermissionchk(false);
+
+
+        setTimeout(async() => {
+        
+          window.location.reload();
+        }, 500);
+      
+      }
+    }).catch((error)=>{
+    
+    });
+  }
+
+
+
+  const captureLocation = (fromParam:string) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const permissions = await Geolocation.checkPermissions();
+     
+        // Case to validate permission is denied, if denied error message alert will be shown
+        if (permissions?.location == "denied") {
+          setLocationPermissionchk(false);
+           present({
+            message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
+            duration: 500,
+            position: 'bottom',
+          });
+      
+        }
+        else
+        {
+         
+          setLocationPermissionchk(true);
+        }
+
+        const options = {
+          enableHighAccuracy: true,
+          timeout: 100,
+          maximumAge: 0,
+        };
+        Geolocation.getCurrentPosition(options)
+          .then((position) => {
+            if (position && position.coords.latitude) {
+              // console.log("CAPTURE LOCATION is setting lat long:::: ",position.coords.latitude.toString(), "-- longitude--", position.coords.longitude.toString());
+              setLatitude(position.coords.latitude.toString());
+              setLongitude(position.coords.longitude.toString());
+             
+            }
+            resolve(position);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+ 
+
+
+
+
+  const GetGaurdListFromAPI = (dataParam:any) => {
     const tokenVal = localStorage.getItem('token');
     let URL = BASEURL+"list_gaurd.php";
     const formData = new FormData();
     formData.append('action', "list_gaurd");
     formData.append('token', tokenVal);
- 
+    if(dataParam && dataParam?.coords && dataParam?.coords?.latitude){
+      formData.append('latitude', dataParam?.coords?.latitude);
+      formData.append('longitude', dataParam?.coords?.longitude);
+    }
   
     axios.post(URL, formData)
       .then(response => {
@@ -143,7 +248,7 @@ const Listgaurd: React.FC = () => {
     axios.post(URL, formData)
       .then(response => {
         if (response.data && response.data.success) {
-          GetGaurdListFromAPI();
+          ongoingNewHandlerWithLocation(token);
         } else {
           console.error('Failed to fetch duty info:', response.data);
         }
@@ -163,12 +268,12 @@ const Listgaurd: React.FC = () => {
 
 
 
-const handleaadharpiccameraStart = async () => {
-  takePhotoWithPrompt().then(async (photoData:any) => {
-  setsaveaadharpic(JSON.stringify(photoData));
-
-});
-};
+  const handleeducationcameraStart = async () => {
+    takePhotoWithPrompt().then(async (photoData:any) => {
+    setsaveSelectededucation(JSON.stringify(photoData));
+  
+  });
+  };
 
 const handlepanpiccameraStart = async () => {
   takePhotoWithPrompt().then(async (photoData:any) => {
@@ -223,7 +328,7 @@ const handleepfcameraStart = async () => {
   function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
     //Function that hits when ion pull to refresh is called
     setTimeout(() => {
-      GetGaurdListFromAPI();
+      ongoingNewHandlerWithLocation(token);
       setReloader(!reloader);
       event.detail.complete();
     }, 500);
@@ -244,7 +349,7 @@ const handleepfcameraStart = async () => {
     data.append('text1value', text1value);
     data.append('text2value', text2value);
     data.append('ReqType', reqType);
-    data.append('aadhar_pic', saveaadharpic);
+    data.append('education_pic', saveSelectededucation);
     data.append('pan_pic', savepanpic);
     data.append('bank_pic', savebankpic);
     data.append('medical_pic', saveSelectedmedical);
@@ -252,33 +357,89 @@ const handleepfcameraStart = async () => {
     data.append('gun_pic', savegunpic);
     data.append('pf_pic', saveepfpic);
     try {
-    if(reqType==='aadhar' && saveaadharpic==='' && text1value==='')  
+ 
+    if(reqType==='education' && saveSelectededucation==='' && text1value==='')  
       {
-alert(" E-Aadhar Copy and Aadhar Number is Mandatory. Please upload!");
+        present({
+          message: `Education Copy and Education detail is Mandatory. Please upload!`,
+          duration: 5000,
+          position: 'top',
+        });
+
       }
       else if(reqType==='pancard' && savepanpic==='' && text1value==='')  
         {
-  alert(" Pancard Copy and Pan Number is Mandatory. Please upload!");
+          present({
+            message: `Pancard Copy and Pan Number is Mandatory . Please upload!`,
+            duration: 5000,
+            position: 'top',
+          });
+
         }
+        else if(reqType==='pancard'  &&  text1value.length!=10)  
+          {
+            present({
+              message: `Pan Number should be 10 digits only.`,
+              duration: 5000,
+              position: 'top',
+            });
+  
+          }
         else if(reqType==='bankdetail' && savebankpic==='' && text1value==='' && text2value==='')  
           {
-    alert(" Passbook Copy and Bank A/c Number and IFSC code is Mandatory. Please upload!");
+            present({
+              message: `Passbook Copy and Bank A/c Number and IFSC code is Mandatory. Please upload!`,
+              duration: 5000,
+              position: 'top',
+            });
+
+   
           }
+          else if(reqType==='bankdetail' && text2value.length!=11)  
+            {
+              present({
+                message: `IFSC code should be 11 digits only!`,
+                duration: 5000,
+                position: 'top',
+              });
+  
+     
+            }
     else if(reqType==='medical' && saveSelectedmedical==='' && text1value==='')  
             {
-      alert(" Medical Certificate and Blood Group is Mandatory. Please upload!");
+              present({
+                message: `Medical Certificate and Blood Group is Mandatory. Please upload!`,
+                duration: 5000,
+                position: 'top',
+              });
+
             }
       else if(reqType==='policeverification' && saveSelectedpolice==='')  
               {
-        alert(" Police Verification Report is Mandatory. Please upload!");
+                present({
+                  message: `Police Verification Report is Mandatory. Please upload!`,
+                  duration: 5000,
+                  position: 'top',
+                });
+  
               }
       else if(reqType==='gunlicence' && savegunpic==='')  
                 {
-          alert("Gun Licence copy is Mandatory. Please upload!");
+                  present({
+                    message: `Gun Licence copy is Mandatory. Please upload!`,
+                    duration: 5000,
+                    position: 'top',
+                  });
+      
                 }
                 else if(reqType==='pfdetail' && saveepfpic==='')  
                   {
-            alert("PF copy is Mandatory. Please upload!");
+                    present({
+                      message: `PF copy is Mandatory. Please upload!`,
+                      duration: 5000,
+                      position: 'top',
+                    });
+           
                   }
       else{
         setshowspinner(true);
@@ -296,7 +457,7 @@ alert(" E-Aadhar Copy and Aadhar Number is Mandatory. Please upload!");
         settext1value('');
         settext2value('');
         setreqType('');
-        setsaveaadharpic('');
+        setsaveSelectededucation('');
         setsavepanpic('');
         setsavebankpic('');
         setsaveSelectedmedical('');
@@ -305,7 +466,7 @@ alert(" E-Aadhar Copy and Aadhar Number is Mandatory. Please upload!");
         setsaveepfpic('');
 
 
-        GetGaurdListFromAPI();
+        ongoingNewHandlerWithLocation(token);
         setShowRequestModal(false);
       } else {
         present({
@@ -347,9 +508,17 @@ alert(" E-Aadhar Copy and Aadhar Number is Mandatory. Please upload!");
       <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
             <IonRefresherContent></IonRefresherContent>
           </IonRefresher>
-        {loading ? (
-          <IonLoading isOpen={loading} message={'Loading...'} />
-        ) : (
+          {!locationPermissionchk ? (
+             <><div className='errorDashboardData'>
+             <IonSpinner name="lines"></IonSpinner>
+             <i style={{ marginLeft: '10px', color: '#000' }}>
+               {!locationPermissionchk ? (<>{`Check device’s GPS Location Service Enable it manually`}</>) : (<>
+                
+               </>)}
+ 
+             </i>
+           </div></>
+         ) : (
           <>
             <div className="header_title">
               <IonTitle className="header_title ion-text-center">{t('Recruitment List')}</IonTitle>
@@ -378,27 +547,29 @@ alert(" E-Aadhar Copy and Aadhar Number is Mandatory. Please upload!");
                       <p><strong>{t('Mother`s Name')}:</strong> {getDisplayValue(duty.mother_name)}</p>
                       <p><strong>{t('Full Address')}:</strong> {getDisplayValue(duty.full_address)}</p>
                       <p><strong>{t('State')}:</strong> {getDisplayValue(duty.state)}</p>
+                      <p><strong>{t('Aadhar Number')}:</strong> {getDisplayValue(duty.aadhar_no)}</p>
+                      <p><strong>{t('Aadhar Pic')}:</strong>{duty.aadhar_pic!=null && duty.aadhar_back_pic!=null ? ('Uploaded'):('Not Uploaded')}</p>
                       <p><strong>{t('Request Date')}:</strong> {getDisplayValue(duty.date)}</p>
                       <p><strong>{t('Request Status')}:</strong><strong>{duty.enquiry_status==0 ?('InComplete'):(
                         'Pending At Admin'
                         )} </strong></p>
-                      {duty.aadhar_no==null && duty.aadhar_pic==null ? ( 
+                      {duty.education==null && duty.education_pic==null ? ( 
                         <>
                         <IonButtons slot="end">
                     <IonButton color={'primary'} className="md button button-full"
                       href='javascript: viod(0);'
                       onClick={() => {
                         setDutyid(duty.reguid);
-                        setreqType('aadhar');
+                        setreqType('education');
                         setShowRequestModal(true);
-                      }}>{t('Add Aadhar Detail')}</IonButton>
+                      }}>{t('Add Education Detail')}</IonButton>
                   </IonButtons>
                     
                   
                     </>
                       ):(
                         <>
-                        <p><strong>{t('Aadhar Detail')}:</strong> Uploaded</p>
+                        <p><strong>{t('Education Detail')}:</strong> Uploaded</p>
                         </>
                       )}
                             {duty.pan_pic==null && duty.pan==null ? ( 
@@ -490,7 +661,7 @@ alert(" E-Aadhar Copy and Aadhar Number is Mandatory. Please upload!");
                         <p><strong>{t('Gun Licence Copy')}:</strong> Uploaded</p>
                         </>
                       )}
-                                 {duty.gun_pic==null ? ( 
+                                 {duty.epf_pic==null ? ( 
                         <><IonButtons slot="end">
                     <IonButton color={'primary'} className="md button button-full"  href='javascript: viod(0);' 
                      onClick={() => {
@@ -509,7 +680,6 @@ alert(" E-Aadhar Copy and Aadhar Number is Mandatory. Please upload!");
                       
                      </div>
               {duty.pan_pic!=null && duty.pan!=null &&
-              duty.aadhar_no!=null && duty.aadhar_pic!=null && 
               duty.bank_pic!=null && duty.bankacno!='' && duty.bankifsc!=null && 
               duty.blood_group!=null && duty.medical_report!=null && duty.police_ver_report!=null
               && duty.enquiry_status==0 ? (       
@@ -525,17 +695,22 @@ alert(" E-Aadhar Copy and Aadhar Number is Mandatory. Please upload!");
                   </div>
                 ))
               ) : (
-                <IonLabel>You have not added any gaurd</IonLabel>
+                <IonLabel><div className='notFound'>
+                <IonImg src="./assets/imgs/nodata.svg" alt="header" />
+                No recruitment found</div>
+              </IonLabel>
+                
               )}
 
             </IonCard>
 
 
 
+
             <IonModal isOpen={showRequestModal} onDidDismiss={() => setShowRequestModal(false)}>
               <IonHeader>
                 <IonToolbar>
-                  {reqType === 'aadhar' ? ( <IonTitle>{('Add Aadhar Detail')}</IonTitle>) : 
+                  {reqType === 'education' ? ( <IonTitle>{('Add Education Detail')}</IonTitle>) : 
                   reqType === 'pancard' ? (<IonTitle>{('Add Pancard Detail')}</IonTitle>) :
                   reqType === 'bankdetail' ? (<IonTitle>{('Add Bank Detail')}</IonTitle>) :
                   reqType === 'medical' ? (<IonTitle>{('Add Medical Report')}</IonTitle>) :
@@ -551,23 +726,40 @@ alert(" E-Aadhar Copy and Aadhar Number is Mandatory. Please upload!");
               </IonHeader>
               <IonContent>
                 <IonList>
-                  {reqType === 'aadhar' ? (<>
-                    <IonItem>
-            <IonLabel position="floating">{t('Aadhar No')}</IonLabel>
-            <IonInput name="aadhar_no" type='number' max="16"   value={text1value} onIonInput={e => settext1value(e.detail.value!)} ></IonInput>
-          </IonItem>
+                  {reqType === 'education' ? (<>
+            
           <IonItem>
-          <IonButton expand="full" onClick={handleaadharpiccameraStart}> {t('Add Aadhar Pic')}</IonButton>
+            <IonLabel position="floating">{t('Education')}</IonLabel>
+            <IonInput name="education" value={text1value} onIonInput={e => settext1value(e.detail.value!)}></IonInput>
           </IonItem>
-          {saveaadharpic && <>
-           <IonItem>
-              <img
-                src={`data:image/jpeg;base64,${JSON.parse(saveaadharpic).base64String}`}
-                alt="Preview Image"
-                style={{ width: 'auto', height: '100px' }}
-              />
-            </IonItem>
-          </>}
+
+
+          <IonItem>
+         <IonLabel>{t('Attach Education Certificate')} </IonLabel> 
+         {saveSelectededucation ? (   <IonButton expand="full"   onClick={() => {setsaveSelectededucation('');}}> {t('Clear Image')}</IonButton>
+        ):('')}
+ </IonItem>
+          {saveSelectededucation && <>
+          
+          <IonItem>
+             <img onClick={handleeducationcameraStart}
+               src={`data:image/jpeg;base64,${JSON.parse(saveSelectededucation).base64String}`}
+               alt="Preview Image"
+               style={{ width: 'auto', height: '100px' }}
+             />
+           </IonItem>
+         </>}
+
+         {!saveSelectededucation &&<>   
+ <IonItem>     <img onClick={handleeducationcameraStart}
+  src='./assets/imgs/image-preview.jpg'
+  alt="Preview Image"
+  style={{ width: 'auto', height: '60px' }}
+/>
+
+
+</IonItem></>}
+
                     </>
                   ) : reqType === 'pancard' ? (
                    <>
@@ -575,18 +767,31 @@ alert(" E-Aadhar Copy and Aadhar Number is Mandatory. Please upload!");
             <IonLabel position="floating">{t('Pan Card')}</IonLabel>
             <IonInput name="pan"   value={text1value} onIonInput={e => settext1value(e.detail.value!)}></IonInput>
           </IonItem>
+         
           <IonItem>
-          <IonButton expand="full" onClick={handlepanpiccameraStart}> {t('Add Pan Card Pic')}</IonButton>
-          </IonItem>
+         <IonLabel>{t('Add Pan Card Pic')}</IonLabel> 
+         {savepanpic ? (   <IonButton expand="full"   onClick={() => {setsavepanpic('');}}> {t('Clear Image')}</IonButton>
+        ):('')}
+ </IonItem>
+
           {savepanpic && <>
            <IonItem>
-              <img
+              <img onClick={handlepanpiccameraStart}
                 src={`data:image/jpeg;base64,${JSON.parse(savepanpic).base64String}`}
                 alt="Preview Image"
                 style={{ width: 'auto', height: '100px' }}
               />
             </IonItem>
           </>}
+          {!savepanpic &&<>   
+ <IonItem>     <img    onClick={handlepanpiccameraStart}
+  src='./assets/imgs/image-preview.jpg'
+  alt="Preview Image"
+  style={{ width: 'auto', height: '60px' }}
+/>
+
+
+</IonItem></>}
                    
                    </>
                  ) : reqType === 'medical' ? (<>
@@ -594,82 +799,148 @@ alert(" E-Aadhar Copy and Aadhar Number is Mandatory. Please upload!");
                       <IonLabel position="floating">{t('Blood Group')}</IonLabel>
                       <IonInput name="blood_group"   value={text1value} onIonInput={e => settext1value(e.detail.value!)} ></IonInput>
                     </IonItem>
+                
                     <IonItem>
-                    <IonButton expand="full" onClick={handlemedicalcameraStart}> {t('Attach Medical Report')}</IonButton>
-                    </IonItem>
+         <IonLabel>{t('Attach Medical Report')}</IonLabel> 
+         {savepanpic ? (   <IonButton expand="full"   onClick={() => {setsaveSelectedmedical('');}}> {t('Clear Image')}</IonButton>
+        ):('')}
+ </IonItem>
+
                     {saveSelectedmedical && <>
                      <IonItem>
-                        <img
+                        <img  onClick={handlemedicalcameraStart}
                           src={`data:image/jpeg;base64,${JSON.parse(saveSelectedmedical).base64String}`}
                           alt="Preview Image"
                           style={{ width: 'auto', height: '100px' }}
                         />
                       </IonItem>
-                    </>}       
+                    </>}  
+                    {!saveSelectedmedical &&<>   
+ <IonItem>     <img    onClick={handlemedicalcameraStart}
+  src='./assets/imgs/image-preview.jpg'
+  alt="Preview Image"
+  style={{ width: 'auto', height: '60px' }}
+/>
+
+
+</IonItem></>}
+
                     </>
                       ) : reqType === 'bankdetail' ? (<>
+                      
                                 <IonItem>
             <IonLabel position="floating">{t('Bank A/C No')}</IonLabel>
-            <IonInput name="bankacno"   value={text1value} onIonInput={e => settext1value(e.detail.value!)} ></IonInput>
+            <IonInput name="bankacno" type='number'   value={text1value} onIonInput={e => settext1value(e.detail.value!)} ></IonInput>
           </IonItem>
           <IonItem>
             <IonLabel position="floating">{t('Bank IFSC')}</IonLabel>
             <IonInput name="bankifsc"   value={text2value} onIonInput={e => settext2value(e.detail.value!)}></IonInput>
           </IonItem>
           <IonItem>
-          <IonButton expand="full" onClick={handlebankcameraStart}> {t('Attach Bank Passbook Copy')}</IonButton>
-          </IonItem>
+         <IonLabel>{t('Attach Bank Passbook Copy')}</IonLabel> 
+         {savepanpic ? (   <IonButton expand="full"   onClick={() => {setsavebankpic('');}}> {t('Clear Image')}</IonButton>
+        ):('')}
+ </IonItem>
+
           {savebankpic && <>
            <IonItem>
-              <img
+              <img   onClick={handlebankcameraStart}
                 src={`data:image/jpeg;base64,${JSON.parse(savebankpic).base64String}`}
                 alt="Preview Image"
                 style={{ width: 'auto', height: '100px' }}
               />
             </IonItem>
-          </>}      
+          </>}   
+          {!savebankpic &&<>   
+ <IonItem>     <img    onClick={handlebankcameraStart}
+  src='./assets/imgs/image-preview.jpg'
+  alt="Preview Image"
+  style={{ width: 'auto', height: '60px' }}
+/>
+
+
+</IonItem></>}   
                       </>
                              ) : reqType === 'policeverification' ? (<>
-                                    <IonItem>
-          <IonButton expand="full" onClick={handlepolicecameraStart}> {t('Attach Police verification Report Copy')}</IonButton>
-          </IonItem>
+            
+          <IonItem>
+         <IonLabel>{t('Attach Police verification Report Copy')}</IonLabel> 
+         {savepanpic ? (   <IonButton expand="full"   onClick={() => {setsaveSelectedpolice('');}}> {t('Clear Image')}</IonButton>
+        ):('')}
+ </IonItem>
           {saveSelectedpolice && <>
            <IonItem>
-              <img
+              <img   onClick={handlepolicecameraStart}
                 src={`data:image/jpeg;base64,${JSON.parse(saveSelectedpolice).base64String}`}
                 alt="Preview Image"
                 style={{ width: 'auto', height: '100px' }}
               />
             </IonItem>
           </>}
+
+          {!saveSelectedpolice &&<>   
+ <IonItem>     <img    onClick={handlepolicecameraStart}
+  src='./assets/imgs/image-preview.jpg'
+  alt="Preview Image"
+  style={{ width: 'auto', height: '60px' }}
+/>
+
+
+</IonItem></>}  
                     </>
                                       ) : reqType === 'gunlicence' ? (<>
-                                  <IonItem>
-          <IonButton expand="full" onClick={handleguncameraStart}> {t('Attach Gun Licence Copy')}</IonButton>
-          </IonItem>
+           
+          <IonItem>
+         <IonLabel>{t('Attach Gun Licence Copy')}</IonLabel> 
+         {savepanpic ? (   <IonButton expand="full"   onClick={() => {setsaveSelectedpolice('');}}> {t('Clear Image')}</IonButton>
+        ):('')}
+ </IonItem>
           {savegunpic && <>
            <IonItem>
-              <img
+              <img   onClick={handleguncameraStart}
                 src={`data:image/jpeg;base64,${JSON.parse(savegunpic).base64String}`}
                 alt="Preview Image"
                 style={{ width: 'auto', height: '100px' }}
               />
             </IonItem>
           </>}
+          {!savegunpic &&<>   
+ <IonItem>     <img    onClick={handleguncameraStart}
+  src='./assets/imgs/image-preview.jpg'
+  alt="Preview Image"
+  style={{ width: 'auto', height: '60px' }}
+/>
+
+
+</IonItem></>}
                         </>
                           ) : reqType === 'pfdetail' ? (<>
-        <IonItem>
-          <IonButton expand="full" onClick={handleepfcameraStart}> {t('Attach Existing EPF & ESIC No Copy')}</IonButton>
-          </IonItem>
+   
+          <IonItem>
+         <IonLabel>{t('Attach Existing EPF & ESIC No Copy')}</IonLabel> 
+         {saveepfpic ? (   <IonButton expand="full"   onClick={() => {setsaveepfpic('');}}> {t('Clear Image')}</IonButton>
+        ):('')}
+ </IonItem>
+
              {saveepfpic && <>
            <IonItem>
-              <img
+              <img   onClick={handleepfcameraStart}
                 src={`data:image/jpeg;base64,${JSON.parse(saveepfpic).base64String}`}
                 alt="Preview Image"
                 style={{ width: 'auto', height: '100px' }}
               />
             </IonItem>
           </>}
+
+          {!saveepfpic &&<>   
+ <IonItem>     <img    onClick={handleepfcameraStart}
+  src='./assets/imgs/image-preview.jpg'
+  alt="Preview Image"
+  style={{ width: 'auto', height: '60px' }}
+/>
+
+
+</IonItem></>}
                   </>
                   ) : null}
                 </IonList>
@@ -677,7 +948,7 @@ alert(" E-Aadhar Copy and Aadhar Number is Mandatory. Please upload!");
          <IonItem className='daily-report-submit'> <IonSpinner name="lines"></IonSpinner></IonItem>
         ) : ('')}
                 <IonButton disabled={showspinner} expand="full" onClick={handleAddGuard}>
-                {reqType === 'aadhar' ? ( <>{t('Add Aadhar Detail')} </>) : 
+                {reqType === 'education' ? ( <>{t('Add Education Detail')} </>) : 
                   reqType === 'pancard' ? ( <>{t('Add Pancard Detail')}</>) :
                   reqType === 'bankdetail' ? ( <>{t('Add Bank Detail')}</>) :
                   reqType === 'medical' ? ( <>{t('Add Medical Report')}</>) :
@@ -698,7 +969,7 @@ alert(" E-Aadhar Copy and Aadhar Number is Mandatory. Please upload!");
           message={alertMessage}
           buttons={['OK']}
         />
-
+<br></br><br></br>
       </IonContent>
       <div className="footer">
       <CustomFooter />

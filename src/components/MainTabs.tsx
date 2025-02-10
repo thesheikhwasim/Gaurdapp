@@ -6,6 +6,7 @@ import {
   IonTabButton,
   IonIcon,
   IonLabel,
+  IonBadge,
 } from '@ionic/react';
 import { Route, Redirect } from 'react-router';
 import { calendar, location, informationCircle, people, homeOutline, notifications, notificationsCircleOutline, calendarOutline, ticketOutline } from 'ionicons/icons';
@@ -51,6 +52,8 @@ const MainTabs: React.FC<MainTabsProps> = () => {
       return <Dashboard />;
     }
   }
+  
+  const notifcationcount=localStorage.getItem('unreadnotification');
   return (
     <IonTabs>
       <IonRouterOutlet>
@@ -111,8 +114,12 @@ const MainTabs: React.FC<MainTabsProps> = () => {
           <IonLabel>{t('SOP')}</IonLabel>
         </IonTabButton>
         <IonTabButton tab="Notice" href="/pages/tabs/Notice">
+        
           <IonIcon icon={notificationsCircleOutline} />
-          <IonLabel>{t('Notification')}</IonLabel>
+          
+          <IonLabel>{t('Notice Board')}
+            {notifcationcount!='0' ?( <IonBadge className='iconcircle' slot="start">{notifcationcount}</IonBadge>):('')}
+           </IonLabel>
         </IonTabButton>
         <IonTabButton tab="Setting" href="/pages/tabs/Accountupd">
           <IonIcon icon={people} />

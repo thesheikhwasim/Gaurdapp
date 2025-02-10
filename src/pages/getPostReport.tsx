@@ -17,7 +17,7 @@ import CustomFooter from './CustomFooter';
 import { BASEURL } from '../utilities_constant';
 import { t } from 'i18next';
 import { useHistory } from 'react-router-dom';
-
+import { Geolocation } from '@capacitor/geolocation';
 
 
 
@@ -59,51 +59,16 @@ const GetRequests: React.FC = () => {
   const [nocomment, setnocomment] = useState(false);
   const [nodetail, setnodetail] = useState('');
   const [showspinner, setshowspinner] = useState<boolean>(false);
-
-
+  const [Latitude, setLatitude] = useState('');
+  const [Longitude, setLongitude] = useState('');
+  const [locationPermissionchk, setLocationPermissionchk] = useState(true);
   useEffect(() => {
-    const storedLang = localStorage.getItem('language');
-    const url = BASEURL+"daily_post_report_question.php";
-    const formData = new FormData();
-    formData.append('action', "daily_post_report_ques");
-    formData.append('token', token);
-    formData.append('language',storedLang);
-  
-    
-    axios.post(url, formData)
-      .then(response => {
-        if (response.data && response.data.success) {
-          settotalquestion(response.data.employee_data.totalques);
-          setRequestData(response.data.employee_data.question_data);
-          setquestionsubmitted(response.data.employee_data.question_submitted);
-          if(response.data.employee_data.question_submitted===true)
-          {
-            setquessubmittedDate(response.data.employee_data.answer_data[0].updated_on);
-            setquessubmittedData(response.data.employee_data.answer_data);
-          }
-        
-          setquesid(response.data.employee_data.question_data[0].question_master_id);
-          setquestitle(response.data.employee_data.question_data[0].question_title);
-           setpostquesassignid(response.data.employee_data.question_data[0].post_ques_assign_id);
-          setotherdetailtitle(response.data.employee_data.question_data[0].question_other_detail_title);
-          setdatetimetitle(response.data.employee_data.question_data[0].question_datetime_title);
-          setbranchcodeneeded(response.data.employee_data.question_data[0].branch_code_needed);
-          setdatetimeneeded(response.data.employee_data.question_data[0].question_datetime_needed);
-          setdatetimeendneeded(response.data.employee_data.question_data[0].question_end_datetime_needed);
-          setdatetimeendtitle(response.data.employee_data.question_data[0].question_end_datetime_title);
-          setotherdetailneeded(response.data.employee_data.question_data[0].question_other_detail_text);
-          
-        } else {
-          console.error('Failed to fetch requests:', response.data);
-        }
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching requests:', error);
-        setLoading(false);
-      });
-
-
+    const token = localStorage.getItem('token');
+    if(token)
+      {
+        ongoingNewHandlerWithLocation(token);
+      }
+      
    
 
 
@@ -117,14 +82,21 @@ const GetRequests: React.FC = () => {
     setShowRequestModal(true);
   }
 
-  const fetchquestionData = async (token: string) => {
+
+
+
+
+  const fetchquestionData = async (dataParam:any) => {
     const storedLang = localStorage.getItem('language');
     const url = BASEURL+"daily_post_report_question.php";
     const formData = new FormData();
     formData.append('action', "daily_post_report_ques");
     formData.append('token', token);
     formData.append('language',storedLang);
-  
+    if(dataParam && dataParam?.coords && dataParam?.coords?.latitude){
+      formData.append('latitude', dataParam?.coords?.latitude);
+      formData.append('longitude', dataParam?.coords?.longitude);
+    }
     
     axios.post(url, formData)
       .then(response => {
@@ -162,8 +134,82 @@ const GetRequests: React.FC = () => {
 
   };
 
-  
 
+  function ongoingNewHandlerWithLocation(token:any){
+    captureLocation('fromNewOngoingHandler').then((res) => {
+      // console.log("BEFORE CALLED ONGOING::::", res);
+      
+      if((res && res?.coords && res?.coords?.latitude)){
+        setLocationPermissionchk(true);
+         setLatitude(res?.coords?.latitude);
+        setLongitude(res?.coords?.longitude);
+       
+ 
+        fetchquestionData(res);
+
+      }else{
+        setLocationPermissionchk(false);
+
+
+        setTimeout(async() => {
+        
+          window.location.reload();
+        }, 500);
+      
+      }
+    }).catch((error)=>{
+     
+  
+    });
+  }
+
+
+
+  const captureLocation = (fromParam:string) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const permissions = await Geolocation.checkPermissions();
+     
+        // Case to validate permission is denied, if denied error message alert will be shown
+        if (permissions?.location == "denied") {
+          setLocationPermissionchk(false);
+           present({
+            message: `Your location permission is denied, enable it manually from app settings and re-load application!`,
+            duration: 500,
+            position: 'bottom',
+          });
+      
+        }
+        else
+        {
+         
+          setLocationPermissionchk(true);
+        }
+
+        const options = {
+          enableHighAccuracy: true,
+          timeout: 100,
+          maximumAge: 0,
+        };
+        Geolocation.getCurrentPosition(options)
+          .then((position) => {
+            if (position && position.coords.latitude) {
+              // console.log("CAPTURE LOCATION is setting lat long:::: ",position.coords.latitude.toString(), "-- longitude--", position.coords.longitude.toString());
+              setLatitude(position.coords.latitude.toString());
+              setLongitude(position.coords.longitude.toString());
+             
+            }
+            resolve(position);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+ 
   const handleSubmit = (event) => {
    
     if(branchcode==='' && branchcodeneeded===1 && selectoption==='YES')
@@ -204,6 +250,8 @@ const GetRequests: React.FC = () => {
     formData.append('datetimeendtitle',datetimeendtitle);
     formData.append('datetimeend',datetimeend);
     formData.append('postquesassignid',postquesassignid);
+    formData.append('longitude',Longitude);
+    formData.append('latitude',Latitude);
     setshowspinner(true);
     axios.post(url, formData)
     .then(response => {
@@ -239,7 +287,7 @@ const GetRequests: React.FC = () => {
   function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
     //Function that hits when ion pull to refresh is called
     setTimeout(() => {
-      //fetchquestionData(localStorage.getItem('token'));
+      ongoingNewHandlerWithLocation(token);
       handleSubmit;
       setReloader(!reloader);
       event.detail.complete();
@@ -275,9 +323,17 @@ const GetRequests: React.FC = () => {
       <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
             <IonRefresherContent></IonRefresherContent>
           </IonRefresher>
-        {loading ? (
-          <IonLoading isOpen={loading} message={'Loading...'} />
-        ) : (
+          {!locationPermissionchk ? (
+             <><div className='errorDashboardData'>
+             <IonSpinner name="lines"></IonSpinner>
+             <i style={{ marginLeft: '10px', color: '#000' }}>
+               {!locationPermissionchk ? (<>{`Check device’s GPS Location Service Enable it manually`}</>) : (<>
+                
+               </>)}
+ 
+             </i>
+           </div></>
+         ) : (
           <>
             <div className="header_title">
               <IonTitle className="header_title ion-text-center">{t('Submit Your Daily Post Report')}</IonTitle>
